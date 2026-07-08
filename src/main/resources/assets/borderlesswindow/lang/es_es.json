@@ -1,0 +1,10 @@
+{
+  "borderlesswindow.options.pages.general": "General",
+  "borderlesswindow.options.screen_mode.name": "Modo de pantalla",
+  "borderlesswindow.options.screen_mode.tooltip": "Elige entre ventana normal, pantalla completa sin bordes, o la pantalla completa normal de Minecraft.",
+  "borderlesswindow.options.f11_mode.name": "Modo de F11",
+  "borderlesswindow.options.f11_mode.tooltip": "Decide a qué modo cambia la tecla F11 desde ventana: pantalla sin bordes o la pantalla completa normal de Minecraft.",
+  "borderlesswindow.screen_mode.windowed": "En ventana",
+  "borderlesswindow.screen_mode.borderless": "Sin bordes",
+  "borderlesswindow.screen_mode.fullscreen": "Pantalla completa"
+}
