@@ -7,51 +7,76 @@ import net.caffeinemc.mods.sodium.api.config.structure.ConfigBuilder;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 
+import java.util.Set;
+
 /**
  * Entrypoint de la Sodium Config API. Sodium instancia esta clase y llama
  * a registerConfigLate() despues de que el juego arranco.
- *
- * IMPORTANTE - cosas a verificar la primera vez que corras esto:
- *
- * 1. El target de registerOptionReplacement() abajo es
- *    ResourceLocation.fromNamespaceAndPath("sodium", "fullscreen").
- *    Es mi mejor estimacion del ID interno que usa Sodium para su
- *    propia opcion de "Pantalla completa", pero no lo pude confirmar
- *    linea por linea contra el codigo fuente exacto de la version
- *    0.8.12-beta.2. Si al abrir el menu de video ves TU opcion
- *    "Modo de pantalla" apareciendo como una opcion NUEVA en vez de
- *    reemplazar la de Sodium, es que este ID esta mal -- avisame y
- *    lo verificamos juntos (se puede sacar del jar de Sodium con un
- *    simple grep del archivo assets/sodium/lang/en_us.json, buscando
- *    la traduccion de "fullscreen").
- *
- * 2. Si el compilador se queja de "ResourceLocation" o de los paquetes
- *    "net.caffeinemc.mods.sodium.api...", es casi seguro un tema de
- *    coordenadas Maven (ver build.gradle) -- puede que la version
- *    exacta del artefacto para 1.21.1 tenga un sufijo distinto al que
- *    puse ahi.
+ * <p>
+ * Verificado contra el codigo fuente real de Sodium mc1.21.1-0.8.12-beta.2:
+ * - El ID de su opcion de pantalla completa es "sodium:general.fullscreen"
+ *   (definido en SodiumConfigBuilder.java linea 170).
+ * - El reemplazo se matchea por ID exacto en Config.java (overrides.get(option.id)),
+ *   por eso con un ID incorrecto simplemente no pasa nada, sin error.
+ * - registerOwnModOptions() usa el mod id del @ConfigEntryPointForge.
  */
+@SuppressWarnings("unused")
 @ConfigEntryPointForge("borderlesswindow")
 public class ScreenModeConfigEntryPoint implements ConfigEntryPoint {
 
     private final ScreenModeStorage storage = new ScreenModeStorage();
-    private final Runnable flushHandler = this.storage::flush;
 
     @Override
     public void registerConfigLate(ConfigBuilder builder) {
-        builder.registerModOptions("sodium")
+        builder.registerOwnModOptions()
+                .setName("Borderless Window")
+                // Pagina propia del mod, aparece con su encabezado en la lista
+                // izquierda del menu de video. Contiene la opcion "Modo de F11".
+                .addPage(builder.createOptionPage()
+                        .setName(Component.translatable("borderlesswindow.options.pages.general"))
+                        .addOptionGroup(builder.createOptionGroup()
+                                .addOption(builder.createEnumOption(
+                                                ResourceLocation.parse("borderlesswindow:f11_mode"),
+                                                ScreenMode.class)
+                                        .setName(Component.translatable("borderlesswindow.options.f11_mode.name"))
+                                        .setTooltip(Component.translatable("borderlesswindow.options.f11_mode.tooltip"))
+                                        .setElementNameProvider(mode -> Component.translatable(mode.getTranslationKey()))
+                                        // WINDOWED no tiene sentido como destino de F11
+                                        .setAllowedValues(Set.of(ScreenMode.BORDERLESS, ScreenMode.FULLSCREEN))
+                                        .setStorageHandler(this.storage::flush)
+                                        .setBinding(this.storage::setF11Target, this.storage::getF11Target)
+                                        .setDefaultValue(ScreenMode.BORDERLESS)
+                                )
+                        )
+                )
                 .registerOptionReplacement(
-                        ResourceLocation.fromNamespaceAndPath("sodium", "fullscreen"),
+                        ResourceLocation.parse("sodium:general.fullscreen"),
                         builder.createEnumOption(
-                                        ResourceLocation.fromNamespaceAndPath("borderlesswindow", "screen_mode"),
+                                        ResourceLocation.parse("borderlesswindow:screen_mode"),
                                         ScreenMode.class)
-                                .setName(Component.literal("Modo de pantalla"))
-                                .setTooltip(Component.literal(
-                                        "Elige entre ventana normal, pantalla completa sin bordes, o el fullscreen normal de Minecraft."))
-                                .setElementNameProvider(mode -> Component.literal(mode.getDisplayName()))
-                                .setStorageHandler(this.flushHandler)
+                                .setName(Component.translatable("borderlesswindow.options.screen_mode.name"))
+                                .setTooltip(Component.translatable("borderlesswindow.options.screen_mode.tooltip"))
+                                .setElementNameProvider(mode -> Component.translatable(mode.getTranslationKey()))
+                                .setStorageHandler(this.storage::flush)
                                 .setBinding(this.storage::setScreenMode, this.storage::getScreenMode)
                                 .setDefaultValue(ScreenMode.WINDOWED)
+                )
+                // La opcion "Resolucion en pantalla completa" de Sodium dependia
+                // de "sodium:general.fullscreen" (que nuestro reemplazo elimino),
+                // y eso crasheaba la validacion de dependencias. Este overlay
+                // reemplaza SOLO su condicion de habilitado: ahora depende de
+                // nuestra opcion enum y se activa unicamente en modo Pantalla
+                // completa (el unico modo donde la resolucion exclusiva aplica).
+                // Nombre, binding, formatter, etc. se heredan del original.
+                .registerOptionOverlay(
+                        ResourceLocation.parse("sodium:general.fullscreen_resolution"),
+                        builder.createIntegerOption(
+                                        ResourceLocation.parse("sodium:general.fullscreen_resolution"))
+                                .setEnabledProvider(
+                                        state -> state.readEnumOption(
+                                                ResourceLocation.parse("borderlesswindow:screen_mode"),
+                                                ScreenMode.class) == ScreenMode.FULLSCREEN,
+                                        ResourceLocation.parse("borderlesswindow:screen_mode"))
                 );
     }
 }

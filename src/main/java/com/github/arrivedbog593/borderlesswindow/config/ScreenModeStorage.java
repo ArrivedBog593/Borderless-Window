@@ -10,7 +10,7 @@ import net.minecraft.client.Minecraft;
  * por si sola. Esta clase es el "storage" minimo que le pedimos: cuando
  * el usuario cambia la opcion en el menu, aplicamos el cambio real a la
  * ventana inmediatamente a traves de BorderlessHandler.
- *
+ * <p>
  * No hace falta persistir el valor en un archivo aparte: como el mixin
  * WindowMixin ya sobreescribe isFullscreen(), Minecraft sigue guardando
  * el estado "es fullscreen si/no" en options.txt igual que antes. El
@@ -22,6 +22,7 @@ import net.minecraft.client.Minecraft;
 public final class ScreenModeStorage {
 
     private ScreenMode pendingValue = BorderlessHandler.getCurrentMode();
+    private ScreenMode pendingF11Target = BorderlessHandler.getF11Target();
 
     public ScreenMode getScreenMode() {
         return BorderlessHandler.getCurrentMode();
@@ -31,8 +32,18 @@ public final class ScreenModeStorage {
         this.pendingValue = mode;
     }
 
+    public ScreenMode getF11Target() {
+        return BorderlessHandler.getF11Target();
+    }
+
+    public void setF11Target(ScreenMode target) {
+        this.pendingF11Target = target;
+    }
+
     /** Se llama cuando Sodium aplica los cambios (setStorageHandler). */
     public void flush() {
+        BorderlessHandler.setF11Target(this.pendingF11Target);
+
         Window window = Minecraft.getInstance().getWindow();
         BorderlessHandler.setMode(window, this.pendingValue);
     }

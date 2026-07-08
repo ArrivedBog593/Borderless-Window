@@ -1,22 +1,22 @@
 package com.github.arrivedbog593.borderlesswindow;
 
 /**
- * Los 3 estados que puede tener la ventana. Este enum se usa tanto
- * internamente (BorderlessHandler) como en la opcion que se muestra
- * en el menu de Sodium (via la Config API).
+ * Los 3 estados que puede tener la ventana. Cada estado tiene una clave
+ * de traduccion que se resuelve contra los lang files en
+ * assets/borderlesswindow/lang/ segun el idioma del juego.
  */
 public enum ScreenMode {
-    WINDOWED("Sin pantalla completa"),
-    BORDERLESS("Sin bordes"),
-    FULLSCREEN("Pantalla completa");
+    WINDOWED("borderlesswindow.screen_mode.windowed"),
+    BORDERLESS("borderlesswindow.screen_mode.borderless"),
+    FULLSCREEN("borderlesswindow.screen_mode.fullscreen");
 
-    private final String displayName;
+    private final String translationKey;
 
-    ScreenMode(String displayName) {
-        this.displayName = displayName;
+    ScreenMode(String translationKey) {
+        this.translationKey = translationKey;
     }
 
-    public String getDisplayName() {
-        return displayName;
+    public String getTranslationKey() {
+        return translationKey;
     }
 }

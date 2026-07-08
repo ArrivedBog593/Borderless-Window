@@ -43,8 +43,48 @@ ya usas para CustomGear.
   más de un monitor y quieres borderless en el secundario, hay que
   detectar en qué monitor está la ventana antes de aplicar — puedo
   ayudarte con eso si lo necesitas.
-- No agrega ninguna pantalla de configuración; F11 sigue siendo el único
-  control. Si luego quieres una opción en el menú de video, se puede
-  agregar fácil ya que la lógica base ya existe.
-- Cero dependencias obligatorias de Sodium ni de ningún otro mod — solo
-  NeoForge y Minecraft 1.21.1.
+- Cero dependencias OBLIGATORIAS: si alguien no tiene Sodium instalado,
+  el mod sigue funcionando igual con F11 (Ventana ↔ Sin bordes). La
+  integración con el menú de Sodium es enteramente opcional y no rompe
+  nada si Sodium no está presente.
+- El modo elegido en el menú de Sodium (Borderless vs. Fullscreen real)
+  no se recuerda entre sesiones en esta versión — solo se recuerda
+  "es fullscreen sí/no" (vía options.txt, como antes). Si quieres que
+  también recuerde cuál de los dos modos era, se puede agregar un
+  archivo de config chiquito para eso.
+
+## Integración con el menú de video de Sodium (nuevo)
+
+Esto agrega la opción "Modo de pantalla" (con 3 estados: Sin pantalla
+completa / Sin bordes / Pantalla completa) directamente en el menú de
+video de Sodium, **reemplazando** su checkbox de "Pantalla completa".
+
+Usa la **Config API oficial de Sodium** (disponible desde la 0.8.x, que
+es la que tienes con la 0.8.12-beta.2) — no toca ninguna clase interna
+de Sodium, así que en teoría no debería romperse con futuros updates de
+Sodium (a diferencia de mixinear directo a su GUI).
+
+### Pasos adicionales para esta parte
+
+1. Agrega el repositorio de CaffeineMC y la dependencia a tu
+   `build.gradle` — mira el archivo `build.gradle.snippet` incluido
+   aquí, tiene exactamente qué agregar y dónde.
+2. **Verifica la versión del artefacto** en <https://maven.caffeinemc.net>
+   buscando `sodium-neoforge-api`. Puse `0.8.12-beta.2+mc1.21.1` como
+   mejor estimación siguiendo el patrón que usan en otras versiones,
+   pero confírmalo ahí antes de compilar.
+3. Copia la carpeta `config/` (con `ScreenModeStorage.java` y
+   `ScreenModeConfigEntryPoint.java`) igual que el resto de los archivos.
+4. `./gradlew runClient` y abre el menú de video. Si todo salió bien,
+   donde antes decía "Pantalla completa" ahora debería decir
+   "Modo de pantalla" con tus 3 opciones.
+
+### Si no reemplaza la opción de Sodium (sale como opción nueva aparte)
+
+Es el punto más incierto de todo esto: el ID `sodium:fullscreen` que
+uso en `ScreenModeConfigEntryPoint.java` para apuntar al reemplazo es mi
+mejor estimación, no algo que pude confirmar línea por línea contra el
+código exacto de tu versión. Si pasa esto, dime y lo resolvemos rápido:
+la forma más directa es abrir el `.jar` de Sodium (es un zip) y revisar
+`assets/sodium/lang/en_us.json` para ver cómo está nombrada la traducción
+de esa opción, lo cual nos da una pista fuerte del ID real.

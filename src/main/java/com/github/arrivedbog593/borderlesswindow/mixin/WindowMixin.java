@@ -1,36 +1,39 @@
 package com.github.arrivedbog593.borderlesswindow.mixin;
 
 import com.github.arrivedbog593.borderlesswindow.BorderlessHandler;
+import com.github.arrivedbog593.borderlesswindow.ScreenMode;
 import com.mojang.blaze3d.platform.Window;
 import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 /**
- * Intercepta por completo el comportamiento de F11 (toggleFullScreen) y el
- * getter isFullscreen(). Al sobreescribir isFullscreen() tambien, el propio
- * Minecraft guarda el estado correcto en options.txt al cerrar el juego,
- * asi que el borderless se recuerda solo entre sesiones sin archivos
- * de configuracion aparte.
+ * F11 alterna entre Ventana y el modo configurado en "Modo de F11"
+ * (Sin bordes o Pantalla completa, seccion Borderless Window del menu
+ * de video). Los 3 modos tambien se pueden elegir directo desde la
+ * opcion "Modo de pantalla" que reemplaza a la de Sodium.
+ * <p>
+ * isFullscreen() se sobreescribe para que options.txt guarde correctamente
+ * si el estado actual es distinto de WINDOWED, sin importar cual de los
+ * dos modos "no ventana" este activo.
  */
 @Mixin(Window.class)
 public abstract class WindowMixin {
 
-    @Unique
-    private boolean borderlesswindow$enabled = false;
-
     @Inject(method = "toggleFullScreen", at = @At("HEAD"), cancellable = true)
     private void borderlesswindow$onToggle(CallbackInfo ci) {
-        ci.cancel(); // cancelamos el fullscreen exclusivo original de Mojang
-        borderlesswindow$enabled = !borderlesswindow$enabled;
-        BorderlessHandler.apply((Window) (Object) this, borderlesswindow$enabled);
+        ci.cancel();
+        Window self = (Window) (Object) this;
+        ScreenMode next = BorderlessHandler.getCurrentMode() == ScreenMode.WINDOWED
+                ? BorderlessHandler.getF11Target()
+                : ScreenMode.WINDOWED;
+        BorderlessHandler.setMode(self, next);
     }
 
     @Inject(method = "isFullscreen", at = @At("RETURN"), cancellable = true)
     private void borderlesswindow$isFullscreen(CallbackInfoReturnable<Boolean> cir) {
-        cir.setReturnValue(borderlesswindow$enabled);
+        cir.setReturnValue(BorderlessHandler.getCurrentMode() != ScreenMode.WINDOWED);
     }
 }
