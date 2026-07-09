@@ -2,6 +2,7 @@ package com.github.arrivedbog593.borderlesswindow.mixin;
 
 import com.github.arrivedbog593.borderlesswindow.BorderlessHandler;
 import com.github.arrivedbog593.borderlesswindow.ScreenMode;
+import com.github.arrivedbog593.borderlesswindow.SodiumMenuRefresher;
 import com.mojang.blaze3d.platform.Window;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
@@ -30,6 +31,11 @@ public abstract class WindowMixin {
                 ? BorderlessHandler.getF11Target()
                 : ScreenMode.WINDOWED;
         BorderlessHandler.setMode(self, next);
+
+        // Si el menu de video de Sodium esta abierto en este momento,
+        // refrescamos sus controles para que "Modo de pantalla" refleje
+        // el cambio hecho con F11 en vivo.
+        SodiumMenuRefresher.refreshIfSodiumMenuOpen();
     }
 
     @Inject(method = "isFullscreen", at = @At("RETURN"), cancellable = true)

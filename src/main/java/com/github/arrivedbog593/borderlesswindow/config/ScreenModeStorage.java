@@ -22,7 +22,10 @@ import net.minecraft.client.Minecraft;
 public final class ScreenModeStorage {
 
     private ScreenMode pendingValue = BorderlessHandler.getCurrentMode();
+    private boolean screenModeDirty = false;
+
     private ScreenMode pendingF11Target = BorderlessHandler.getF11Target();
+    private boolean f11TargetDirty = false;
 
     public ScreenMode getScreenMode() {
         return BorderlessHandler.getCurrentMode();
@@ -30,6 +33,7 @@ public final class ScreenModeStorage {
 
     public void setScreenMode(ScreenMode mode) {
         this.pendingValue = mode;
+        this.screenModeDirty = true;
     }
 
     public ScreenMode getF11Target() {
@@ -38,13 +42,28 @@ public final class ScreenModeStorage {
 
     public void setF11Target(ScreenMode target) {
         this.pendingF11Target = target;
+        this.f11TargetDirty = true;
     }
 
-    /** Se llama cuando Sodium aplica los cambios (setStorageHandler). */
+    /**
+     * Se llama cuando Sodium aplica los cambios (setStorageHandler).
+     * <p>
+     * IMPORTANTE: solo aplicamos lo que el usuario cambio DE VERDAD en el
+     * menu (flags dirty). Antes, flush() aplicaba pendingValue siempre --
+     * y como pendingValue solo se actualiza al tocar la opcion en el menu,
+     * aplicar cualquier otra opcion despues de usar F11 revertia el modo
+     * al valor viejo cacheado.
+     */
     public void flush() {
-        BorderlessHandler.setF11Target(this.pendingF11Target);
+        if (this.f11TargetDirty) {
+            BorderlessHandler.setF11Target(this.pendingF11Target);
+            this.f11TargetDirty = false;
+        }
 
-        Window window = Minecraft.getInstance().getWindow();
-        BorderlessHandler.setMode(window, this.pendingValue);
+        if (this.screenModeDirty) {
+            Window window = Minecraft.getInstance().getWindow();
+            BorderlessHandler.setMode(window, this.pendingValue);
+            this.screenModeDirty = false;
+        }
     }
 }
