@@ -117,9 +117,21 @@ public final class BorderlessHandler {
         glfwGetMonitorPos(monitor, monitorX, monitorY);
 
         glfwSetWindowAttrib(handle, GLFW_DECORATED, GLFW_FALSE);
+
+        // TRUCO ANTI-PROMOCION (+1 pixel de alto):
+        // Si la ventana sin bordes cubre EXACTAMENTE el monitor, Windows y
+        // el driver de la GPU (sobre todo NVIDIA en OpenGL) la "promueven"
+        // a un modo de presentacion tipo fullscreen exclusivo (independent
+        // flip). Con HDR activado, esa promocion causa el mismo parpadeo
+        // negro / cambio de perfil de color que el fullscreen exclusivo --
+        // justo lo que este modo intenta evitar. Hacer la ventana 1 pixel
+        // mas alta que el monitor evita la deteccion; el pixel extra queda
+        // fuera de la pantalla y es invisible. Es el mismo workaround que
+        // usan las herramientas de borderless como Special K o Borderless
+        // Gaming.
         assert vidMode != null;
         glfwSetWindowMonitor(handle, 0L, monitorX[0], monitorY[0],
-                vidMode.width(), vidMode.height(), GLFW_DONT_CARE);
+                vidMode.width(), vidMode.height() + 1, GLFW_DONT_CARE);
     }
 
     private static void applyExclusiveFullscreen(long handle) {
