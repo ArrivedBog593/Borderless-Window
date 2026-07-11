@@ -10,15 +10,15 @@ import net.minecraft.resources.ResourceLocation;
 import java.util.Set;
 
 /**
- * Entrypoint de la Sodium Config API. Sodium instancia esta clase y llama
- * a registerConfigLate() despues de que el juego arranco.
+ * Sodium Config API entry point. Sodium instantiates this class and calls
+ * registerConfigLate() after the game has started.
  * <p>
- * Verificado contra el codigo fuente real de Sodium mc1.21.1-0.8.12-beta.2:
- * - El ID de su opcion de pantalla completa es "sodium:general.fullscreen"
- *   (definido en SodiumConfigBuilder.java linea 170).
- * - El reemplazo se matchea por ID exacto en Config.java (overrides.get(option.id)),
- *   por eso con un ID incorrecto simplemente no pasa nada, sin error.
- * - registerOwnModOptions() usa el mod id del @ConfigEntryPointForge.
+ * Verified against the actual Sodium mc1.21.1-0.8.12 source code:
+ * - The ID of its fullscreen option is "sodium:general.fullscreen"
+ *   (defined in SodiumConfigBuilder.java).
+ * - Replacements are matched by exact ID in Config.java
+ *   (overrides.get(option.id)), so a wrong ID silently does nothing.
+ * - registerOwnModOptions() uses the mod id from @ConfigEntryPointForge.
  */
 @SuppressWarnings("unused")
 @ConfigEntryPointForge("borderlesswindow")
@@ -30,8 +30,9 @@ public class ScreenModeConfigEntryPoint implements ConfigEntryPoint {
     public void registerConfigLate(ConfigBuilder builder) {
         builder.registerOwnModOptions()
                 .setName("Borderless Window")
-                // Pagina propia del mod, aparece con su encabezado en la lista
-                // izquierda del menu de video. Contiene la opcion "Modo de F11".
+                // The mod's own page, shown with its header in the left-hand
+                // list of the video settings menu. Contains the "F11 Mode"
+                // option.
                 .addPage(builder.createOptionPage()
                         .setName(Component.translatable("borderlesswindow.options.pages.general"))
                         .addOptionGroup(builder.createOptionGroup()
@@ -41,7 +42,7 @@ public class ScreenModeConfigEntryPoint implements ConfigEntryPoint {
                                         .setName(Component.translatable("borderlesswindow.options.f11_mode.name"))
                                         .setTooltip(Component.translatable("borderlesswindow.options.f11_mode.tooltip"))
                                         .setElementNameProvider(mode -> Component.translatable(mode.getTranslationKey()))
-                                        // WINDOWED no tiene sentido como destino de F11
+                                        // WINDOWED makes no sense as an F11 target
                                         .setAllowedValues(Set.of(ScreenMode.BORDERLESS, ScreenMode.FULLSCREEN))
                                         .setStorageHandler(this.storage::flush)
                                         .setBinding(this.storage::setF11Target, this.storage::getF11Target)
@@ -61,13 +62,14 @@ public class ScreenModeConfigEntryPoint implements ConfigEntryPoint {
                                 .setBinding(this.storage::setScreenMode, this.storage::getScreenMode)
                                 .setDefaultValue(ScreenMode.WINDOWED)
                 )
-                // La opcion "Resolucion en pantalla completa" de Sodium dependia
-                // de "sodium:general.fullscreen" (que nuestro reemplazo elimino),
-                // y eso crasheaba la validacion de dependencias. Este overlay
-                // reemplaza SOLO su condicion de habilitado: ahora depende de
-                // nuestra opcion enum y se activa unicamente en modo Pantalla
-                // completa (el unico modo donde la resolucion exclusiva aplica).
-                // Nombre, binding, formatter, etc. se heredan del original.
+                // Sodium's "Fullscreen Resolution" option used to depend on
+                // "sodium:general.fullscreen" (which our replacement removed),
+                // and that crashed the dependency validation. This overlay
+                // replaces ONLY its enabled condition: it now depends on our
+                // enum option and is enabled solely in exclusive Fullscreen
+                // mode (the only mode where switching the display resolution
+                // applies). Name, binding, formatter, etc. are inherited from
+                // the original option.
                 .registerOptionOverlay(
                         ResourceLocation.parse("sodium:general.fullscreen_resolution"),
                         builder.createIntegerOption(

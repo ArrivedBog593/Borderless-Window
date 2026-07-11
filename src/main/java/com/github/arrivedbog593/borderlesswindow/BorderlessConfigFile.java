@@ -9,19 +9,19 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 
 /**
- * Persistencia minima en config/borderlesswindow.json. Guarda el modo de
- * pantalla actual y el modo de F11 para restaurarlos al abrir el juego.
+ * Minimal persistence in config/borderlesswindow.json. Stores the current
+ * screen mode and the F11 mode so they can be restored at game startup.
  * <p>
- * Es deliberadamente tolerante a errores: si el archivo no existe, esta
- * corrupto, o tiene valores invalidos, se usan los defaults (Ventana /
- * F11 -> Sin bordes) sin crashear.
+ * Deliberately fault-tolerant: if the file is missing, corrupt, or has
+ * invalid values, the defaults are used (Windowed / F11 -> Borderless)
+ * without crashing.
  */
 public final class BorderlessConfigFile {
 
     private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
     private static final Path PATH = FMLPaths.CONFIGDIR.get().resolve("borderlesswindow.json");
 
-    /** Estructura del JSON. Gson serializa/deserializa esto directo. */
+    /** JSON structure. Gson serializes/deserializes this directly. */
     private static class Data {
         String screen_mode = ScreenMode.WINDOWED.name();
         String f11_mode = ScreenMode.BORDERLESS.name();
@@ -57,8 +57,8 @@ public final class BorderlessConfigFile {
         try {
             Files.writeString(PATH, GSON.toJson(data));
         } catch (IOException ignored) {
-            // No es critico: si falla el guardado, simplemente no se
-            // recordara el modo la proxima vez. Mejor eso que crashear.
+            // Not critical: if saving fails, the mode simply won't be
+            // remembered next time. Better that than crashing.
         }
     }
 

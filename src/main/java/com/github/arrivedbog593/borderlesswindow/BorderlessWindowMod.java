@@ -6,11 +6,11 @@ import net.neoforged.fml.common.Mod;
 import net.neoforged.fml.event.lifecycle.FMLClientSetupEvent;
 
 /**
- * Mod client-only que reemplaza el fullscreen exclusivo de Minecraft
- * por un sistema de 3 modos (Ventana / Sin bordes / Pantalla completa)
- * integrado al menu de video de Sodium.
+ * Client-only mod that replaces Minecraft's exclusive fullscreen with a
+ * 3-mode system (Windowed / Borderless / Fullscreen), integrated into
+ * Sodium's video settings menu when Sodium is present.
  * <p>
- * Al arrancar el cliente, restaura el modo guardado en
+ * At client startup it restores the mode saved in
  * config/borderlesswindow.json (via BorderlessHandler.initializeFromConfig).
  */
 @Mod(BorderlessWindowMod.MODID)
@@ -23,8 +23,8 @@ public class BorderlessWindowMod {
     }
 
     private void onClientSetup(FMLClientSetupEvent event) {
-        // enqueueWork corre en el hilo principal del juego -- obligatorio
-        // porque las llamadas GLFW no son thread-safe.
+        // enqueueWork runs on the game's main thread -- mandatory, since
+        // GLFW calls are not thread-safe.
         event.enqueueWork(() ->
                 BorderlessHandler.initializeFromConfig(Minecraft.getInstance().getWindow()));
     }

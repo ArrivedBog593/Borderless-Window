@@ -11,14 +11,14 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 /**
- * F11 alterna entre Ventana y el modo configurado en "Modo de F11"
- * (Sin bordes o Pantalla completa, seccion Borderless Window del menu
- * de video). Los 3 modos tambien se pueden elegir directo desde la
- * opcion "Modo de pantalla" que reemplaza a la de Sodium.
+ * F11 toggles between Windowed and the mode configured in "F11 Mode"
+ * (Borderless or Fullscreen, in the Borderless Window section of the
+ * video settings menu). All 3 modes can also be selected directly via
+ * the "Screen Mode" option that replaces Sodium's fullscreen checkbox.
  * <p>
- * isFullscreen() se sobreescribe para que options.txt guarde correctamente
- * si el estado actual es distinto de WINDOWED, sin importar cual de los
- * dos modos "no ventana" este activo.
+ * isFullscreen() is overridden, so options.txt correctly stores whether
+ * the current state differs from WINDOWED, regardless of which of the
+ * two non-windowed modes is active.
  */
 @Mixin(Window.class)
 public abstract class WindowMixin {
@@ -32,9 +32,8 @@ public abstract class WindowMixin {
                 : ScreenMode.WINDOWED;
         BorderlessHandler.setMode(self, next);
 
-        // Si el menu de video de Sodium esta abierto en este momento,
-        // refrescamos sus controles para que "Modo de pantalla" refleje
-        // el cambio hecho con F11 en vivo.
+        // If Sodium's video settings menu is open right now, refresh its
+        // controls so "Screen Mode" reflects the F11 change live.
         SodiumMenuRefresher.refreshIfSodiumMenuOpen();
     }
 

@@ -1,31 +1,32 @@
 package com.github.arrivedbog593.borderlesswindow;
 
 import com.mojang.blaze3d.platform.Window;
+import org.lwjgl.PointerBuffer;
 import org.lwjgl.glfw.GLFWVidMode;
 
 import static org.lwjgl.glfw.GLFW.*;
 
 /**
- * Logica GLFW para los 3 modos de pantalla:
+ * GLFW logic for the 3 screen modes:
  * <p>
- * - WINDOWED: ventana normal, con bordes, tamaño anterior.
- * - BORDERLESS: ventana sin decoracion, estirada al tamaño exacto del
- *   monitor, pero SIGUE SIENDO una ventana (glfwSetWindowMonitor con
- *   monitor=NULL). Windows nunca cambia la resolucion fisica real,
- *   por eso no hay conflictos de escalado.
- * - FULLSCREEN: fullscreen EXCLUSIVO real de Mojang/GLFW
- *   (glfwSetWindowMonitor con un monitor real). Es el comportamiento
- *   vanilla de toda la vida.
+ * - WINDOWED: normal decorated window, restored to its previous size.
+ * - BORDERLESS: undecorated window stretched to the monitor size
+ *   (+1 px of height, see applyBorderless), but it REMAINS a window
+ *   (glfwSetWindowMonitor with monitor=NULL). Windows never changes the
+ *   physical display mode, so there are no scaling/HDR conflicts.
+ * - FULLSCREEN: real EXCLUSIVE fullscreen, same as vanilla
+ *   (glfwSetWindowMonitor with an actual monitor handle).
  */
 public final class BorderlessHandler {
 
     private static ScreenMode currentMode = ScreenMode.WINDOWED;
 
-    // A que modo cambia F11 cuando estas en ventana. Configurable desde
-    // la opcion "Modo de F11" en el menu de video (seccion Borderless Window).
+    // Which mode F11 switches to when the game is windowed. Configurable
+    // through the "F11 Mode" option in the video settings menu
+    // (Borderless Window section).
     private static ScreenMode f11Target = ScreenMode.BORDERLESS;
 
-    // Tamaño/posicion de la ventana en modo WINDOWED, para poder volver a el.
+    // Size/position of the window in WINDOWED mode, so we can restore it.
     private static int savedX, savedY, savedWidth, savedHeight;
     private static boolean hasSavedWindowedState = false;
 
@@ -41,7 +42,7 @@ public final class BorderlessHandler {
     }
 
     public static void setF11Target(ScreenMode target) {
-        // Solo BORDERLESS o FULLSCREEN tienen sentido como destino de F11.
+        // Only BORDERLESS or FULLSCREEN make sense as an F11 target.
         if (target != ScreenMode.WINDOWED) {
             f11Target = target;
             BorderlessConfigFile.save(currentMode, f11Target);
@@ -49,20 +50,20 @@ public final class BorderlessHandler {
     }
 
     /**
-     * Se llama una sola vez al arrancar el juego (desde FMLClientSetupEvent).
+     * Called exactly once at game startup (from FMLClientSetupEvent).
      * <p>
-     * 1. Sincroniza el estado interno con la realidad: si options.txt tenia
-     *    fullscreen=true, vanilla ya abrio la ventana en fullscreen exclusivo
-     *    ANTES de que corriera nuestro codigo -- lo detectamos preguntandole
-     *    a GLFW si la ventana tiene un monitor asignado.
-     * 2. Aplica el modo guardado en config/borderlesswindow.json.
+     * 1. Syncs the internal state with reality: if options.txt had
+     *    fullscreen=true, vanilla already opened the window in exclusive
+     *    fullscreen BEFORE our code ran -- we detect that by asking GLFW
+     *    whether the window has a monitor assigned.
+     * 2. Applies the mode saved in config/borderlesswindow.json.
      */
     public static void initializeFromConfig(Window window) {
         var config = BorderlessConfigFile.load();
         f11Target = config.f11Mode();
 
         if (glfwGetWindowMonitor(window.getWindow()) != 0L) {
-            // El juego arranco en fullscreen exclusivo por options.txt.
+            // The game booted in exclusive fullscreen via options.txt.
             currentMode = ScreenMode.FULLSCREEN;
         }
 
@@ -76,8 +77,8 @@ public final class BorderlessHandler {
 
         long handle = window.getWindow();
 
-        // Si veniamos de WINDOWED, guardamos su tamaño/posicion para poder
-        // restaurarlo despues, sin importar a que modo nos movamos ahora.
+        // If we are leaving WINDOWED, remember its size/position so we can
+        // restore it later, regardless of which mode we switch to now.
         if (currentMode == ScreenMode.WINDOWED) {
             int[] x = new int[1], y = new int[1], w = new int[1], h = new int[1];
             glfwGetWindowPos(handle, x, y);
@@ -89,59 +90,109 @@ public final class BorderlessHandler {
             hasSavedWindowedState = true;
         }
 
-        switch (mode) {
+        boolean applied = switch (mode) {
             case WINDOWED -> applyWindowed(handle);
             case BORDERLESS -> applyBorderless(handle);
             case FULLSCREEN -> applyExclusiveFullscreen(handle);
+        };
+
+        if (!applied) {
+            // The target monitor was in an invalid state (e.g. disconnected
+            // mid-switch). We left the window untouched, so the internal
+            // state must not change either.
+            return;
         }
 
         currentMode = mode;
         BorderlessConfigFile.save(currentMode, f11Target);
     }
 
-    private static void applyWindowed(long handle) {
+    private static boolean applyWindowed(long handle) {
         glfwSetWindowAttrib(handle, GLFW_DECORATED, GLFW_TRUE);
         if (hasSavedWindowedState) {
             glfwSetWindowMonitor(handle, 0L, savedX, savedY, savedWidth, savedHeight, GLFW_DONT_CARE);
         } else {
-            // No teniamos un estado previo guardado (p. ej. el juego arranco
-            // directo en borderless/fullscreen): usamos un tamaño razonable.
+            // No previous windowed state to restore (e.g. the game booted
+            // straight into borderless/fullscreen): use a sane default.
             glfwSetWindowMonitor(handle, 0L, 100, 100, 1280, 720, GLFW_DONT_CARE);
         }
+        return true;
     }
 
-    private static void applyBorderless(long handle) {
-        long monitor = glfwGetPrimaryMonitor();
+    private static boolean applyBorderless(long handle) {
+        long monitor = findWindowMonitor(handle);
         GLFWVidMode vidMode = glfwGetVideoMode(monitor);
+        if (vidMode == null) {
+            // Monitor in an invalid state (e.g., being disconnected right
+            // now). Better to leave the window as-is than to crash.
+            return false;
+        }
         int[] monitorX = new int[1], monitorY = new int[1];
         glfwGetMonitorPos(monitor, monitorX, monitorY);
 
         glfwSetWindowAttrib(handle, GLFW_DECORATED, GLFW_FALSE);
 
-        // TRUCO ANTI-PROMOCION (+1 pixel de alto):
-        // Si la ventana sin bordes cubre EXACTAMENTE el monitor, Windows y
-        // el driver de la GPU (sobre todo NVIDIA en OpenGL) la "promueven"
-        // a un modo de presentacion tipo fullscreen exclusivo (independent
-        // flip). Con HDR activado, esa promocion causa el mismo parpadeo
-        // negro / cambio de perfil de color que el fullscreen exclusivo --
-        // justo lo que este modo intenta evitar. Hacer la ventana 1 pixel
-        // mas alta que el monitor evita la deteccion; el pixel extra queda
-        // fuera de la pantalla y es invisible. Es el mismo workaround que
-        // usan las herramientas de borderless como Special K o Borderless
-        // Gaming.
-        assert vidMode != null;
+        // ANTI-PROMOTION TRICK (+1 px of height):
+        // If a borderless window covers the monitor EXACTLY, Windows and
+        // the GPU driver (especially NVIDIA with OpenGL) "promote" it to
+        // an exclusive-fullscreen-like presentation mode (independent
+        // flip). With HDR enabled, that promotion causes the same black
+        // flash / color profile switch as exclusive fullscreen -- exactly
+        // what this mode is meant to avoid. Making the window 1 pixel
+        // taller than the monitor defeats the detection; the extra pixel
+        // hangs off-screen and is invisible. This is the same workaround
+        // used by borderless tools such as Special K or Borderless Gaming.
         glfwSetWindowMonitor(handle, 0L, monitorX[0], monitorY[0],
                 vidMode.width(), vidMode.height() + 1, GLFW_DONT_CARE);
+        return true;
     }
 
-    private static void applyExclusiveFullscreen(long handle) {
-        long monitor = glfwGetPrimaryMonitor();
+    private static boolean applyExclusiveFullscreen(long handle) {
+        long monitor = findWindowMonitor(handle);
         GLFWVidMode vidMode = glfwGetVideoMode(monitor);
+        if (vidMode == null) {
+            // Monitor in an invalid state: leave the window untouched.
+            return false;
+        }
 
-        // Fullscreen exclusivo real: se le pasa el monitor de verdad.
-        // La decoracion no importa aqui, GLFW la ignora en modo exclusivo.
-        assert vidMode != null;
+        // Real exclusive fullscreen: an actual monitor handle is passed.
+        // Decoration does not matter here, GLFW ignores it in exclusive mode.
         glfwSetWindowMonitor(handle, monitor, 0, 0,
                 vidMode.width(), vidMode.height(), vidMode.refreshRate());
+        return true;
+    }
+
+    /**
+     * Returns the monitor the window is on RIGHT NOW (the one containing
+     * its center), instead of always assuming the primary one. This way,
+     * if you drag the window to your second monitor and enable
+     * borderless/fullscreen, it is applied on THAT monitor. If the center
+     * is not inside any monitor (rare case: window dragged outside all of
+     * them), it falls back to the primary monitor.
+     */
+    private static long findWindowMonitor(long handle) {
+        int[] wx = new int[1], wy = new int[1], ww = new int[1], wh = new int[1];
+        glfwGetWindowPos(handle, wx, wy);
+        glfwGetWindowSize(handle, ww, wh);
+        int centerX = wx[0] + ww[0] / 2;
+        int centerY = wy[0] + wh[0] / 2;
+
+        PointerBuffer monitors = glfwGetMonitors();
+        if (monitors != null) {
+            for (int i = 0; i < monitors.limit(); i++) {
+                long monitor = monitors.get(i);
+                GLFWVidMode vidMode = glfwGetVideoMode(monitor);
+                if (vidMode == null) {
+                    continue;
+                }
+                int[] mx = new int[1], my = new int[1];
+                glfwGetMonitorPos(monitor, mx, my);
+                if (centerX >= mx[0] && centerX < mx[0] + vidMode.width()
+                        && centerY >= my[0] && centerY < my[0] + vidMode.height()) {
+                    return monitor;
+                }
+            }
+        }
+        return glfwGetPrimaryMonitor();
     }
 }

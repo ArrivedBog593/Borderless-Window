@@ -4,20 +4,20 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.Screen;
 
 /**
- * Refresca los valores del menu de video de Sodium cuando el modo de
- * pantalla cambia por fuera del menu (F11) MIENTRAS el menu esta abierto.
- * Sodium ya relee los bindings al ABRIR la pantalla, pero no tiene
- * refresco en vivo -- este helper cubre ese hueco.
+ * Refreshes the values shown in Sodium's video settings menu when the
+ * screen mode changes from outside the menu (F11) WHILE the menu is open.
+ * Sodium already re-reads all bindings when the screen is OPENED, but it
+ * has no live refresh -- this helper covers that gap.
  * <p>
- * Usa reflection porque ConfigManager/Config son clases internas de
- * Sodium (no estan en el jar de la API contra el que compilamos).
- * Esta blindado a proposito:
- * - Esta clase NO importa nada de Sodium, asi que carga sin problema
- *   aunque Sodium no este instalado.
- * - Solo actua si la pantalla actual ES el menu de video de Sodium.
- * - Cualquier fallo de reflection (Sodium ausente, refactor futuro de
- *   sus internals) se ignora en silencio: lo peor que pasa es que el
- *   menu no se refresca en vivo, igual que antes de este fix.
+ * It uses reflection because ConfigManager/Config are Sodium internal
+ * classes (not present in the API jar we compile against). It is
+ * deliberately hardened:
+ * - This class does NOT import anything from Sodium, so it loads fine
+ *   even when Sodium is not installed.
+ * - It only acts if the current screen IS Sodium's video settings menu.
+ * - Any reflection failure (Sodium absent, future refactor of its
+ *   internals) is silently ignored: the worst that can happen is no live
+ *   refresh, same as before this fix existed.
  */
 public final class SodiumMenuRefresher {
 
@@ -42,8 +42,8 @@ public final class SodiumMenuRefresher {
                 config.getClass().getMethod("resetAllOptionsFromBindings").invoke(config);
             }
         } catch (Throwable ignored) {
-            // Sodium ausente o internals cambiados: sin refresco en vivo,
-            // pero nada se rompe.
+            // Sodium absent or internals changed: no live refresh, but
+            // nothing breaks.
         }
     }
 }

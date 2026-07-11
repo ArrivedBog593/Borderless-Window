@@ -1,9 +1,9 @@
 package com.github.arrivedbog593.borderlesswindow;
 
 /**
- * Los 3 estados que puede tener la ventana. Cada estado tiene una clave
- * de traduccion que se resuelve contra los lang files en
- * assets/borderlesswindow/lang/ segun el idioma del juego.
+ * The 3 states the game window can be in. Each state has a translation
+ * key resolved against the lang files in assets/borderlesswindow/lang/
+ * according to the game's language.
  */
 public enum ScreenMode {
     WINDOWED("borderlesswindow.screen_mode.windowed"),

@@ -1,23 +1,21 @@
 package com.github.arrivedbog593.borderlesswindow.config;
 
+import com.github.arrivedbog593.borderlesswindow.BorderlessHandler;
 import com.github.arrivedbog593.borderlesswindow.ScreenMode;
 import com.mojang.blaze3d.platform.Window;
-import com.github.arrivedbog593.borderlesswindow.BorderlessHandler;
 import net.minecraft.client.Minecraft;
 
 /**
- * La Sodium Config API es solo una capa de presentacion: no guarda nada
- * por si sola. Esta clase es el "storage" minimo que le pedimos: cuando
- * el usuario cambia la opcion en el menu, aplicamos el cambio real a la
- * ventana inmediatamente a traves de BorderlessHandler.
+ * The Sodium Config API is only a presentation layer: it does not store
+ * anything by itself. This class is the minimal "storage" it asks for:
+ * when the user changes an option in the menu, the actual change is
+ * applied to the window immediately through BorderlessHandler.
  * <p>
- * No hace falta persistir el valor en un archivo aparte: como el mixin
- * WindowMixin ya sobreescribe isFullscreen(), Minecraft sigue guardando
- * el estado "es fullscreen si/no" en options.txt igual que antes. El
- * *tipo* de modo (borderless vs. fullscreen real) sí se pierde entre
- * sesiones con esta implementacion minima -- si quieres que también se
- * recuerde cuál de los dos eligió la última vez, se puede agregar un
- * pequeño archivo de config propio más adelante.
+ * The real persistence lives in BorderlessConfigFile
+ * (config/borderlesswindow.json), which BorderlessHandler saves
+ * automatically on every mode change. Additionally, the WindowMixin
+ * override of isFullscreen() keeps the vanilla "fullscreen yes/no" flag
+ * in options.txt consistent with the current mode.
  */
 public final class ScreenModeStorage {
 
@@ -46,13 +44,13 @@ public final class ScreenModeStorage {
     }
 
     /**
-     * Se llama cuando Sodium aplica los cambios (setStorageHandler).
+     * Called when Sodium applies pending changes (setStorageHandler).
      * <p>
-     * IMPORTANTE: solo aplicamos lo que el usuario cambio DE VERDAD en el
-     * menu (flags dirty). Antes, flush() aplicaba pendingValue siempre --
-     * y como pendingValue solo se actualiza al tocar la opcion en el menu,
-     * aplicar cualquier otra opcion despues de usar F11 revertia el modo
-     * al valor viejo cacheado.
+     * IMPORTANT: we only apply what the user ACTUALLY changed in the menu
+     * (dirty flags). Previously, flush() always applied pendingValue --
+     * and since pendingValue is only updated when the option is touched
+     * in the menu, applying any other option after using F11 reverted the
+     * mode back to the stale cached value.
      */
     public void flush() {
         if (this.f11TargetDirty) {

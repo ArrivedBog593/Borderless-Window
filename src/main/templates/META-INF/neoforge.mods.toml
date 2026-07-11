@@ -1,7 +1,8 @@
 modLoader="javafml"
 loaderVersion="${loader_version_range}"
 license="${mod_license}"
-issueTrackerURL="https://github.com/arrivedbog593/borderlesswindow/issues"
+issueTrackerURL="https://github.com/ArrivedBog593/Borderless-Window/issues"
+clientSideOnly=true
 
 [[mods]]
 modId="${mod_id}"
@@ -9,6 +10,7 @@ version="${mod_version}"
 displayName="${mod_name}"
 authors="${mod_authors}"
 description='''${mod_description}'''
+displayTest="IGNORE_ALL_VERSION"
 
 [[mixins]]
 config="${mod_id}.mixins.json"
