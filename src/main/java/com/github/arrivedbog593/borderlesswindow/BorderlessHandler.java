@@ -21,10 +21,17 @@ public final class BorderlessHandler {
 
     private static ScreenMode currentMode = ScreenMode.WINDOWED;
 
-    // Which mode F11 switches to when the game is windowed. Configurable
-    // through the "F11 Mode" option in the video settings menu
-    // (Borderless Window section).
-    private static ScreenMode f11Target = ScreenMode.BORDERLESS;
+    // False until initializeFromConfig() has loaded the saved config.
+    // Vanilla's Minecraft constructor calls toggleFullScreen() during early
+    // boot (to reconcile options.txt's fullscreen flag) -- long before our
+    // config is loaded. Toggles arriving before initialization must be
+    // swallowed, otherwise they apply the default F11 target and SAVE it,
+    // clobbering the user's saved config before we ever read it.
+    private static boolean initialized = false;
+
+    // What F11 does. Configurable through the "F11 Mode" option in the
+    // video settings menu (Borderless Window section).
+    private static F11Mode f11Target = F11Mode.BORDERLESS;
 
     // Size/position of the window in WINDOWED mode, so we can restore it.
     private static int savedX, savedY, savedWidth, savedHeight;
@@ -37,26 +44,49 @@ public final class BorderlessHandler {
         return currentMode;
     }
 
-    public static ScreenMode getF11Target() {
+    public static F11Mode getF11Target() {
         return f11Target;
     }
 
-    public static void setF11Target(ScreenMode target) {
-        // Only BORDERLESS or FULLSCREEN make sense as an F11 target.
-        if (target != ScreenMode.WINDOWED) {
-            f11Target = target;
-            BorderlessConfigFile.save(currentMode, f11Target);
-        }
+    public static void setF11Target(F11Mode target) {
+        f11Target = target;
+        BorderlessConfigFile.save(currentMode, f11Target);
+    }
+
+    /**
+     * Computes which mode F11 should switch to from the current one,
+     * according to the configured F11 mode:
+     * - BORDERLESS / FULLSCREEN: toggle Windowed <-> that mode.
+     * - CYCLE: Windowed -> Borderless -> Fullscreen -> Windowed.
+     */
+    public static ScreenMode getNextF11Mode() {
+        return switch (f11Target) {
+            case BORDERLESS -> currentMode == ScreenMode.WINDOWED
+                    ? ScreenMode.BORDERLESS : ScreenMode.WINDOWED;
+            case FULLSCREEN -> currentMode == ScreenMode.WINDOWED
+                    ? ScreenMode.FULLSCREEN : ScreenMode.WINDOWED;
+            case CYCLE -> switch (currentMode) {
+                case WINDOWED -> ScreenMode.BORDERLESS;
+                case BORDERLESS -> ScreenMode.FULLSCREEN;
+                case FULLSCREEN -> ScreenMode.WINDOWED;
+            };
+        };
+    }
+
+    public static boolean isInitialized() {
+        return initialized;
     }
 
     /**
      * Called exactly once at game startup (from FMLClientSetupEvent).
      * <p>
      * 1. Syncs the internal state with reality: if options.txt had
-     *    fullscreen=true, vanilla already opened the window in exclusive
-     *    fullscreen BEFORE our code ran -- we detect that by asking GLFW
-     *    whether the window has a monitor assigned.
+     *    fullscreen=true, vanilla may have CREATED the window in exclusive
+     *    fullscreen -- we detect that by asking GLFW whether the window
+     *    has a monitor assigned.
      * 2. Applies the mode saved in config/borderlesswindow.json.
+     * 3. Marks the handler as initialized, which unblocks F11 handling
+     *    in WindowMixin.
      */
     public static void initializeFromConfig(Window window) {
         var config = BorderlessConfigFile.load();
@@ -67,6 +97,7 @@ public final class BorderlessHandler {
             currentMode = ScreenMode.FULLSCREEN;
         }
 
+        initialized = true;
         setMode(window, config.screenMode());
     }
 
@@ -90,6 +121,14 @@ public final class BorderlessHandler {
             hasSavedWindowedState = true;
         }
 
+        // Update the state BEFORE applying the GLFW change: applying resizes
+        // the window, which synchronously re-inits any open Screen -- and a
+        // rebuilt screen (e.g. our config screen) reads getCurrentMode() at
+        // that exact moment. If we updated the state after applying, those
+        // observers would rebuild with the stale mode (off-by-one UI bug).
+        ScreenMode previous = currentMode;
+        currentMode = mode;
+
         boolean applied = switch (mode) {
             case WINDOWED -> applyWindowed(handle);
             case BORDERLESS -> applyBorderless(handle);
@@ -98,12 +137,12 @@ public final class BorderlessHandler {
 
         if (!applied) {
             // The target monitor was in an invalid state (e.g. disconnected
-            // mid-switch). We left the window untouched, so the internal
-            // state must not change either.
+            // mid-switch). The window was left untouched, so roll the
+            // internal state back to match reality.
+            currentMode = previous;
             return;
         }
 
-        currentMode = mode;
         BorderlessConfigFile.save(currentMode, f11Target);
     }
 
@@ -123,7 +162,7 @@ public final class BorderlessHandler {
         long monitor = findWindowMonitor(handle);
         GLFWVidMode vidMode = glfwGetVideoMode(monitor);
         if (vidMode == null) {
-            // Monitor in an invalid state (e.g., being disconnected right
+            // Monitor in an invalid state (e.g. being disconnected right
             // now). Better to leave the window as-is than to crash.
             return false;
         }

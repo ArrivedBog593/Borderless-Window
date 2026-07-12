@@ -3,8 +3,12 @@
   "borderlesswindow.options.screen_mode.name": "Screen Mode",
   "borderlesswindow.options.screen_mode.tooltip": "Choose between a normal window, borderless fullscreen, or Minecraft's regular exclusive fullscreen.",
   "borderlesswindow.options.f11_mode.name": "F11 Mode",
-  "borderlesswindow.options.f11_mode.tooltip": "Decides which mode the F11 key switches to from windowed mode: borderless fullscreen or Minecraft's regular exclusive fullscreen.",
+  "borderlesswindow.options.f11_mode.tooltip": "What the F11 key does: toggle borderless fullscreen, toggle Minecraft's regular exclusive fullscreen, or cycle through all three screen modes.",
   "borderlesswindow.screen_mode.windowed": "Windowed",
   "borderlesswindow.screen_mode.borderless": "Borderless",
-  "borderlesswindow.screen_mode.fullscreen": "Fullscreen"
+  "borderlesswindow.screen_mode.fullscreen": "Fullscreen",
+  "borderlesswindow.f11_mode.borderless": "Borderless",
+  "borderlesswindow.f11_mode.fullscreen": "Fullscreen",
+  "borderlesswindow.f11_mode.cycle": "Cycle All Modes",
+  "borderlesswindow.config.title": "Borderless Window Settings"
 }

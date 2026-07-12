@@ -1,6 +1,7 @@
 package com.github.arrivedbog593.borderlesswindow.config;
 
 import com.github.arrivedbog593.borderlesswindow.BorderlessHandler;
+import com.github.arrivedbog593.borderlesswindow.F11Mode;
 import com.github.arrivedbog593.borderlesswindow.ScreenMode;
 import com.mojang.blaze3d.platform.Window;
 import net.minecraft.client.Minecraft;
@@ -22,7 +23,7 @@ public final class ScreenModeStorage {
     private ScreenMode pendingValue = BorderlessHandler.getCurrentMode();
     private boolean screenModeDirty = false;
 
-    private ScreenMode pendingF11Target = BorderlessHandler.getF11Target();
+    private F11Mode pendingF11Target = BorderlessHandler.getF11Target();
     private boolean f11TargetDirty = false;
 
     public ScreenMode getScreenMode() {
@@ -34,11 +35,11 @@ public final class ScreenModeStorage {
         this.screenModeDirty = true;
     }
 
-    public ScreenMode getF11Target() {
+    public F11Mode getF11Target() {
         return BorderlessHandler.getF11Target();
     }
 
-    public void setF11Target(ScreenMode target) {
+    public void setF11Target(F11Mode target) {
         this.pendingF11Target = target;
         this.f11TargetDirty = true;
     }

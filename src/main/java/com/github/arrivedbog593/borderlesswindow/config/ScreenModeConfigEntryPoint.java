@@ -1,13 +1,12 @@
 package com.github.arrivedbog593.borderlesswindow.config;
 
+import com.github.arrivedbog593.borderlesswindow.F11Mode;
 import com.github.arrivedbog593.borderlesswindow.ScreenMode;
 import net.caffeinemc.mods.sodium.api.config.ConfigEntryPoint;
 import net.caffeinemc.mods.sodium.api.config.ConfigEntryPointForge;
 import net.caffeinemc.mods.sodium.api.config.structure.ConfigBuilder;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
-
-import java.util.Set;
 
 /**
  * Sodium Config API entry point. Sodium instantiates this class and calls
@@ -38,15 +37,13 @@ public class ScreenModeConfigEntryPoint implements ConfigEntryPoint {
                         .addOptionGroup(builder.createOptionGroup()
                                 .addOption(builder.createEnumOption(
                                                 ResourceLocation.parse("borderlesswindow:f11_mode"),
-                                                ScreenMode.class)
+                                                F11Mode.class)
                                         .setName(Component.translatable("borderlesswindow.options.f11_mode.name"))
                                         .setTooltip(Component.translatable("borderlesswindow.options.f11_mode.tooltip"))
                                         .setElementNameProvider(mode -> Component.translatable(mode.getTranslationKey()))
-                                        // WINDOWED makes no sense as an F11 target
-                                        .setAllowedValues(Set.of(ScreenMode.BORDERLESS, ScreenMode.FULLSCREEN))
                                         .setStorageHandler(this.storage::flush)
                                         .setBinding(this.storage::setF11Target, this.storage::getF11Target)
-                                        .setDefaultValue(ScreenMode.BORDERLESS)
+                                        .setDefaultValue(F11Mode.BORDERLESS)
                                 )
                         )
                 )

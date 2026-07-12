@@ -24,10 +24,10 @@ public final class BorderlessConfigFile {
     /** JSON structure. Gson serializes/deserializes this directly. */
     private static class Data {
         String screen_mode = ScreenMode.WINDOWED.name();
-        String f11_mode = ScreenMode.BORDERLESS.name();
+        String f11_mode = F11Mode.BORDERLESS.name();
     }
 
-    public record LoadedConfig(ScreenMode screenMode, ScreenMode f11Mode) {
+    public record LoadedConfig(ScreenMode screenMode, F11Mode f11Mode) {
     }
 
     private BorderlessConfigFile() {
@@ -46,11 +46,11 @@ public final class BorderlessConfigFile {
             }
         }
         return new LoadedConfig(
-                parseOrDefault(data.screen_mode, ScreenMode.WINDOWED),
-                parseOrDefault(data.f11_mode, ScreenMode.BORDERLESS));
+                parseScreenModeOrDefault(data.screen_mode),
+                parseF11ModeOrDefault(data.f11_mode));
     }
 
-    public static void save(ScreenMode screenMode, ScreenMode f11Mode) {
+    public static void save(ScreenMode screenMode, F11Mode f11Mode) {
         Data data = new Data();
         data.screen_mode = screenMode.name();
         data.f11_mode = f11Mode.name();
@@ -62,14 +62,25 @@ public final class BorderlessConfigFile {
         }
     }
 
-    private static ScreenMode parseOrDefault(String value, ScreenMode fallback) {
+    private static ScreenMode parseScreenModeOrDefault(String value) {
         if (value == null) {
-            return fallback;
+            return ScreenMode.WINDOWED;
         }
         try {
             return ScreenMode.valueOf(value);
         } catch (IllegalArgumentException e) {
-            return fallback;
+            return ScreenMode.WINDOWED;
+        }
+    }
+
+    private static F11Mode parseF11ModeOrDefault(String value) {
+        if (value == null) {
+            return F11Mode.BORDERLESS;
+        }
+        try {
+            return F11Mode.valueOf(value);
+        } catch (IllegalArgumentException e) {
+            return F11Mode.BORDERLESS;
         }
     }
 }
