@@ -2,6 +2,9 @@ package com.github.arrivedbog593.borderlesswindow.config;
 
 import com.github.arrivedbog593.borderlesswindow.BorderlessHandler;
 import com.github.arrivedbog593.borderlesswindow.F11Mode;
+import com.github.arrivedbog593.borderlesswindow.FpsOverlayMode;
+import com.github.arrivedbog593.borderlesswindow.FpsOverlayPosition;
+import com.github.arrivedbog593.borderlesswindow.FpsOverlayState;
 import com.github.arrivedbog593.borderlesswindow.ScreenMode;
 import com.mojang.blaze3d.platform.Window;
 import net.minecraft.client.Minecraft;
@@ -10,11 +13,12 @@ import net.minecraft.client.Minecraft;
  * The Sodium Config API is only a presentation layer: it does not store
  * anything by itself. This class is the minimal "storage" it asks for:
  * when the user changes an option in the menu, the actual change is
- * applied to the window immediately through BorderlessHandler.
+ * applied immediately through the corresponding state holder
+ * (BorderlessHandler for window state, FpsOverlayState for the overlay).
  * <p>
  * The real persistence lives in BorderlessConfigFile
- * (config/borderlesswindow.json), which BorderlessHandler saves
- * automatically on every mode change. Additionally, the WindowMixin
+ * (config/borderlesswindow.json), which the state holders save
+ * automatically on every change. Additionally, the WindowMixin
  * override of isFullscreen() keeps the vanilla "fullscreen yes/no" flag
  * in options.txt consistent with the current mode.
  */
@@ -25,6 +29,12 @@ public final class ScreenModeStorage {
 
     private F11Mode pendingF11Target = BorderlessHandler.getF11Target();
     private boolean f11TargetDirty = false;
+
+    private FpsOverlayMode pendingFpsOverlayMode = FpsOverlayState.getMode();
+    private boolean fpsOverlayModeDirty = false;
+
+    private FpsOverlayPosition pendingFpsOverlayPosition = FpsOverlayState.getPosition();
+    private boolean fpsOverlayPositionDirty = false;
 
     public ScreenMode getScreenMode() {
         return BorderlessHandler.getCurrentMode();
@@ -44,6 +54,24 @@ public final class ScreenModeStorage {
         this.f11TargetDirty = true;
     }
 
+    public FpsOverlayMode getFpsOverlayMode() {
+        return FpsOverlayState.getMode();
+    }
+
+    public void setFpsOverlayMode(FpsOverlayMode mode) {
+        this.pendingFpsOverlayMode = mode;
+        this.fpsOverlayModeDirty = true;
+    }
+
+    public FpsOverlayPosition getFpsOverlayPosition() {
+        return FpsOverlayState.getPosition();
+    }
+
+    public void setFpsOverlayPosition(FpsOverlayPosition position) {
+        this.pendingFpsOverlayPosition = position;
+        this.fpsOverlayPositionDirty = true;
+    }
+
     /**
      * Called when Sodium applies pending changes (setStorageHandler).
      * <p>
@@ -51,12 +79,23 @@ public final class ScreenModeStorage {
      * (dirty flags). Previously, flush() always applied pendingValue --
      * and since pendingValue is only updated when the option is touched
      * in the menu, applying any other option after using F11 reverted the
-     * mode back to the stale cached value.
+     * mode back to the stale cached value. The same rule protects every
+     * option added since.
      */
     public void flush() {
         if (this.f11TargetDirty) {
             BorderlessHandler.setF11Target(this.pendingF11Target);
             this.f11TargetDirty = false;
+        }
+
+        if (this.fpsOverlayModeDirty) {
+            FpsOverlayState.setMode(this.pendingFpsOverlayMode);
+            this.fpsOverlayModeDirty = false;
+        }
+
+        if (this.fpsOverlayPositionDirty) {
+            FpsOverlayState.setPosition(this.pendingFpsOverlayPosition);
+            this.fpsOverlayPositionDirty = false;
         }
 
         if (this.screenModeDirty) {

@@ -1,6 +1,8 @@
 package com.github.arrivedbog593.borderlesswindow.config;
 
 import com.github.arrivedbog593.borderlesswindow.F11Mode;
+import com.github.arrivedbog593.borderlesswindow.FpsOverlayMode;
+import com.github.arrivedbog593.borderlesswindow.FpsOverlayPosition;
 import com.github.arrivedbog593.borderlesswindow.ScreenMode;
 import net.caffeinemc.mods.sodium.api.config.ConfigEntryPoint;
 import net.caffeinemc.mods.sodium.api.config.ConfigEntryPointForge;
@@ -30,8 +32,8 @@ public class ScreenModeConfigEntryPoint implements ConfigEntryPoint {
         builder.registerOwnModOptions()
                 .setName("Borderless Window")
                 // The mod's own page, shown with its header in the left-hand
-                // list of the video settings menu. Contains the "F11 Mode"
-                // option.
+                // list of the video settings menu. First group: F11 behavior.
+                // Second group: the FPS overlay options.
                 .addPage(builder.createOptionPage()
                         .setName(Component.translatable("borderlesswindow.options.pages.general"))
                         .addOptionGroup(builder.createOptionGroup()
@@ -44,6 +46,35 @@ public class ScreenModeConfigEntryPoint implements ConfigEntryPoint {
                                         .setStorageHandler(this.storage::flush)
                                         .setBinding(this.storage::setF11Target, this.storage::getF11Target)
                                         .setDefaultValue(F11Mode.BORDERLESS)
+                                )
+                        )
+                        .addOptionGroup(builder.createOptionGroup()
+                                .addOption(builder.createEnumOption(
+                                                ResourceLocation.parse("borderlesswindow:fps_overlay_mode"),
+                                                FpsOverlayMode.class)
+                                        .setName(Component.translatable("borderlesswindow.options.fps_overlay_mode.name"))
+                                        .setTooltip(Component.translatable("borderlesswindow.options.fps_overlay_mode.tooltip"))
+                                        .setElementNameProvider(mode -> Component.translatable(mode.getTranslationKey()))
+                                        .setStorageHandler(this.storage::flush)
+                                        .setBinding(this.storage::setFpsOverlayMode, this.storage::getFpsOverlayMode)
+                                        .setDefaultValue(FpsOverlayMode.OFF)
+                                )
+                                .addOption(builder.createEnumOption(
+                                                ResourceLocation.parse("borderlesswindow:fps_overlay_position"),
+                                                FpsOverlayPosition.class)
+                                        .setName(Component.translatable("borderlesswindow.options.fps_overlay_position.name"))
+                                        .setTooltip(Component.translatable("borderlesswindow.options.fps_overlay_position.tooltip"))
+                                        .setElementNameProvider(position -> Component.translatable(position.getTranslationKey()))
+                                        .setStorageHandler(this.storage::flush)
+                                        .setBinding(this.storage::setFpsOverlayPosition, this.storage::getFpsOverlayPosition)
+                                        .setDefaultValue(FpsOverlayPosition.TOP_LEFT)
+                                        // Greyed out while the overlay is off: the
+                                        // position only matters when something is drawn.
+                                        .setEnabledProvider(
+                                                state -> state.readEnumOption(
+                                                        ResourceLocation.parse("borderlesswindow:fps_overlay_mode"),
+                                                        FpsOverlayMode.class) != FpsOverlayMode.OFF,
+                                                ResourceLocation.parse("borderlesswindow:fps_overlay_mode"))
                                 )
                         )
                 )

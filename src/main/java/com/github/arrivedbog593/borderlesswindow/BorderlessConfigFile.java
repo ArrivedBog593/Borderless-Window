@@ -10,11 +10,14 @@ import java.nio.file.Path;
 
 /**
  * Minimal persistence in config/borderlesswindow.json. Stores the current
- * screen mode and the F11 mode so they can be restored at game startup.
+ * screen mode, the F11 mode, and the FPS overlay settings so they can be
+ * restored at game startup.
  * <p>
  * Deliberately fault-tolerant: if the file is missing, corrupt, or has
- * invalid values, the defaults are used (Windowed / F11 -> Borderless)
- * without crashing.
+ * invalid or absent values, the defaults are used (Windowed / F11 ->
+ * Borderless / FPS overlay off, top-left) without crashing. Configs
+ * written by older versions of the mod simply lack the newer fields and
+ * fall back to those defaults -- no migration needed.
  */
 public final class BorderlessConfigFile {
 
@@ -25,9 +28,13 @@ public final class BorderlessConfigFile {
     private static class Data {
         String screen_mode = ScreenMode.WINDOWED.name();
         String f11_mode = F11Mode.BORDERLESS.name();
+        String fps_overlay_mode = FpsOverlayMode.OFF.name();
+        String fps_overlay_position = FpsOverlayPosition.TOP_LEFT.name();
     }
 
-    public record LoadedConfig(ScreenMode screenMode, F11Mode f11Mode) {
+    public record LoadedConfig(ScreenMode screenMode, F11Mode f11Mode,
+                               FpsOverlayMode fpsOverlayMode,
+                               FpsOverlayPosition fpsOverlayPosition) {
     }
 
     private BorderlessConfigFile() {
@@ -46,41 +53,43 @@ public final class BorderlessConfigFile {
             }
         }
         return new LoadedConfig(
-                parseScreenModeOrDefault(data.screen_mode),
-                parseF11ModeOrDefault(data.f11_mode));
+                parseOrDefault(ScreenMode.class, data.screen_mode, ScreenMode.WINDOWED),
+                parseOrDefault(F11Mode.class, data.f11_mode, F11Mode.BORDERLESS),
+                parseOrDefault(FpsOverlayMode.class, data.fps_overlay_mode, FpsOverlayMode.OFF),
+                parseOrDefault(FpsOverlayPosition.class, data.fps_overlay_position,
+                        FpsOverlayPosition.TOP_LEFT));
     }
 
-    public static void save(ScreenMode screenMode, F11Mode f11Mode) {
+    /**
+     * Persists the CURRENT live state of every setting, read from its
+     * owner (BorderlessHandler for window state, FpsOverlayState for the
+     * overlay). Having a single gathering point means new settings can't
+     * be accidentally clobbered by a save triggered from an unrelated
+     * option, which is what would happen if each caller passed only the
+     * values it knows about.
+     */
+    public static void saveCurrent() {
         Data data = new Data();
-        data.screen_mode = screenMode.name();
-        data.f11_mode = f11Mode.name();
+        data.screen_mode = BorderlessHandler.getCurrentMode().name();
+        data.f11_mode = BorderlessHandler.getF11Target().name();
+        data.fps_overlay_mode = FpsOverlayState.getMode().name();
+        data.fps_overlay_position = FpsOverlayState.getPosition().name();
         try {
             Files.writeString(PATH, GSON.toJson(data));
         } catch (IOException ignored) {
-            // Not critical: if saving fails, the mode simply won't be
+            // Not critical: if saving fails, the settings simply won't be
             // remembered next time. Better that than crashing.
         }
     }
 
-    private static ScreenMode parseScreenModeOrDefault(String value) {
+    private static <T extends Enum<T>> T parseOrDefault(Class<T> type, String value, T fallback) {
         if (value == null) {
-            return ScreenMode.WINDOWED;
+            return fallback;
         }
         try {
-            return ScreenMode.valueOf(value);
+            return Enum.valueOf(type, value);
         } catch (IllegalArgumentException e) {
-            return ScreenMode.WINDOWED;
-        }
-    }
-
-    private static F11Mode parseF11ModeOrDefault(String value) {
-        if (value == null) {
-            return F11Mode.BORDERLESS;
-        }
-        try {
-            return F11Mode.valueOf(value);
-        } catch (IllegalArgumentException e) {
-            return F11Mode.BORDERLESS;
+            return fallback;
         }
     }
 }

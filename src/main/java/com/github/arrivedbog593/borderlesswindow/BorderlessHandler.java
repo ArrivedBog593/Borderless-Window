@@ -50,7 +50,7 @@ public final class BorderlessHandler {
 
     public static void setF11Target(F11Mode target) {
         f11Target = target;
-        BorderlessConfigFile.save(currentMode, f11Target);
+        BorderlessConfigFile.saveCurrent();
     }
 
     /**
@@ -84,13 +84,16 @@ public final class BorderlessHandler {
      *    fullscreen=true, vanilla may have CREATED the window in exclusive
      *    fullscreen -- we detect that by asking GLFW whether the window
      *    has a monitor assigned.
-     * 2. Applies the mode saved in config/borderlesswindow.json.
+     * 2. Applies the mode saved in config/borderlesswindow.json, and
+     *    hands the FPS overlay settings from the same file to
+     *    FpsOverlayState (single load point for the whole config).
      * 3. Marks the handler as initialized, which unblocks F11 handling
      *    in WindowMixin.
      */
     public static void initializeFromConfig(Window window) {
         var config = BorderlessConfigFile.load();
         f11Target = config.f11Mode();
+        FpsOverlayState.init(config.fpsOverlayMode(), config.fpsOverlayPosition());
 
         if (glfwGetWindowMonitor(window.getWindow()) != 0L) {
             // The game booted in exclusive fullscreen via options.txt.
@@ -143,7 +146,7 @@ public final class BorderlessHandler {
             return;
         }
 
-        BorderlessConfigFile.save(currentMode, f11Target);
+        BorderlessConfigFile.saveCurrent();
     }
 
     private static boolean applyWindowed(long handle) {

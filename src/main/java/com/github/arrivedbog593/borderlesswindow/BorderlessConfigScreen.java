@@ -13,11 +13,11 @@ import org.jetbrains.annotations.NotNull;
 /**
  * Config screen reachable from the Mods menu (NeoForge's "Config" button
  * for this mod). This gives users WITHOUT Sodium a proper UI to change
- * the screen mode and the F11 behavior -- with Sodium installed, the
- * same options also appear integrated in its video settings menu.
+ * every setting -- with Sodium installed, the same options also appear
+ * integrated in its video settings menu.
  * <p>
  * Changes apply immediately (same behavior as vanilla's fullscreen
- * option). Persistence is automatic: BorderlessHandler saves to
+ * option). Persistence is automatic: the state holders save to
  * config/borderlesswindow.json on every change.
  */
 public class BorderlessConfigScreen extends Screen {
@@ -60,6 +60,31 @@ public class BorderlessConfigScreen extends Screen {
                         .create(centerX - 100, y + 24, 200, 20,
                                 Component.translatable("borderlesswindow.options.f11_mode.name"),
                                 (button, mode) -> BorderlessHandler.setF11Target(mode)));
+
+        // FPS overlay mode selector (Off / Simple / Extended). Applies
+        // instantly: the overlay reads FpsOverlayState every frame.
+        this.addRenderableWidget(
+                CycleButton.builder((FpsOverlayMode mode) ->
+                                Component.translatable(mode.getTranslationKey()))
+                        .withValues(FpsOverlayMode.values())
+                        .withInitialValue(FpsOverlayState.getMode())
+                        .withTooltip(mode -> Tooltip.create(
+                                Component.translatable("borderlesswindow.options.fps_overlay_mode.tooltip")))
+                        .create(centerX - 100, y + 56, 200, 20,
+                                Component.translatable("borderlesswindow.options.fps_overlay_mode.name"),
+                                (button, mode) -> FpsOverlayState.setMode(mode)));
+
+        // FPS overlay position selector (screen corner).
+        this.addRenderableWidget(
+                CycleButton.builder((FpsOverlayPosition position) ->
+                                Component.translatable(position.getTranslationKey()))
+                        .withValues(FpsOverlayPosition.values())
+                        .withInitialValue(FpsOverlayState.getPosition())
+                        .withTooltip(position -> Tooltip.create(
+                                Component.translatable("borderlesswindow.options.fps_overlay_position.tooltip")))
+                        .create(centerX - 100, y + 80, 200, 20,
+                                Component.translatable("borderlesswindow.options.fps_overlay_position.name"),
+                                (button, position) -> FpsOverlayState.setPosition(position)));
 
         this.addRenderableWidget(
                 Button.builder(CommonComponents.GUI_DONE, button -> this.onClose())
