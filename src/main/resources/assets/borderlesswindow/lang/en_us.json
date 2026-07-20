@@ -1,19 +1,26 @@
 {
-  "borderlesswindow.options.pages.general": "General",
+  "config.borderlesswindow.title": "Borderless Window Settings",
+
+  "borderlesswindow.options.sodium.pages.general": "General",
+  "borderlesswindow.options.sodium.pages.fps": "FPS Overlay",
+  "borderlesswindow.options.sodium.pages.fog": "Fog",
+
   "borderlesswindow.options.screen_mode.name": "Screen Mode",
   "borderlesswindow.options.screen_mode.tooltip": "Choose between a normal window, borderless fullscreen, or Minecraft's regular exclusive fullscreen.",
+  "borderlesswindow.screen_mode.windowed": "Windowed",
+  "borderlesswindow.screen_mode.borderless": "Borderless",
+  "borderlesswindow.screen_mode.fullscreen": "Fullscreen",
+
   "borderlesswindow.options.f11_mode.name": "F11 Mode",
   "borderlesswindow.options.f11_mode.tooltip": "What the F11 key does: toggle borderless fullscreen, toggle Minecraft's regular exclusive fullscreen, or cycle through all three screen modes.",
+  "borderlesswindow.f11_mode.borderless": "Borderless",
+  "borderlesswindow.f11_mode.fullscreen": "Fullscreen",
+  "borderlesswindow.f11_mode.cycle": "Cycle All Modes",
+
   "borderlesswindow.options.fps_overlay_mode.name": "FPS Overlay",
   "borderlesswindow.options.fps_overlay_mode.tooltip": "Shows an FPS counter on screen. Simple displays only the current FPS; Extended shows a single line with the current FPS plus the Min (1% low), Avg and Max FPS over the last 15 seconds. The overlay hides itself while the F3 debug screen is open.",
   "borderlesswindow.options.fps_overlay_position.name": "FPS Overlay Position",
   "borderlesswindow.options.fps_overlay_position.tooltip": "Corner of the screen where the FPS overlay is drawn.",
-  "borderlesswindow.screen_mode.windowed": "Windowed",
-  "borderlesswindow.screen_mode.borderless": "Borderless",
-  "borderlesswindow.screen_mode.fullscreen": "Fullscreen",
-  "borderlesswindow.f11_mode.borderless": "Borderless",
-  "borderlesswindow.f11_mode.fullscreen": "Fullscreen",
-  "borderlesswindow.f11_mode.cycle": "Cycle All Modes",
   "borderlesswindow.fps_overlay_mode.off": "Off",
   "borderlesswindow.fps_overlay_mode.simple": "Simple",
   "borderlesswindow.fps_overlay_mode.extended": "Extended",
@@ -23,5 +30,13 @@
   "borderlesswindow.fps_overlay_position.bottom_right": "Bottom Right",
   "borderlesswindow.fps_overlay.fps": "%s FPS",
   "borderlesswindow.fps_overlay.extended": "%s FPS (Min %s · Avg %s · Max %s)",
-  "borderlesswindow.config.title": "Borderless Window Settings"
+
+  "borderlesswindow.options.fog_terrain.name": "Terrain Fog",
+  "borderlesswindow.options.fog_terrain.tooltip": "The atmospheric haze that fades out distant terrain, including the Nether's thick fog. Turn Off for a clearer view into the distance. Fog from the Blindness and Darkness effects is never affected by these toggles.",
+  "borderlesswindow.options.fog_water.name": "Water Fog",
+  "borderlesswindow.options.fog_water.tooltip": "The fog seen while underwater. Turn Off to see much farther when diving.",
+  "borderlesswindow.options.fog_lava.name": "Lava Fog",
+  "borderlesswindow.options.fog_lava.tooltip": "The fog seen while submerged in lava. Turn Off to see through lava while inside it.",
+  "borderlesswindow.options.fog_powder_snow.name": "Powder Snow Fog",
+  "borderlesswindow.options.fog_powder_snow.tooltip": "The fog seen while inside powder snow. Turn Off to keep your view clear."
 }

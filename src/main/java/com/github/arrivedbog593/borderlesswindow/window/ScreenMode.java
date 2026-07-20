@@ -1,4 +1,4 @@
-package com.github.arrivedbog593.borderlesswindow;
+package com.github.arrivedbog593.borderlesswindow.window;
 
 /**
  * The 3 states the game window can be in. Each state has a translation

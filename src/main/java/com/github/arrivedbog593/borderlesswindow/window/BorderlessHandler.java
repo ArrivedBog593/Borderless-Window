@@ -1,5 +1,8 @@
-package com.github.arrivedbog593.borderlesswindow;
+package com.github.arrivedbog593.borderlesswindow.window;
 
+import com.github.arrivedbog593.borderlesswindow.config.BorderlessConfigFile;
+import com.github.arrivedbog593.borderlesswindow.fog.FogState;
+import com.github.arrivedbog593.borderlesswindow.fps.FpsOverlayState;
 import com.mojang.blaze3d.platform.Window;
 import org.lwjgl.PointerBuffer;
 import org.lwjgl.glfw.GLFWVidMode;
@@ -85,8 +88,9 @@ public final class BorderlessHandler {
      *    fullscreen -- we detect that by asking GLFW whether the window
      *    has a monitor assigned.
      * 2. Applies the mode saved in config/borderlesswindow.json, and
-     *    hands the FPS overlay settings from the same file to
-     *    FpsOverlayState (single load point for the whole config).
+     *    hands the FPS overlay and fog settings from the same file to
+     *    FpsOverlayState / FogState (single load point for the whole
+     *    config).
      * 3. Marks the handler as initialized, which unblocks F11 handling
      *    in WindowMixin.
      */
@@ -94,6 +98,8 @@ public final class BorderlessHandler {
         var config = BorderlessConfigFile.load();
         f11Target = config.f11Mode();
         FpsOverlayState.init(config.fpsOverlayMode(), config.fpsOverlayPosition());
+        FogState.init(config.terrainFog(), config.waterFog(),
+                config.lavaFog(), config.powderSnowFog());
 
         if (glfwGetWindowMonitor(window.getWindow()) != 0L) {
             // The game booted in exclusive fullscreen via options.txt.

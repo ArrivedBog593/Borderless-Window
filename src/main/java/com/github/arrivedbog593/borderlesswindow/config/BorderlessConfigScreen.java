@@ -1,5 +1,12 @@
-package com.github.arrivedbog593.borderlesswindow;
+package com.github.arrivedbog593.borderlesswindow.config;
 
+import com.github.arrivedbog593.borderlesswindow.fog.FogState;
+import com.github.arrivedbog593.borderlesswindow.fps.FpsOverlayMode;
+import com.github.arrivedbog593.borderlesswindow.fps.FpsOverlayPosition;
+import com.github.arrivedbog593.borderlesswindow.fps.FpsOverlayState;
+import com.github.arrivedbog593.borderlesswindow.window.BorderlessHandler;
+import com.github.arrivedbog593.borderlesswindow.window.F11Mode;
+import com.github.arrivedbog593.borderlesswindow.window.ScreenMode;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
@@ -25,7 +32,7 @@ public class BorderlessConfigScreen extends Screen {
     private final Screen parent;
 
     public BorderlessConfigScreen(Screen parent) {
-        super(Component.translatable("borderlesswindow.config.title"));
+        super(Component.translatable("config.borderlesswindow.title"));
         this.parent = parent;
     }
 
@@ -85,6 +92,40 @@ public class BorderlessConfigScreen extends Screen {
                         .create(centerX - 100, y + 80, 200, 20,
                                 Component.translatable("borderlesswindow.options.fps_overlay_position.name"),
                                 (button, position) -> FpsOverlayState.setPosition(position)));
+
+        // Fog toggles (On = vanilla fog, Off = removed). Applied live:
+        // FogHandler consults FogState every time fog is set up.
+        this.addRenderableWidget(
+                CycleButton.onOffBuilder(FogState.isTerrainFogEnabled())
+                        .withTooltip(value -> Tooltip.create(
+                                Component.translatable("borderlesswindow.options.fog_terrain.tooltip")))
+                        .create(centerX - 100, y + 112, 200, 20,
+                                Component.translatable("borderlesswindow.options.fog_terrain.name"),
+                                (button, value) -> FogState.setTerrainFogEnabled(value)));
+
+        this.addRenderableWidget(
+                CycleButton.onOffBuilder(FogState.isWaterFogEnabled())
+                        .withTooltip(value -> Tooltip.create(
+                                Component.translatable("borderlesswindow.options.fog_water.tooltip")))
+                        .create(centerX - 100, y + 136, 200, 20,
+                                Component.translatable("borderlesswindow.options.fog_water.name"),
+                                (button, value) -> FogState.setWaterFogEnabled(value)));
+
+        this.addRenderableWidget(
+                CycleButton.onOffBuilder(FogState.isLavaFogEnabled())
+                        .withTooltip(value -> Tooltip.create(
+                                Component.translatable("borderlesswindow.options.fog_lava.tooltip")))
+                        .create(centerX - 100, y + 160, 200, 20,
+                                Component.translatable("borderlesswindow.options.fog_lava.name"),
+                                (button, value) -> FogState.setLavaFogEnabled(value)));
+
+        this.addRenderableWidget(
+                CycleButton.onOffBuilder(FogState.isPowderSnowFogEnabled())
+                        .withTooltip(value -> Tooltip.create(
+                                Component.translatable("borderlesswindow.options.fog_powder_snow.tooltip")))
+                        .create(centerX - 100, y + 184, 200, 20,
+                                Component.translatable("borderlesswindow.options.fog_powder_snow.name"),
+                                (button, value) -> FogState.setPowderSnowFogEnabled(value)));
 
         this.addRenderableWidget(
                 Button.builder(CommonComponents.GUI_DONE, button -> this.onClose())

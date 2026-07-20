@@ -1,4 +1,4 @@
-package com.github.arrivedbog593.borderlesswindow;
+package com.github.arrivedbog593.borderlesswindow.fps;
 
 /**
  * How much information the FPS overlay shows:

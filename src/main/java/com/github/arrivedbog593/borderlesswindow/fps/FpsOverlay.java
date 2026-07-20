@@ -1,4 +1,4 @@
-package com.github.arrivedbog593.borderlesswindow;
+package com.github.arrivedbog593.borderlesswindow.fps;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;

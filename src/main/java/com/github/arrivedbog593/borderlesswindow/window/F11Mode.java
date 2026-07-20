@@ -1,4 +1,4 @@
-package com.github.arrivedbog593.borderlesswindow;
+package com.github.arrivedbog593.borderlesswindow.window;
 
 /**
  * What the F11 key does. BORDERLESS and FULLSCREEN toggle between

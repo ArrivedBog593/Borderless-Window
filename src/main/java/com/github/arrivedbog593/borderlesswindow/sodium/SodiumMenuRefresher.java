@@ -1,4 +1,4 @@
-package com.github.arrivedbog593.borderlesswindow;
+package com.github.arrivedbog593.borderlesswindow.sodium;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.Screen;

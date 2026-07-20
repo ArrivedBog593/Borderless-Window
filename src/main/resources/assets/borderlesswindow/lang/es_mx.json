@@ -1,19 +1,26 @@
 {
-  "borderlesswindow.options.pages.general": "General",
+  "config.borderlesswindow.title": "Configuración de Borderless Window",
+
+  "borderlesswindow.options.sodium.pages.general": "General",
+  "borderlesswindow.options.sodium.pages.fps": "Contador de FPS",
+  "borderlesswindow.options.sodium.pages.fog": "Niebla",
+
   "borderlesswindow.options.screen_mode.name": "Modo de pantalla",
   "borderlesswindow.options.screen_mode.tooltip": "Elige entre ventana normal, pantalla completa sin bordes, o el fullscreen normal de Minecraft.",
+  "borderlesswindow.screen_mode.windowed": "En ventana",
+  "borderlesswindow.screen_mode.borderless": "Sin bordes",
+  "borderlesswindow.screen_mode.fullscreen": "Pantalla completa",
+
   "borderlesswindow.options.f11_mode.name": "Modo de F11",
   "borderlesswindow.options.f11_mode.tooltip": "Qué hace la tecla F11: alternar pantalla sin bordes, alternar el fullscreen normal de Minecraft, o ciclar entre los tres modos de pantalla.",
+  "borderlesswindow.f11_mode.borderless": "Sin bordes",
+  "borderlesswindow.f11_mode.fullscreen": "Pantalla completa",
+  "borderlesswindow.f11_mode.cycle": "Alternar entre los 3 modos",
+
   "borderlesswindow.options.fps_overlay_mode.name": "Contador de FPS",
   "borderlesswindow.options.fps_overlay_mode.tooltip": "Muestra un contador de FPS en pantalla. Simple muestra solo los FPS actuales; Extendido muestra una sola línea con los FPS actuales más el Mín (1% low), Promedio y Máx de los últimos 15 segundos. El contador se oculta solo mientras la pantalla de debug (F3) está abierta.",
   "borderlesswindow.options.fps_overlay_position.name": "Posición del contador",
   "borderlesswindow.options.fps_overlay_position.tooltip": "Esquina de la pantalla donde se dibuja el contador de FPS.",
-  "borderlesswindow.screen_mode.windowed": "En ventana",
-  "borderlesswindow.screen_mode.borderless": "Sin bordes",
-  "borderlesswindow.screen_mode.fullscreen": "Pantalla completa",
-  "borderlesswindow.f11_mode.borderless": "Sin bordes",
-  "borderlesswindow.f11_mode.fullscreen": "Pantalla completa",
-  "borderlesswindow.f11_mode.cycle": "Alternar entre los 3 modos",
   "borderlesswindow.fps_overlay_mode.off": "Desactivado",
   "borderlesswindow.fps_overlay_mode.simple": "Simple",
   "borderlesswindow.fps_overlay_mode.extended": "Extendido",
@@ -23,5 +30,13 @@
   "borderlesswindow.fps_overlay_position.bottom_right": "Abajo a la derecha",
   "borderlesswindow.fps_overlay.fps": "%s FPS",
   "borderlesswindow.fps_overlay.extended": "%s FPS (Mín %s · Prom %s · Máx %s)",
-  "borderlesswindow.config.title": "Configuración de Borderless Window"
+
+  "borderlesswindow.options.fog_terrain.name": "Niebla de terreno",
+  "borderlesswindow.options.fog_terrain.tooltip": "La neblina atmosférica que difumina el terreno lejano, incluida la niebla densa del Nether. Desactívala para ver más lejos y más claro. La niebla de los efectos de Ceguera y Oscuridad nunca se ve afectada por estas opciones.",
+  "borderlesswindow.options.fog_water.name": "Niebla de agua",
+  "borderlesswindow.options.fog_water.tooltip": "La niebla que se ve bajo el agua. Desactívala para ver mucho más lejos al bucear.",
+  "borderlesswindow.options.fog_lava.name": "Niebla de lava",
+  "borderlesswindow.options.fog_lava.tooltip": "La niebla que se ve sumergido en lava. Desactívala para ver a través de la lava mientras estás dentro.",
+  "borderlesswindow.options.fog_powder_snow.name": "Niebla de nieve polvo",
+  "borderlesswindow.options.fog_powder_snow.tooltip": "La niebla que se ve dentro de la nieve polvo. Desactívala para mantener la vista despejada."
 }

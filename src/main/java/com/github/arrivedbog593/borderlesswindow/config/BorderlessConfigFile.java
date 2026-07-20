@@ -1,5 +1,12 @@
-package com.github.arrivedbog593.borderlesswindow;
+package com.github.arrivedbog593.borderlesswindow.config;
 
+import com.github.arrivedbog593.borderlesswindow.fog.FogState;
+import com.github.arrivedbog593.borderlesswindow.fps.FpsOverlayMode;
+import com.github.arrivedbog593.borderlesswindow.fps.FpsOverlayPosition;
+import com.github.arrivedbog593.borderlesswindow.fps.FpsOverlayState;
+import com.github.arrivedbog593.borderlesswindow.window.BorderlessHandler;
+import com.github.arrivedbog593.borderlesswindow.window.F11Mode;
+import com.github.arrivedbog593.borderlesswindow.window.ScreenMode;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import net.neoforged.fml.loading.FMLPaths;
@@ -15,7 +22,8 @@ import java.nio.file.Path;
  * <p>
  * Deliberately fault-tolerant: if the file is missing, corrupt, or has
  * invalid or absent values, the defaults are used (Windowed / F11 ->
- * Borderless / FPS overlay off, top-left) without crashing. Configs
+ * Borderless / FPS overlay off, top-left / all fog enabled) without
+ * crashing. Configs
  * written by older versions of the mod simply lack the newer fields and
  * fall back to those defaults -- no migration needed.
  */
@@ -30,11 +38,17 @@ public final class BorderlessConfigFile {
         String f11_mode = F11Mode.BORDERLESS.name();
         String fps_overlay_mode = FpsOverlayMode.OFF.name();
         String fps_overlay_position = FpsOverlayPosition.TOP_LEFT.name();
+        boolean fog_terrain = true;
+        boolean fog_water = true;
+        boolean fog_lava = true;
+        boolean fog_powder_snow = true;
     }
 
     public record LoadedConfig(ScreenMode screenMode, F11Mode f11Mode,
                                FpsOverlayMode fpsOverlayMode,
-                               FpsOverlayPosition fpsOverlayPosition) {
+                               FpsOverlayPosition fpsOverlayPosition,
+                               boolean terrainFog, boolean waterFog,
+                               boolean lavaFog, boolean powderSnowFog) {
     }
 
     private BorderlessConfigFile() {
@@ -57,7 +71,8 @@ public final class BorderlessConfigFile {
                 parseOrDefault(F11Mode.class, data.f11_mode, F11Mode.BORDERLESS),
                 parseOrDefault(FpsOverlayMode.class, data.fps_overlay_mode, FpsOverlayMode.OFF),
                 parseOrDefault(FpsOverlayPosition.class, data.fps_overlay_position,
-                        FpsOverlayPosition.TOP_LEFT));
+                        FpsOverlayPosition.TOP_LEFT),
+                data.fog_terrain, data.fog_water, data.fog_lava, data.fog_powder_snow);
     }
 
     /**
@@ -74,6 +89,10 @@ public final class BorderlessConfigFile {
         data.f11_mode = BorderlessHandler.getF11Target().name();
         data.fps_overlay_mode = FpsOverlayState.getMode().name();
         data.fps_overlay_position = FpsOverlayState.getPosition().name();
+        data.fog_terrain = FogState.isTerrainFogEnabled();
+        data.fog_water = FogState.isWaterFogEnabled();
+        data.fog_lava = FogState.isLavaFogEnabled();
+        data.fog_powder_snow = FogState.isPowderSnowFogEnabled();
         try {
             Files.writeString(PATH, GSON.toJson(data));
         } catch (IOException ignored) {

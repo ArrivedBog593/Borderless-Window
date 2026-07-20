@@ -1,8 +1,8 @@
 package com.github.arrivedbog593.borderlesswindow.mixin;
 
-import com.github.arrivedbog593.borderlesswindow.BorderlessHandler;
-import com.github.arrivedbog593.borderlesswindow.ScreenMode;
-import com.github.arrivedbog593.borderlesswindow.SodiumMenuRefresher;
+import com.github.arrivedbog593.borderlesswindow.window.BorderlessHandler;
+import com.github.arrivedbog593.borderlesswindow.window.ScreenMode;
+import com.github.arrivedbog593.borderlesswindow.sodium.SodiumMenuRefresher;
 import com.mojang.blaze3d.platform.Window;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
@@ -22,6 +22,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
  * two non-windowed modes is active.
  */
 @Mixin(Window.class)
+@SuppressWarnings("unused") // Mixin class, not instantiated directly
 public abstract class WindowMixin {
 
     @Inject(method = "toggleFullScreen", at = @At("HEAD"), cancellable = true)

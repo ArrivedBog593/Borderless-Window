@@ -1,4 +1,6 @@
-package com.github.arrivedbog593.borderlesswindow;
+package com.github.arrivedbog593.borderlesswindow.fps;
+
+import com.github.arrivedbog593.borderlesswindow.config.BorderlessConfigFile;
 
 /**
  * Holds the FPS overlay settings (mode + position), mirroring the role
@@ -21,7 +23,7 @@ public final class FpsOverlayState {
     }
 
     /** Called once at startup with the values loaded from disk. */
-    static void init(FpsOverlayMode loadedMode, FpsOverlayPosition loadedPosition) {
+    public static void init(FpsOverlayMode loadedMode, FpsOverlayPosition loadedPosition) {
         mode = loadedMode;
         position = loadedPosition;
     }

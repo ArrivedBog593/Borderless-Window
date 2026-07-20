@@ -1,9 +1,9 @@
-package com.github.arrivedbog593.borderlesswindow.config;
+package com.github.arrivedbog593.borderlesswindow.sodium;
 
-import com.github.arrivedbog593.borderlesswindow.F11Mode;
-import com.github.arrivedbog593.borderlesswindow.FpsOverlayMode;
-import com.github.arrivedbog593.borderlesswindow.FpsOverlayPosition;
-import com.github.arrivedbog593.borderlesswindow.ScreenMode;
+import com.github.arrivedbog593.borderlesswindow.fps.FpsOverlayMode;
+import com.github.arrivedbog593.borderlesswindow.fps.FpsOverlayPosition;
+import com.github.arrivedbog593.borderlesswindow.window.F11Mode;
+import com.github.arrivedbog593.borderlesswindow.window.ScreenMode;
 import net.caffeinemc.mods.sodium.api.config.ConfigEntryPoint;
 import net.caffeinemc.mods.sodium.api.config.ConfigEntryPointForge;
 import net.caffeinemc.mods.sodium.api.config.structure.ConfigBuilder;
@@ -13,6 +13,14 @@ import net.minecraft.resources.ResourceLocation;
 /**
  * Sodium Config API entry point. Sodium instantiates this class and calls
  * registerConfigLate() after the game has started.
+ * <p>
+ * The mod registers its own header ("Borderless Window") in the left-hand
+ * list of the video settings menu, with one page per feature:
+ * - General: F11 behavior.
+ * - FPS Overlay: overlay mode + position.
+ * - Fog: the four per-type fog toggles.
+ * The Screen Mode option itself lives on Sodium's General page, since it
+ * REPLACES Sodium's fullscreen checkbox (registerOptionReplacement).
  * <p>
  * Verified against the actual Sodium mc1.21.1-0.8.12 source code:
  * - The ID of its fullscreen option is "sodium:general.fullscreen"
@@ -31,11 +39,9 @@ public class ScreenModeConfigEntryPoint implements ConfigEntryPoint {
     public void registerConfigLate(ConfigBuilder builder) {
         builder.registerOwnModOptions()
                 .setName("Borderless Window")
-                // The mod's own page, shown with its header in the left-hand
-                // list of the video settings menu. First group: F11 behavior.
-                // Second group: the FPS overlay options.
+                // Page 1 - General: F11 behavior.
                 .addPage(builder.createOptionPage()
-                        .setName(Component.translatable("borderlesswindow.options.pages.general"))
+                        .setName(Component.translatable("borderlesswindow.options.sodium.pages.general"))
                         .addOptionGroup(builder.createOptionGroup()
                                 .addOption(builder.createEnumOption(
                                                 ResourceLocation.parse("borderlesswindow:f11_mode"),
@@ -48,6 +54,10 @@ public class ScreenModeConfigEntryPoint implements ConfigEntryPoint {
                                         .setDefaultValue(F11Mode.BORDERLESS)
                                 )
                         )
+                )
+                // Page 2 - FPS Overlay: mode + position.
+                .addPage(builder.createOptionPage()
+                        .setName(Component.translatable("borderlesswindow.options.sodium.pages.fps"))
                         .addOptionGroup(builder.createOptionGroup()
                                 .addOption(builder.createEnumOption(
                                                 ResourceLocation.parse("borderlesswindow:fps_overlay_mode"),
@@ -75,6 +85,44 @@ public class ScreenModeConfigEntryPoint implements ConfigEntryPoint {
                                                         ResourceLocation.parse("borderlesswindow:fps_overlay_mode"),
                                                         FpsOverlayMode.class) != FpsOverlayMode.OFF,
                                                 ResourceLocation.parse("borderlesswindow:fps_overlay_mode"))
+                                )
+                        )
+                )
+                // Page 3 - Fog: the four per-type toggles.
+                .addPage(builder.createOptionPage()
+                        .setName(Component.translatable("borderlesswindow.options.sodium.pages.fog"))
+                        .addOptionGroup(builder.createOptionGroup()
+                                .addOption(builder.createBooleanOption(
+                                                ResourceLocation.parse("borderlesswindow:fog_terrain"))
+                                        .setName(Component.translatable("borderlesswindow.options.fog_terrain.name"))
+                                        .setTooltip(Component.translatable("borderlesswindow.options.fog_terrain.tooltip"))
+                                        .setStorageHandler(this.storage::flush)
+                                        .setBinding(this.storage::setTerrainFog, this.storage::getTerrainFog)
+                                        .setDefaultValue(true)
+                                )
+                                .addOption(builder.createBooleanOption(
+                                                ResourceLocation.parse("borderlesswindow:fog_water"))
+                                        .setName(Component.translatable("borderlesswindow.options.fog_water.name"))
+                                        .setTooltip(Component.translatable("borderlesswindow.options.fog_water.tooltip"))
+                                        .setStorageHandler(this.storage::flush)
+                                        .setBinding(this.storage::setWaterFog, this.storage::getWaterFog)
+                                        .setDefaultValue(true)
+                                )
+                                .addOption(builder.createBooleanOption(
+                                                ResourceLocation.parse("borderlesswindow:fog_lava"))
+                                        .setName(Component.translatable("borderlesswindow.options.fog_lava.name"))
+                                        .setTooltip(Component.translatable("borderlesswindow.options.fog_lava.tooltip"))
+                                        .setStorageHandler(this.storage::flush)
+                                        .setBinding(this.storage::setLavaFog, this.storage::getLavaFog)
+                                        .setDefaultValue(true)
+                                )
+                                .addOption(builder.createBooleanOption(
+                                                ResourceLocation.parse("borderlesswindow:fog_powder_snow"))
+                                        .setName(Component.translatable("borderlesswindow.options.fog_powder_snow.name"))
+                                        .setTooltip(Component.translatable("borderlesswindow.options.fog_powder_snow.tooltip"))
+                                        .setStorageHandler(this.storage::flush)
+                                        .setBinding(this.storage::setPowderSnowFog, this.storage::getPowderSnowFog)
+                                        .setDefaultValue(true)
                                 )
                         )
                 )

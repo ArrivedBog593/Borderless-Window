@@ -1,11 +1,12 @@
-package com.github.arrivedbog593.borderlesswindow.config;
+package com.github.arrivedbog593.borderlesswindow.sodium;
 
-import com.github.arrivedbog593.borderlesswindow.BorderlessHandler;
-import com.github.arrivedbog593.borderlesswindow.F11Mode;
-import com.github.arrivedbog593.borderlesswindow.FpsOverlayMode;
-import com.github.arrivedbog593.borderlesswindow.FpsOverlayPosition;
-import com.github.arrivedbog593.borderlesswindow.FpsOverlayState;
-import com.github.arrivedbog593.borderlesswindow.ScreenMode;
+import com.github.arrivedbog593.borderlesswindow.fog.FogState;
+import com.github.arrivedbog593.borderlesswindow.fps.FpsOverlayMode;
+import com.github.arrivedbog593.borderlesswindow.fps.FpsOverlayPosition;
+import com.github.arrivedbog593.borderlesswindow.fps.FpsOverlayState;
+import com.github.arrivedbog593.borderlesswindow.window.BorderlessHandler;
+import com.github.arrivedbog593.borderlesswindow.window.F11Mode;
+import com.github.arrivedbog593.borderlesswindow.window.ScreenMode;
 import com.mojang.blaze3d.platform.Window;
 import net.minecraft.client.Minecraft;
 
@@ -35,6 +36,18 @@ public final class ScreenModeStorage {
 
     private FpsOverlayPosition pendingFpsOverlayPosition = FpsOverlayState.getPosition();
     private boolean fpsOverlayPositionDirty = false;
+
+    private boolean pendingTerrainFog = FogState.isTerrainFogEnabled();
+    private boolean terrainFogDirty = false;
+
+    private boolean pendingWaterFog = FogState.isWaterFogEnabled();
+    private boolean waterFogDirty = false;
+
+    private boolean pendingLavaFog = FogState.isLavaFogEnabled();
+    private boolean lavaFogDirty = false;
+
+    private boolean pendingPowderSnowFog = FogState.isPowderSnowFogEnabled();
+    private boolean powderSnowFogDirty = false;
 
     public ScreenMode getScreenMode() {
         return BorderlessHandler.getCurrentMode();
@@ -72,6 +85,42 @@ public final class ScreenModeStorage {
         this.fpsOverlayPositionDirty = true;
     }
 
+    public boolean getTerrainFog() {
+        return FogState.isTerrainFogEnabled();
+    }
+
+    public void setTerrainFog(boolean enabled) {
+        this.pendingTerrainFog = enabled;
+        this.terrainFogDirty = true;
+    }
+
+    public boolean getWaterFog() {
+        return FogState.isWaterFogEnabled();
+    }
+
+    public void setWaterFog(boolean enabled) {
+        this.pendingWaterFog = enabled;
+        this.waterFogDirty = true;
+    }
+
+    public boolean getLavaFog() {
+        return FogState.isLavaFogEnabled();
+    }
+
+    public void setLavaFog(boolean enabled) {
+        this.pendingLavaFog = enabled;
+        this.lavaFogDirty = true;
+    }
+
+    public boolean getPowderSnowFog() {
+        return FogState.isPowderSnowFogEnabled();
+    }
+
+    public void setPowderSnowFog(boolean enabled) {
+        this.pendingPowderSnowFog = enabled;
+        this.powderSnowFogDirty = true;
+    }
+
     /**
      * Called when Sodium applies pending changes (setStorageHandler).
      * <p>
@@ -96,6 +145,26 @@ public final class ScreenModeStorage {
         if (this.fpsOverlayPositionDirty) {
             FpsOverlayState.setPosition(this.pendingFpsOverlayPosition);
             this.fpsOverlayPositionDirty = false;
+        }
+
+        if (this.terrainFogDirty) {
+            FogState.setTerrainFogEnabled(this.pendingTerrainFog);
+            this.terrainFogDirty = false;
+        }
+
+        if (this.waterFogDirty) {
+            FogState.setWaterFogEnabled(this.pendingWaterFog);
+            this.waterFogDirty = false;
+        }
+
+        if (this.lavaFogDirty) {
+            FogState.setLavaFogEnabled(this.pendingLavaFog);
+            this.lavaFogDirty = false;
+        }
+
+        if (this.powderSnowFogDirty) {
+            FogState.setPowderSnowFogEnabled(this.pendingPowderSnowFog);
+            this.powderSnowFogDirty = false;
         }
 
         if (this.screenModeDirty) {

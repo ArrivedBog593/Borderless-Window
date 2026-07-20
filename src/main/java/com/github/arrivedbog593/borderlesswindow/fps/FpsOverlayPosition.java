@@ -1,4 +1,4 @@
-package com.github.arrivedbog593.borderlesswindow;
+package com.github.arrivedbog593.borderlesswindow.fps;
 
 /**
  * Corner of the screen where the FPS overlay is drawn. The two booleans
