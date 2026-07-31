@@ -1,9 +1,13 @@
 package com.github.arrivedbog593.borderlesswindow.config;
 
+import com.github.arrivedbog593.borderlesswindow.bobbing.BobbingState;
+import com.github.arrivedbog593.borderlesswindow.bobbing.CameraBobMode;
+import com.github.arrivedbog593.borderlesswindow.cloud.CloudState;
 import com.github.arrivedbog593.borderlesswindow.fog.FogState;
 import com.github.arrivedbog593.borderlesswindow.fps.FpsOverlayMode;
 import com.github.arrivedbog593.borderlesswindow.fps.FpsOverlayPosition;
 import com.github.arrivedbog593.borderlesswindow.fps.FpsOverlayState;
+import com.github.arrivedbog593.borderlesswindow.screeneffect.ScreenEffectState;
 import com.github.arrivedbog593.borderlesswindow.window.BorderlessHandler;
 import com.github.arrivedbog593.borderlesswindow.window.F11Mode;
 import com.github.arrivedbog593.borderlesswindow.window.ScreenMode;
@@ -23,11 +27,47 @@ import org.jetbrains.annotations.NotNull;
  * every setting -- with Sodium installed, the same options also appear
  * integrated in its video settings menu.
  * <p>
+ * Options live inside a scrollable BorderlessOptionsList grouped by
+ * feature ("Window", "FPS Overlay", "Fog", "Clouds", "Screen Overlays",
+ * "Bobbing"),
+ * mirroring the pages the Sodium integration shows. The list scrolls, so
+ * adding features never pushes options off-screen the way the previous
+ * flat layout did; a new feature only needs addHeader() + addOption()
+ * calls here.
+ * <p>
  * Changes apply immediately (same behavior as vanilla's fullscreen
  * option). Persistence is automatic: the state holders save to
- * config/borderlesswindow.json on every change.
+ * config/borderlesswindow.json on every change. The one exception is the
+ * cloud height slider, which defers its write to avoid hammering the disk
+ * mid-drag -- onClose() covers the keyboard path for it.
  */
 public class BorderlessConfigScreen extends Screen {
+
+    /** Space reserved for the title above the list. */
+    private static final int HEADER_HEIGHT = 32;
+
+    /** Space reserved for the Done button below the list. */
+    private static final int FOOTER_HEIGHT = 32;
+
+    private static final int ROW_HEIGHT = 24;
+
+    /**
+     * Option widgets are wider than vanilla's usual 200 px: translated
+     * labels ("Posición del contador", "Modo de F11") plus their value
+     * overflow a 200 px button and get truncated. BorderlessOptionsList
+     * uses 310 px rows, so 280 fits with margin to spare.
+     */
+    private static final int OPTION_WIDTH = 280;
+    private static final int OPTION_HEIGHT = 20;
+
+    /**
+     * The Done button keeps vanilla's 200 px. Deliberately NOT tied to
+     * OPTION_WIDTH: it is centered manually below, so sharing the
+     * constant would silently offset it by half the difference the next
+     * time the option width changes.
+     */
+    private static final int DONE_WIDTH = 200;
+    private static final int DONE_HEIGHT = 20;
 
     private final Screen parent;
 
@@ -38,109 +78,203 @@ public class BorderlessConfigScreen extends Screen {
 
     @Override
     protected void init() {
-        int centerX = this.width / 2;
-        int y = this.height / 6 + 24;
+        BorderlessOptionsList list = new BorderlessOptionsList(this.minecraft,
+                this.width, this.height - HEADER_HEIGHT - FOOTER_HEIGHT,
+                HEADER_HEIGHT, ROW_HEIGHT);
+
+        // --- Window -------------------------------------------------
+        list.addHeader(Component.translatable("config.borderlesswindow.section.window"));
 
         // Screen mode selector. Applying it immediately resizes the game
-        // window, which re-inits this screen -- the button is then rebuilt
+        // window, which re-inits this screen -- the list is then rebuilt
         // with the current value, so it always stays consistent.
-        this.addRenderableWidget(
+        list.addOption(
                 CycleButton.builder((ScreenMode mode) ->
                                 Component.translatable(mode.getTranslationKey()))
                         .withValues(ScreenMode.values())
                         .withInitialValue(BorderlessHandler.getCurrentMode())
                         .withTooltip(mode -> Tooltip.create(
                                 Component.translatable("borderlesswindow.options.screen_mode.tooltip")))
-                        .create(centerX - 100, y, 200, 20,
+                        .create(0, 0, OPTION_WIDTH, OPTION_HEIGHT,
                                 Component.translatable("borderlesswindow.options.screen_mode.name"),
                                 (button, mode) -> BorderlessHandler.setMode(
                                         Minecraft.getInstance().getWindow(), mode)));
 
         // F11 behavior selector. No window change involved, applies silently.
-        this.addRenderableWidget(
+        list.addOption(
                 CycleButton.builder((F11Mode mode) ->
                                 Component.translatable(mode.getTranslationKey()))
                         .withValues(F11Mode.values())
                         .withInitialValue(BorderlessHandler.getF11Target())
                         .withTooltip(mode -> Tooltip.create(
                                 Component.translatable("borderlesswindow.options.f11_mode.tooltip")))
-                        .create(centerX - 100, y + 24, 200, 20,
+                        .create(0, 0, OPTION_WIDTH, OPTION_HEIGHT,
                                 Component.translatable("borderlesswindow.options.f11_mode.name"),
                                 (button, mode) -> BorderlessHandler.setF11Target(mode)));
 
-        // FPS overlay mode selector (Off / Simple / Extended). Applies
-        // instantly: the overlay reads FpsOverlayState every frame.
-        this.addRenderableWidget(
+        // --- FPS overlay --------------------------------------------
+        list.addHeader(Component.translatable("config.borderlesswindow.section.fps"));
+
+        // Overlay mode (Off / Simple / Extended). Applies instantly: the
+        // overlay reads FpsOverlayState every frame.
+        list.addOption(
                 CycleButton.builder((FpsOverlayMode mode) ->
                                 Component.translatable(mode.getTranslationKey()))
                         .withValues(FpsOverlayMode.values())
                         .withInitialValue(FpsOverlayState.getMode())
                         .withTooltip(mode -> Tooltip.create(
                                 Component.translatable("borderlesswindow.options.fps_overlay_mode.tooltip")))
-                        .create(centerX - 100, y + 56, 200, 20,
+                        .create(0, 0, OPTION_WIDTH, OPTION_HEIGHT,
                                 Component.translatable("borderlesswindow.options.fps_overlay_mode.name"),
                                 (button, mode) -> FpsOverlayState.setMode(mode)));
 
-        // FPS overlay position selector (screen corner).
-        this.addRenderableWidget(
+        // Overlay position (screen corner).
+        list.addOption(
                 CycleButton.builder((FpsOverlayPosition position) ->
                                 Component.translatable(position.getTranslationKey()))
                         .withValues(FpsOverlayPosition.values())
                         .withInitialValue(FpsOverlayState.getPosition())
                         .withTooltip(position -> Tooltip.create(
                                 Component.translatable("borderlesswindow.options.fps_overlay_position.tooltip")))
-                        .create(centerX - 100, y + 80, 200, 20,
+                        .create(0, 0, OPTION_WIDTH, OPTION_HEIGHT,
                                 Component.translatable("borderlesswindow.options.fps_overlay_position.name"),
                                 (button, position) -> FpsOverlayState.setPosition(position)));
 
-        // Fog toggles (On = vanilla fog, Off = removed). Applied live:
-        // FogHandler consults FogState every time fog is set up.
-        this.addRenderableWidget(
+        // --- Fog -----------------------------------------------------
+        list.addHeader(Component.translatable("config.borderlesswindow.section.fog"));
+
+        // On = vanilla fog, Off = removed. Applied live: FogHandler
+        // consults FogState every time fog is set up.
+        list.addOption(
                 CycleButton.onOffBuilder(FogState.isTerrainFogEnabled())
                         .withTooltip(value -> Tooltip.create(
                                 Component.translatable("borderlesswindow.options.fog_terrain.tooltip")))
-                        .create(centerX - 100, y + 112, 200, 20,
+                        .create(0, 0, OPTION_WIDTH, OPTION_HEIGHT,
                                 Component.translatable("borderlesswindow.options.fog_terrain.name"),
                                 (button, value) -> FogState.setTerrainFogEnabled(value)));
 
-        this.addRenderableWidget(
+        list.addOption(
                 CycleButton.onOffBuilder(FogState.isWaterFogEnabled())
                         .withTooltip(value -> Tooltip.create(
                                 Component.translatable("borderlesswindow.options.fog_water.tooltip")))
-                        .create(centerX - 100, y + 136, 200, 20,
+                        .create(0, 0, OPTION_WIDTH, OPTION_HEIGHT,
                                 Component.translatable("borderlesswindow.options.fog_water.name"),
                                 (button, value) -> FogState.setWaterFogEnabled(value)));
 
-        this.addRenderableWidget(
+        list.addOption(
                 CycleButton.onOffBuilder(FogState.isLavaFogEnabled())
                         .withTooltip(value -> Tooltip.create(
                                 Component.translatable("borderlesswindow.options.fog_lava.tooltip")))
-                        .create(centerX - 100, y + 160, 200, 20,
+                        .create(0, 0, OPTION_WIDTH, OPTION_HEIGHT,
                                 Component.translatable("borderlesswindow.options.fog_lava.name"),
                                 (button, value) -> FogState.setLavaFogEnabled(value)));
 
-        this.addRenderableWidget(
+        list.addOption(
                 CycleButton.onOffBuilder(FogState.isPowderSnowFogEnabled())
                         .withTooltip(value -> Tooltip.create(
                                 Component.translatable("borderlesswindow.options.fog_powder_snow.tooltip")))
-                        .create(centerX - 100, y + 184, 200, 20,
+                        .create(0, 0, OPTION_WIDTH, OPTION_HEIGHT,
                                 Component.translatable("borderlesswindow.options.fog_powder_snow.name"),
                                 (button, value) -> FogState.setPowderSnowFogEnabled(value)));
 
+        // --- Clouds ---------------------------------------------------
+        list.addHeader(Component.translatable("config.borderlesswindow.section.clouds"));
+
+        // "Default" (leftmost) leaves each dimension's own height untouched;
+        // any other value overrides it via CloudHeightMixin.
+        CloudHeightSlider cloudSlider =
+                new CloudHeightSlider(0, 0, OPTION_WIDTH, OPTION_HEIGHT);
+        cloudSlider.setTooltip(Tooltip.create(
+                Component.translatable("borderlesswindow.options.cloud_height.tooltip")));
+        list.addOption(cloudSlider);
+
+        // --- Screen overlays ------------------------------------------
+        list.addHeader(Component.translatable("config.borderlesswindow.section.overlays"));
+
+        // Built first so the fire toggle below can capture it and grey it
+        // out live, matching what setEnabledProvider does on the Sodium
+        // side. Added to the list AFTER the fire toggle, so display order
+        // stays Water / Fire / Smart Fire.
+        CycleButton<Boolean> smartFireButton =
+                CycleButton.onOffBuilder(ScreenEffectState.isSmartFireEnabled())
+                        .withTooltip(value -> Tooltip.create(
+                                Component.translatable("borderlesswindow.options.overlay_fire_smart.tooltip")))
+                        .create(0, 0, OPTION_WIDTH, OPTION_HEIGHT,
+                                Component.translatable("borderlesswindow.options.overlay_fire_smart.name"),
+                                (button, value) -> ScreenEffectState.setSmartFireEnabled(value));
+        // Meaningless while the fire overlay is off entirely -- there is
+        // nothing left for it to hide conditionally.
+        smartFireButton.active = ScreenEffectState.isFireOverlayEnabled();
+
+        list.addOption(
+                CycleButton.onOffBuilder(ScreenEffectState.isWaterOverlayEnabled())
+                        .withTooltip(value -> Tooltip.create(
+                                Component.translatable("borderlesswindow.options.overlay_water.tooltip")))
+                        .create(0, 0, OPTION_WIDTH, OPTION_HEIGHT,
+                                Component.translatable("borderlesswindow.options.overlay_water.name"),
+                                (button, value) -> ScreenEffectState.setWaterOverlayEnabled(value)));
+
+        list.addOption(
+                CycleButton.onOffBuilder(ScreenEffectState.isFireOverlayEnabled())
+                        .withTooltip(value -> Tooltip.create(
+                                Component.translatable("borderlesswindow.options.overlay_fire.tooltip")))
+                        .create(0, 0, OPTION_WIDTH, OPTION_HEIGHT,
+                                Component.translatable("borderlesswindow.options.overlay_fire.name"),
+                                (button, value) -> {
+                                    ScreenEffectState.setFireOverlayEnabled(value);
+                                    smartFireButton.active = value;
+                                }));
+
+        list.addOption(smartFireButton);
+
+        // --- Bobbing --------------------------------------------------
+        list.addHeader(Component.translatable("config.borderlesswindow.section.bobbing"));
+
+        // Both of these live UNDER vanilla's own View Bobbing option: with
+        // that turned off, GameRenderer never calls bobView and neither of
+        // these does anything. The tooltips say so.
+        list.addOption(
+                CycleButton.builder((CameraBobMode mode) ->
+                                Component.translatable(mode.getTranslationKey()))
+                        .withValues(CameraBobMode.values())
+                        .withInitialValue(BobbingState.getCameraBobMode())
+                        .withTooltip(mode -> Tooltip.create(
+                                Component.translatable("borderlesswindow.options.camera_bob.tooltip")))
+                        .create(0, 0, OPTION_WIDTH, OPTION_HEIGHT,
+                                Component.translatable("borderlesswindow.options.camera_bob.name"),
+                                (button, mode) -> BobbingState.setCameraBobMode(mode)));
+
+        list.addOption(
+                CycleButton.onOffBuilder(BobbingState.isHandBobEnabled())
+                        .withTooltip(value -> Tooltip.create(
+                                Component.translatable("borderlesswindow.options.hand_bob.tooltip")))
+                        .create(0, 0, OPTION_WIDTH, OPTION_HEIGHT,
+                                Component.translatable("borderlesswindow.options.hand_bob.name"),
+                                (button, value) -> BobbingState.setHandBobEnabled(value)));
+
+        this.addRenderableWidget(list);
+
         this.addRenderableWidget(
                 Button.builder(CommonComponents.GUI_DONE, button -> this.onClose())
-                        .bounds(centerX - 100, this.height - 28, 200, 20)
+                        .bounds(this.width / 2 - DONE_WIDTH / 2, this.height - 26,
+                                DONE_WIDTH, DONE_HEIGHT)
                         .build());
     }
 
     @Override
     public void render(@NotNull GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
         super.render(guiGraphics, mouseX, mouseY, partialTick);
-        guiGraphics.drawCenteredString(this.font, this.title, this.width / 2, 15, 0xFFFFFF);
+        guiGraphics.drawCenteredString(this.font, this.title, this.width / 2, 12, 0xFFFFFF);
     }
 
     @Override
     public void onClose() {
+        // The cloud slider applies in memory and persists on mouse release;
+        // arrow-key changes never produce a release, so flush here too.
+        // Redundant when nothing changed -- saveCurrent() writes the whole
+        // live state either way.
+        CloudState.persist();
+
         assert this.minecraft != null;
         this.minecraft.setScreen(this.parent);
     }

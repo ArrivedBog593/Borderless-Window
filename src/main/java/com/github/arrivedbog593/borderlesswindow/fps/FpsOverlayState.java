@@ -9,7 +9,7 @@ import com.github.arrivedbog593.borderlesswindow.config.BorderlessConfigFile;
  * write through this class, so they always agree.
  * <p>
  * Every setter persists immediately to config/borderlesswindow.json --
- * same behavior as the screen mode options. init() is the only entry
+ *  the same behavior as the screen mode options. init() is the only entry
  * that does NOT save: it is called once at startup by
  * BorderlessHandler.initializeFromConfig() with the values just loaded
  * from disk, and saving there would be redundant.

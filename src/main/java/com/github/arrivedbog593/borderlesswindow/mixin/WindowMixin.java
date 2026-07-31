@@ -17,12 +17,11 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
  * modes can also be selected directly via the "Screen Mode" option that
  * replaces Sodium's fullscreen checkbox.
  * <p>
- * isFullscreen() is overridden so options.txt correctly stores whether
+ * isFullscreen() is overridden, so options.txt correctly stores whether
  * the current state differs from WINDOWED, regardless of which of the
  * two non-windowed modes is active.
  */
 @Mixin(Window.class)
-@SuppressWarnings("unused") // Mixin class, not instantiated directly
 public abstract class WindowMixin {
 
     @Inject(method = "toggleFullScreen", at = @At("HEAD"), cancellable = true)

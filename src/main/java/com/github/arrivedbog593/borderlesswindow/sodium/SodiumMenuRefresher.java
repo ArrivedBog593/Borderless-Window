@@ -17,7 +17,7 @@ import net.minecraft.client.gui.screens.Screen;
  * - It only acts if the current screen IS Sodium's video settings menu.
  * - Any reflection failure (Sodium absent, future refactor of its
  *   internals) is silently ignored: the worst that can happen is no live
- *   refresh, same as before this fix existed.
+ *   refresh, the same as before this fix existed.
  */
 public final class SodiumMenuRefresher {
 
@@ -42,7 +42,7 @@ public final class SodiumMenuRefresher {
                 config.getClass().getMethod("resetAllOptionsFromBindings").invoke(config);
             }
         } catch (Throwable ignored) {
-            // Sodium absent or internals changed: no live refresh, but
+            // Sodium absents or internals changed: no live refresh, but
             // nothing breaks.
         }
     }

@@ -12,7 +12,7 @@ import java.util.ArrayDeque;
 /**
  * Draws the FPS overlay. Registered on the NeoForge event bus
  * (RenderGuiEvent.Post) from the mod constructor -- public NeoForge API
- * only, no mixins, and fully independent from Sodium.
+ * only, no mixins, and fully independent of Sodium.
  * <p>
  * SIMPLE mode shows "60 FPS"; EXTENDED shows a single line:
  * "60 FPS (Min 55 - Avg 58 - Max 62)".
@@ -38,7 +38,7 @@ import java.util.ArrayDeque;
  * hitch-resistant -- no percentile machinery needed.
  * <p>
  * The overlay hides itself while the F3 debug screen is open (F3
- * already shows FPS) and while the GUI is hidden with F1; sampling
+ * already shows FPS), and while the GUI is hidden with F1; sampling
  * continues in both cases so the stats stay warm.
  */
 public final class FpsOverlay {

@@ -1,5 +1,7 @@
 package com.github.arrivedbog593.borderlesswindow.sodium;
 
+import com.github.arrivedbog593.borderlesswindow.bobbing.CameraBobMode;
+import com.github.arrivedbog593.borderlesswindow.cloud.CloudState;
 import com.github.arrivedbog593.borderlesswindow.fps.FpsOverlayMode;
 import com.github.arrivedbog593.borderlesswindow.fps.FpsOverlayPosition;
 import com.github.arrivedbog593.borderlesswindow.window.F11Mode;
@@ -19,15 +21,29 @@ import net.minecraft.resources.ResourceLocation;
  * - General: F11 behavior.
  * - FPS Overlay: overlay mode + position.
  * - Fog: the four per-type fog toggles.
+ * - Clouds: the cloud height slider.
+ * - Screen Overlays: water / fire / smart fire.
+ * - Bobbing: camera bob mode + hand bob.
  * The Screen Mode option itself lives on Sodium's General page, since it
  * REPLACES Sodium's fullscreen checkbox (registerOptionReplacement).
  * <p>
+ * The cloud TYPE (Off/Fast/Fancy) is deliberately NOT offered here: that
+ * option already exists as vanilla's cloudStatus, shown by Sodium on its
+ * own Quality page. We only add the height, which vanilla/Sodium do not
+ * expose. The Sodium API cannot insert an option into Sodium's own pages,
+ * so the height lives on our page instead.
+ * <p>
  * Verified against the actual Sodium mc1.21.1-0.8.12 source code:
- * - The ID of its fullscreen option is "sodium:general.fullscreen"
- *   (defined in SodiumConfigBuilder.java).
- * - Replacements are matched by exact ID in Config.java
- *   (overrides.get(option.id)), so a wrong ID silently does nothing.
- * - registerOwnModOptions() uses the mod id from @ConfigEntryPointForge.
+ * - The ID of its fullscreen option is "sodium:general.fullscreen".
+ * - Replacements are matched by exact ID in Config.java, so a wrong ID
+ *   silently does nothing.
+ * - IntegerOptionBuilder exposes setRange(min,max,step) and
+ *   setValueFormatter(ControlValueFormatter).
+ * - ConfigState exposes readBooleanOption / readIntOption /
+ *   readEnumOption, and setEnabledProvider takes
+ *   Function&lt;ConfigState, Boolean&gt; plus the dependency IDs. Only
+ *   DECLARED dependencies may be queried inside the provider -- reading
+ *   an undeclared option is documented to crash.
  */
 @SuppressWarnings("unused")
 @ConfigEntryPointForge("borderlesswindow")
@@ -78,8 +94,6 @@ public class ScreenModeConfigEntryPoint implements ConfigEntryPoint {
                                         .setStorageHandler(this.storage::flush)
                                         .setBinding(this.storage::setFpsOverlayPosition, this.storage::getFpsOverlayPosition)
                                         .setDefaultValue(FpsOverlayPosition.TOP_LEFT)
-                                        // Greyed out while the overlay is off: the
-                                        // position only matters when something is drawn.
                                         .setEnabledProvider(
                                                 state -> state.readEnumOption(
                                                         ResourceLocation.parse("borderlesswindow:fps_overlay_mode"),
@@ -122,6 +136,103 @@ public class ScreenModeConfigEntryPoint implements ConfigEntryPoint {
                                         .setTooltip(Component.translatable("borderlesswindow.options.fog_powder_snow.tooltip"))
                                         .setStorageHandler(this.storage::flush)
                                         .setBinding(this.storage::setPowderSnowFog, this.storage::getPowderSnowFog)
+                                        .setDefaultValue(true)
+                                )
+                        )
+                )
+                // Page 4 - Clouds: the cloud height slider.
+                // Range is [DEFAULT_SLOT .. MAX_HEIGHT]; the leftmost slot
+                // (just below MIN_HEIGHT) shows "Default" and disables the
+                // override. See ScreenModeStorage for the encoding.
+                .addPage(builder.createOptionPage()
+                        .setName(Component.translatable("borderlesswindow.options.sodium.pages.clouds"))
+                        .addOptionGroup(builder.createOptionGroup()
+                                .addOption(builder.createIntegerOption(
+                                                ResourceLocation.parse("borderlesswindow:cloud_height"))
+                                        .setName(Component.translatable("borderlesswindow.options.cloud_height.name"))
+                                        .setTooltip(Component.translatable("borderlesswindow.options.cloud_height.tooltip"))
+                                        .setRange(ScreenModeStorage.SODIUM_CLOUD_DEFAULT_SLOT,
+                                                CloudState.MAX_HEIGHT, 1)
+                                        .setValueFormatter(value -> {
+                                            if (value <= ScreenModeStorage.SODIUM_CLOUD_DEFAULT_SLOT) {
+                                                return Component.translatable("borderlesswindow.options.cloud_height.default");
+                                            }
+                                            if (value == CloudState.VANILLA_HEIGHT) {
+                                                return Component.translatable("borderlesswindow.options.cloud_height.regular", value);
+                                            }
+                                            return Component.literal(String.valueOf(value));
+                                        })
+                                        .setStorageHandler(this.storage::flush)
+                                        .setBinding(this.storage::setCloudHeightSlider,
+                                                this.storage::getCloudHeightSlider)
+                                        .setDefaultValue(ScreenModeStorage.SODIUM_CLOUD_DEFAULT_SLOT)
+                                )
+                        )
+                )
+                // Page 5 - Screen Overlays: the water and fire view overlays.
+                // The block/suffocation overlay is deliberately not exposed;
+                // see ScreenEffectHandler.
+                .addPage(builder.createOptionPage()
+                        .setName(Component.translatable("borderlesswindow.options.sodium.pages.overlays"))
+                        .addOptionGroup(builder.createOptionGroup()
+                                .addOption(builder.createBooleanOption(
+                                                ResourceLocation.parse("borderlesswindow:overlay_water"))
+                                        .setName(Component.translatable("borderlesswindow.options.overlay_water.name"))
+                                        .setTooltip(Component.translatable("borderlesswindow.options.overlay_water.tooltip"))
+                                        .setStorageHandler(this.storage::flush)
+                                        .setBinding(this.storage::setWaterOverlay, this.storage::getWaterOverlay)
+                                        .setDefaultValue(true)
+                                )
+                                .addOption(builder.createBooleanOption(
+                                                ResourceLocation.parse("borderlesswindow:overlay_fire"))
+                                        .setName(Component.translatable("borderlesswindow.options.overlay_fire.name"))
+                                        .setTooltip(Component.translatable("borderlesswindow.options.overlay_fire.tooltip"))
+                                        .setStorageHandler(this.storage::flush)
+                                        .setBinding(this.storage::setFireOverlay, this.storage::getFireOverlay)
+                                        .setDefaultValue(true)
+                                )
+                                .addOption(builder.createBooleanOption(
+                                                ResourceLocation.parse("borderlesswindow:overlay_fire_smart"))
+                                        .setName(Component.translatable("borderlesswindow.options.overlay_fire_smart.name"))
+                                        .setTooltip(Component.translatable("borderlesswindow.options.overlay_fire_smart.tooltip"))
+                                        .setStorageHandler(this.storage::flush)
+                                        .setBinding(this.storage::setSmartFire, this.storage::getSmartFire)
+                                        .setDefaultValue(false)
+                                        // Greyed out when the fire overlay is
+                                        // off entirely: there is nothing left
+                                        // for it to hide conditionally.
+                                        .setEnabledProvider(
+                                                state -> state.readBooleanOption(
+                                                        ResourceLocation.parse("borderlesswindow:overlay_fire")),
+                                                ResourceLocation.parse("borderlesswindow:overlay_fire"))
+                                )
+                        )
+                )
+                // Page 6 - Bobbing. Both options sit UNDER vanilla's own
+                // View Bobbing setting (Sodium shows it on its Quality
+                // page): with that off, GameRenderer never calls bobView
+                // and neither of these has any effect. The Sodium API
+                // cannot add a dependency on a vanilla option, so this is
+                // stated in the tooltips instead of greying them out.
+                .addPage(builder.createOptionPage()
+                        .setName(Component.translatable("borderlesswindow.options.sodium.pages.bobbing"))
+                        .addOptionGroup(builder.createOptionGroup()
+                                .addOption(builder.createEnumOption(
+                                                ResourceLocation.parse("borderlesswindow:camera_bob"),
+                                                CameraBobMode.class)
+                                        .setName(Component.translatable("borderlesswindow.options.camera_bob.name"))
+                                        .setTooltip(Component.translatable("borderlesswindow.options.camera_bob.tooltip"))
+                                        .setElementNameProvider(mode -> Component.translatable(mode.getTranslationKey()))
+                                        .setStorageHandler(this.storage::flush)
+                                        .setBinding(this.storage::setCameraBob, this.storage::getCameraBob)
+                                        .setDefaultValue(CameraBobMode.FULL)
+                                )
+                                .addOption(builder.createBooleanOption(
+                                                ResourceLocation.parse("borderlesswindow:hand_bob"))
+                                        .setName(Component.translatable("borderlesswindow.options.hand_bob.name"))
+                                        .setTooltip(Component.translatable("borderlesswindow.options.hand_bob.tooltip"))
+                                        .setStorageHandler(this.storage::flush)
+                                        .setBinding(this.storage::setHandBob, this.storage::getHandBob)
                                         .setDefaultValue(true)
                                 )
                         )

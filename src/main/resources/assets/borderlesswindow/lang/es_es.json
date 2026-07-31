@@ -1,9 +1,18 @@
 {
   "config.borderlesswindow.title": "Configuración de Borderless Window",
+  "config.borderlesswindow.section.window": "Ventana",
+  "config.borderlesswindow.section.fps": "Contador de FPS",
+  "config.borderlesswindow.section.fog": "Niebla",
+  "config.borderlesswindow.section.clouds": "Nubes",
+  "config.borderlesswindow.section.overlays": "Overlays de pantalla",
+  "config.borderlesswindow.section.bobbing": "Balanceo",
 
   "borderlesswindow.options.sodium.pages.general": "General",
   "borderlesswindow.options.sodium.pages.fps": "Contador de FPS",
   "borderlesswindow.options.sodium.pages.fog": "Niebla",
+  "borderlesswindow.options.sodium.pages.clouds": "Nubes",
+  "borderlesswindow.options.sodium.pages.overlays": "Overlays de pantalla",
+  "borderlesswindow.options.sodium.pages.bobbing": "Balanceo",
 
   "borderlesswindow.options.screen_mode.name": "Modo de pantalla",
   "borderlesswindow.options.screen_mode.tooltip": "Elige entre ventana normal, pantalla completa sin bordes, o la pantalla completa normal de Minecraft.",
@@ -18,7 +27,7 @@
   "borderlesswindow.f11_mode.cycle": "Alternar entre los 3 modos",
 
   "borderlesswindow.options.fps_overlay_mode.name": "Contador de FPS",
-  "borderlesswindow.options.fps_overlay_mode.tooltip": "Muestra un contador de FPS en pantalla. Simple muestra solo los FPS actuales; Extendido muestra una sola línea con los FPS actuales más el Mín (1% low), la Media y el Máx de los últimos 15 segundos. El contador se oculta solo mientras la pantalla de depuración (F3) está abierta.",
+  "borderlesswindow.options.fps_overlay_mode.tooltip": "Muestra un contador de FPS en pantalla. Simple muestra solo los FPS actuales; Extendido muestra una sola línea con los FPS actuales más el Mín, la Media y el Máx de los últimos 15 segundos. El contador se oculta solo mientras la pantalla de depuración (F3) está abierta o la interfaz está oculta (F1).",
   "borderlesswindow.options.fps_overlay_position.name": "Posición del contador",
   "borderlesswindow.options.fps_overlay_position.tooltip": "Esquina de la pantalla donde se dibuja el contador de FPS.",
   "borderlesswindow.fps_overlay_mode.off": "Desactivado",
@@ -29,7 +38,7 @@
   "borderlesswindow.fps_overlay_position.bottom_left": "Abajo a la izquierda",
   "borderlesswindow.fps_overlay_position.bottom_right": "Abajo a la derecha",
   "borderlesswindow.fps_overlay.fps": "%s FPS",
-  "borderlesswindow.fps_overlay.extended": "%s FPS (Mín %s · Media %s · Máx %s)",
+  "borderlesswindow.fps_overlay.extended": "%s FPS (Mín %s \u00b7 Media %s \u00b7 Máx %s)",
 
   "borderlesswindow.options.fog_terrain.name": "Niebla de terreno",
   "borderlesswindow.options.fog_terrain.tooltip": "La neblina atmosférica que difumina el terreno lejano, incluida la niebla densa del Nether. Desactívala para ver más lejos y con más claridad. La niebla de los efectos de Ceguera y Oscuridad nunca se ve afectada por estas opciones.",
@@ -38,5 +47,25 @@
   "borderlesswindow.options.fog_lava.name": "Niebla de lava",
   "borderlesswindow.options.fog_lava.tooltip": "La niebla que se ve sumergido en lava. Desactívala para ver a través de la lava mientras estás dentro.",
   "borderlesswindow.options.fog_powder_snow.name": "Niebla de nieve polvo",
-  "borderlesswindow.options.fog_powder_snow.tooltip": "La niebla que se ve dentro de la nieve polvo. Desactívala para mantener la vista despejada."
+  "borderlesswindow.options.fog_powder_snow.tooltip": "La niebla que se ve dentro de la nieve polvo. Desactívala para mantener la vista despejada.",
+
+  "borderlesswindow.options.cloud_height.name": "Altura de las nubes",
+  "borderlesswindow.options.cloud_height.tooltip": "Sube o baja la capa de nubes. \"Por defecto\" deja intacta la altura propia de cada dimensión (incluidas las dimensiones de otros mods y el cielo sin nubes del Nether/End). \"(Regular)\" indica la altura de nubes por defecto de Minecraft, que es 192. Funciona con y sin Sodium.",
+  "borderlesswindow.options.cloud_height.regular": "%s (Regular)",
+  "borderlesswindow.options.cloud_height.default": "Por defecto",
+
+  "borderlesswindow.options.overlay_water.name": "Overlay de agua",
+  "borderlesswindow.options.overlay_water.tooltip": "La textura ondulada que se dibuja sobre tu vista bajo el agua. Desactívalo para tener la vista despejada al nadar. Es distinto de la Niebla de agua, que controla a qué distancia ves en lugar de qué se dibuja en la pantalla.",
+  "borderlesswindow.options.overlay_fire.name": "Overlay de fuego",
+  "borderlesswindow.options.overlay_fire.tooltip": "Las llamas que se dibujan sobre tu vista mientras estás ardiendo. Desactívalo para mantener la vista despejada cuando estés en llamas. El overlay de asfixia que aparece con la cabeza dentro de un bloque sólido nunca se ve afectado.",
+  "borderlesswindow.options.overlay_fire_smart.name": "Overlay de fuego inteligente",
+  "borderlesswindow.options.overlay_fire_smart.tooltip": "Conserva el overlay de fuego, pero lo oculta mientras tengas Resistencia al Fuego. Minecraft dibuja ese mismo overlay al nadar en lava, así que esto también te despeja la vista dentro de la lava mientras dure el efecto. Requiere que el Overlay de fuego esté activado.",
+
+  "borderlesswindow.options.camera_bob.name": "Balanceo de la cámara",
+  "borderlesswindow.options.camera_bob.tooltip": "Cuánto se mece la cámara al andar. Completo es lo normal del juego. Solo vertical conserva el rebote de arriba a abajo pero quita el vaivén lateral y la inclinación, de modo que el horizonte nunca se tuerce -- la inclinación es lo que marea a la mayoría. Desactivado deja la cámara quieta. Requiere que la opción Balanceo de cámara de Minecraft esté activada.",
+  "borderlesswindow.camera_bob_mode.full": "Completo",
+  "borderlesswindow.camera_bob_mode.vertical_only": "Solo vertical",
+  "borderlesswindow.camera_bob_mode.off": "Desactivado",
+  "borderlesswindow.options.hand_bob.name": "Balanceo de la mano",
+  "borderlesswindow.options.hand_bob.tooltip": "Si el objeto que llevas en la mano se mece al andar, aparte de la cámara. Desactívalo para tener la mano firme conservando el movimiento de cámara, o déjalo activado con la cámara quieta. Requiere que la opción Balanceo de la vista de Minecraft esté activada."
 }

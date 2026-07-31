@@ -9,7 +9,7 @@ import net.neoforged.neoforge.client.event.ViewportEvent;
  * Removes fog according to the four toggles in FogState. Registered on
  * the NeoForge event bus (ViewportEvent.RenderFog) from the mod
  * constructor -- public NeoForge API only, no mixins, and fully
- * independent from Sodium.
+ * independent of Sodium.
  * <p>
  * The event fires every time vanilla sets up fog (FogRenderer.setupFog)
  * and carries the FogType, which maps 1:1 to our toggles:
@@ -53,7 +53,7 @@ public final class FogHandler {
         }
 
         // Never touch fog while a fog-based effect is active (see
-        // GAMEPLAY GUARD in the class javadoc).
+        // GAMEPLAY GUARD in the class Javadoc).
         Entity entity = event.getCamera().getEntity();
         if (entity instanceof LivingEntity living
                 && (living.hasEffect(MobEffects.BLINDNESS)

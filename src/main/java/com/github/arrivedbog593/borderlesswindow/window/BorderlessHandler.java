@@ -1,8 +1,11 @@
 package com.github.arrivedbog593.borderlesswindow.window;
 
+import com.github.arrivedbog593.borderlesswindow.bobbing.BobbingState;
+import com.github.arrivedbog593.borderlesswindow.cloud.CloudState;
 import com.github.arrivedbog593.borderlesswindow.config.BorderlessConfigFile;
 import com.github.arrivedbog593.borderlesswindow.fog.FogState;
 import com.github.arrivedbog593.borderlesswindow.fps.FpsOverlayState;
+import com.github.arrivedbog593.borderlesswindow.screeneffect.ScreenEffectState;
 import com.mojang.blaze3d.platform.Window;
 import org.lwjgl.PointerBuffer;
 import org.lwjgl.glfw.GLFWVidMode;
@@ -88,9 +91,9 @@ public final class BorderlessHandler {
      *    fullscreen -- we detect that by asking GLFW whether the window
      *    has a monitor assigned.
      * 2. Applies the mode saved in config/borderlesswindow.json, and
-     *    hands the FPS overlay and fog settings from the same file to
-     *    FpsOverlayState / FogState (single load point for the whole
-     *    config).
+     *    hands the FPS overlay, fog, cloud, screen overlay, and bobbing
+     *    from the same file to their state holders (single load point for
+     *    the whole config).
      * 3. Marks the handler as initialized, which unblocks F11 handling
      *    in WindowMixin.
      */
@@ -100,6 +103,10 @@ public final class BorderlessHandler {
         FpsOverlayState.init(config.fpsOverlayMode(), config.fpsOverlayPosition());
         FogState.init(config.terrainFog(), config.waterFog(),
                 config.lavaFog(), config.powderSnowFog());
+        CloudState.init(config.cloudHeight());
+        ScreenEffectState.init(config.waterOverlay(), config.fireOverlay(),
+                config.smartFire());
+        BobbingState.init(config.cameraBobMode(), config.handBob());
 
         if (glfwGetWindowMonitor(window.getWindow()) != 0L) {
             // The game booted in exclusive fullscreen via options.txt.
@@ -132,7 +139,7 @@ public final class BorderlessHandler {
 
         // Update the state BEFORE applying the GLFW change: applying resizes
         // the window, which synchronously re-inits any open Screen -- and a
-        // rebuilt screen (e.g. our config screen) reads getCurrentMode() at
+        // rebuilt screen (e.g., our config screen) reads getCurrentMode() at
         // that exact moment. If we updated the state after applying, those
         // observers would rebuild with the stale mode (off-by-one UI bug).
         ScreenMode previous = currentMode;
@@ -145,7 +152,7 @@ public final class BorderlessHandler {
         };
 
         if (!applied) {
-            // The target monitor was in an invalid state (e.g. disconnected
+            // The target monitor was in an invalid state (e.g., disconnected
             // mid-switch). The window was left untouched, so roll the
             // internal state back to match reality.
             currentMode = previous;
@@ -160,7 +167,7 @@ public final class BorderlessHandler {
         if (hasSavedWindowedState) {
             glfwSetWindowMonitor(handle, 0L, savedX, savedY, savedWidth, savedHeight, GLFW_DONT_CARE);
         } else {
-            // No previous windowed state to restore (e.g. the game booted
+            // No previous windowed state to restore (e.g., the game booted
             // straight into borderless/fullscreen): use a sane default.
             glfwSetWindowMonitor(handle, 0L, 100, 100, 1280, 720, GLFW_DONT_CARE);
         }
@@ -171,7 +178,7 @@ public final class BorderlessHandler {
         long monitor = findWindowMonitor(handle);
         GLFWVidMode vidMode = glfwGetVideoMode(monitor);
         if (vidMode == null) {
-            // Monitor in an invalid state (e.g. being disconnected right
+            // Monitor in an invalid state (e.g., being disconnected right
             // now). Better to leave the window as-is than to crash.
             return false;
         }
