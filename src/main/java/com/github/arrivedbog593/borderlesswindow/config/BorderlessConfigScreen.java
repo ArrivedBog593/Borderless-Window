@@ -3,6 +3,8 @@ package com.github.arrivedbog593.borderlesswindow.config;
 import com.github.arrivedbog593.borderlesswindow.bobbing.BobbingState;
 import com.github.arrivedbog593.borderlesswindow.bobbing.CameraBobMode;
 import com.github.arrivedbog593.borderlesswindow.cloud.CloudState;
+import com.github.arrivedbog593.borderlesswindow.enchantment.EnchantmentLevelState;
+import com.github.arrivedbog593.borderlesswindow.enchantment.EnchantmentLevelStyle;
 import com.github.arrivedbog593.borderlesswindow.fog.FogState;
 import com.github.arrivedbog593.borderlesswindow.fps.FpsOverlayMode;
 import com.github.arrivedbog593.borderlesswindow.fps.FpsOverlayPosition;
@@ -29,7 +31,7 @@ import org.jetbrains.annotations.NotNull;
  * <p>
  * Options live inside a scrollable BorderlessOptionsList grouped by
  * feature ("Window", "FPS Overlay", "Fog", "Clouds", "Screen Overlays",
- * "Bobbing"),
+ * "Bobbing", "Interface"),
  * mirroring the pages the Sodium integration shows. The list scrolls, so
  * adding features never pushes options off-screen the way the previous
  * flat layout did; a new feature only needs addHeader() + addOption()
@@ -251,6 +253,27 @@ public class BorderlessConfigScreen extends Screen {
                         .create(0, 0, OPTION_WIDTH, OPTION_HEIGHT,
                                 Component.translatable("borderlesswindow.options.hand_bob.name"),
                                 (button, value) -> BobbingState.setHandBobEnabled(value)));
+
+        // --- Interface ------------------------------------------------
+        // First non-rendering section: this is text shown in tooltips, not
+        // anything drawn in the world. Kept as its own group so future
+        // tooltip/HUD tweaks have an obvious home instead of being wedged
+        // into a rendering section.
+        list.addHeader(Component.translatable("config.borderlesswindow.section.enchantments"));
+
+        // Applies live: the mixin reads EnchantmentLevelState every time
+        // an enchantment name is built, so reopening an inventory is
+        // enough to see the change.
+        list.addOption(
+                CycleButton.builder((EnchantmentLevelStyle style) ->
+                                Component.translatable(style.getTranslationKey()))
+                        .withValues(EnchantmentLevelStyle.values())
+                        .withInitialValue(EnchantmentLevelState.getStyle())
+                        .withTooltip(style -> Tooltip.create(
+                                Component.translatable("borderlesswindow.options.enchantment_level_style.tooltip")))
+                        .create(0, 0, OPTION_WIDTH, OPTION_HEIGHT,
+                                Component.translatable("borderlesswindow.options.enchantment_level_style.name"),
+                                (button, style) -> EnchantmentLevelState.setStyle(style)));
 
         this.addRenderableWidget(list);
 

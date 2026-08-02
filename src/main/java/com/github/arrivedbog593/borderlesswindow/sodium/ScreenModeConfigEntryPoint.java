@@ -2,6 +2,7 @@ package com.github.arrivedbog593.borderlesswindow.sodium;
 
 import com.github.arrivedbog593.borderlesswindow.bobbing.CameraBobMode;
 import com.github.arrivedbog593.borderlesswindow.cloud.CloudState;
+import com.github.arrivedbog593.borderlesswindow.enchantment.EnchantmentLevelStyle;
 import com.github.arrivedbog593.borderlesswindow.fps.FpsOverlayMode;
 import com.github.arrivedbog593.borderlesswindow.fps.FpsOverlayPosition;
 import com.github.arrivedbog593.borderlesswindow.window.F11Mode;
@@ -24,12 +25,13 @@ import net.minecraft.resources.ResourceLocation;
  * - Clouds: the cloud height slider.
  * - Screen Overlays: water / fire / smart fire.
  * - Bobbing: camera bob mode + hand bob.
+ * - Interface: enchantment numerals.
  * The Screen Mode option itself lives on Sodium's General page, since it
  * REPLACES Sodium's fullscreen checkbox (registerOptionReplacement).
  * <p>
  * The cloud TYPE (Off/Fast/Fancy) is deliberately NOT offered here: that
  * option already exists as vanilla's cloudStatus, shown by Sodium on its
- * own Quality page. We only add the height, which vanilla/Sodium do not
+ * own Quality page. We only add the height, which vanilla/Sodium does not
  * expose. The Sodium API cannot insert an option into Sodium's own pages,
  * so the height lives on our page instead.
  * <p>
@@ -234,6 +236,29 @@ public class ScreenModeConfigEntryPoint implements ConfigEntryPoint {
                                         .setStorageHandler(this.storage::flush)
                                         .setBinding(this.storage::setHandBob, this.storage::getHandBob)
                                         .setDefaultValue(true)
+                                )
+                        )
+                )
+                // Page 7 - Interface. The first page here that is NOT about
+                // rendering: enchantment numerals are tooltip text. It
+                // lives in the video settings menu anyway because splitting
+                // the mod's options across two different menus would be
+                // worse for the user than the category being loose. Named
+                // "Interface" rather than "Enchantments" so future
+                // tooltip/HUD text options have somewhere to land.
+                .addPage(builder.createOptionPage()
+                        .setName(Component.translatable("borderlesswindow.options.sodium.pages.enchantments"))
+                        .addOptionGroup(builder.createOptionGroup()
+                                .addOption(builder.createEnumOption(
+                                                ResourceLocation.parse("borderlesswindow:enchantment_level_style"),
+                                                EnchantmentLevelStyle.class)
+                                        .setName(Component.translatable("borderlesswindow.options.enchantment_level_style.name"))
+                                        .setTooltip(Component.translatable("borderlesswindow.options.enchantment_level_style.tooltip"))
+                                        .setElementNameProvider(style -> Component.translatable(style.getTranslationKey()))
+                                        .setStorageHandler(this.storage::flush)
+                                        .setBinding(this.storage::setEnchantmentLevelStyle,
+                                                this.storage::getEnchantmentLevelStyle)
+                                        .setDefaultValue(EnchantmentLevelStyle.MIXED)
                                 )
                         )
                 )

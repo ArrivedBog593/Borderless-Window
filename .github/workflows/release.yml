@@ -1,0 +1,70 @@
+name: Release
+
+# Fires only when a version tag is pushed:
+#   git tag -a v1.5.0 -m "changelog goes here"
+#   git push origin v1.5.0
+#
+# Pushing to a branch does NOT trigger this, so day-to-day commits never
+# build or publish anything.
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  # Required to create the release and upload the jar. Without this the
+  # run fails at the last step with a 403, which is the single most
+  # common reason this kind of workflow breaks.
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: "21"
+          # Caches ~/.gradle between runs. First release is slow, the
+          # rest reuse the NeoForge/Minecraft artifacts.
+          cache: gradle
+
+      # Git does not preserve the executable bit reliably when the repo
+      # is created from Windows, and the runner is Linux.
+      - name: Make gradlew executable
+        run: chmod +x ./gradlew
+
+      - name: Build
+        run: ./gradlew build --stacktrace
+
+      # The release body is the message of the commit the tag points at
+      # -- the same text that goes to CurseForge, written once. Works
+      # with both annotated and lightweight tags, since it reads the
+      # commit rather than the tag object.
+      #
+      # Practical consequence: tag the commit that carries the changelog.
+      # Tagging a later "fix typo" commit would publish that message
+      # instead.
+      - name: Extract release notes
+        id: notes
+        run: |
+          {
+            echo "body<<RELEASE_NOTES_EOF"
+            git log -1 --pretty=%B "${GITHUB_SHA}"
+            echo "RELEASE_NOTES_EOF"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Create release
+        uses: softprops/action-gh-release@v3
+        with:
+          name: ${{ github.ref_name }}
+          body: ${{ steps.notes.outputs.body }}
+          files: build/libs/*.jar
+          # Flip to true if you ever want to eyeball the release before
+          # it goes public.
+          draft: false

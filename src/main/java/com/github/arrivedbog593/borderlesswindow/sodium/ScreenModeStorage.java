@@ -3,6 +3,8 @@ package com.github.arrivedbog593.borderlesswindow.sodium;
 import com.github.arrivedbog593.borderlesswindow.bobbing.BobbingState;
 import com.github.arrivedbog593.borderlesswindow.bobbing.CameraBobMode;
 import com.github.arrivedbog593.borderlesswindow.cloud.CloudState;
+import com.github.arrivedbog593.borderlesswindow.enchantment.EnchantmentLevelState;
+import com.github.arrivedbog593.borderlesswindow.enchantment.EnchantmentLevelStyle;
 import com.github.arrivedbog593.borderlesswindow.fog.FogState;
 import com.github.arrivedbog593.borderlesswindow.fps.FpsOverlayMode;
 import com.github.arrivedbog593.borderlesswindow.fps.FpsOverlayPosition;
@@ -21,7 +23,8 @@ import net.minecraft.client.Minecraft;
  * applied immediately through the corresponding state holder
  * (BorderlessHandler for window state, FpsOverlayState for the overlay,
  * FogState for fog, CloudState for cloud height, ScreenEffectState for
- * the water/fire overlays, BobbingState for bobbing).
+ * the water/fire overlays, BobbingState for bobbing,
+ * EnchantmentLevelState for the enchantment numerals).
  * <p>
  * The real persistence lives in BorderlessConfigFile
  * (config/borderlesswindow.json), which the state holders save
@@ -83,6 +86,9 @@ public final class ScreenModeStorage {
 
     private boolean pendingHandBob = BobbingState.isHandBobEnabled();
     private boolean handBobDirty = false;
+
+    private EnchantmentLevelStyle pendingEnchantmentLevelStyle = EnchantmentLevelState.getStyle();
+    private boolean enchantmentLevelStyleDirty = false;
 
     public ScreenMode getScreenMode() {
         return BorderlessHandler.getCurrentMode();
@@ -215,6 +221,15 @@ public final class ScreenModeStorage {
         this.handBobDirty = true;
     }
 
+    public EnchantmentLevelStyle getEnchantmentLevelStyle() {
+        return EnchantmentLevelState.getStyle();
+    }
+
+    public void setEnchantmentLevelStyle(EnchantmentLevelStyle style) {
+        this.pendingEnchantmentLevelStyle = style;
+        this.enchantmentLevelStyleDirty = true;
+    }
+
     /**
      * Called when Sodium applies pending changes (setStorageHandler).
      * <p>
@@ -289,6 +304,11 @@ public final class ScreenModeStorage {
         if (this.handBobDirty) {
             BobbingState.setHandBobEnabled(this.pendingHandBob);
             this.handBobDirty = false;
+        }
+
+        if (this.enchantmentLevelStyleDirty) {
+            EnchantmentLevelState.setStyle(this.pendingEnchantmentLevelStyle);
+            this.enchantmentLevelStyleDirty = false;
         }
 
         if (this.screenModeDirty) {

@@ -6,6 +6,7 @@
   "config.borderlesswindow.section.clouds": "Nubes",
   "config.borderlesswindow.section.overlays": "Overlays de pantalla",
   "config.borderlesswindow.section.bobbing": "Balanceo",
+  "config.borderlesswindow.section.enchantments": "Estilo de encantamientos",
 
   "borderlesswindow.options.sodium.pages.general": "General",
   "borderlesswindow.options.sodium.pages.fps": "Contador de FPS",
@@ -13,6 +14,7 @@
   "borderlesswindow.options.sodium.pages.clouds": "Nubes",
   "borderlesswindow.options.sodium.pages.overlays": "Overlays de pantalla",
   "borderlesswindow.options.sodium.pages.bobbing": "Balanceo",
+  "borderlesswindow.options.sodium.pages.enchantments": "Estilo de encantamientos",
 
   "borderlesswindow.options.screen_mode.name": "Modo de pantalla",
   "borderlesswindow.options.screen_mode.tooltip": "Elige entre ventana normal, pantalla completa sin bordes, o la pantalla completa normal de Minecraft.",
@@ -67,5 +69,11 @@
   "borderlesswindow.camera_bob_mode.vertical_only": "Solo vertical",
   "borderlesswindow.camera_bob_mode.off": "Desactivado",
   "borderlesswindow.options.hand_bob.name": "Balanceo de la mano",
-  "borderlesswindow.options.hand_bob.tooltip": "Si el objeto que llevas en la mano se mece al andar, aparte de la cámara. Desactívalo para tener la mano firme conservando el movimiento de cámara, o déjalo activado con la cámara quieta. Requiere que la opción Balanceo de la vista de Minecraft esté activada."
+  "borderlesswindow.options.hand_bob.tooltip": "Si el objeto que llevas en la mano se mece al andar, aparte de la cámara. Desactívalo para tener la mano firme conservando el movimiento de cámara, o déjalo activado con la cámara quieta. Requiere que la opción Balanceo de la vista de Minecraft esté activada.",
+
+  "borderlesswindow.options.enchantment_level_style.name": "Números de encantamientos",
+  "borderlesswindow.options.enchantment_level_style.tooltip": "Cómo se escriben los niveles junto al nombre del encantamiento. Minecraft solo tiene números romanos hasta el X y por encima de eso muestra texto en crudo como \"enchantment.level.11\". Mixto conserva los romanos y pasa a números normales a partir del XI; las otras dos usan un solo estilo en todos los niveles. Los niveles llegan hasta 255.",
+  "borderlesswindow.enchantment_level_style.mixed": "Mixto",
+  "borderlesswindow.enchantment_level_style.roman": "Siempre romanos",
+  "borderlesswindow.enchantment_level_style.arabic": "Siempre números"
 }

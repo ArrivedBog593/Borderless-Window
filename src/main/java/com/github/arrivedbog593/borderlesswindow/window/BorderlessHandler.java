@@ -3,6 +3,7 @@ package com.github.arrivedbog593.borderlesswindow.window;
 import com.github.arrivedbog593.borderlesswindow.bobbing.BobbingState;
 import com.github.arrivedbog593.borderlesswindow.cloud.CloudState;
 import com.github.arrivedbog593.borderlesswindow.config.BorderlessConfigFile;
+import com.github.arrivedbog593.borderlesswindow.enchantment.EnchantmentLevelState;
 import com.github.arrivedbog593.borderlesswindow.fog.FogState;
 import com.github.arrivedbog593.borderlesswindow.fps.FpsOverlayState;
 import com.github.arrivedbog593.borderlesswindow.screeneffect.ScreenEffectState;
@@ -91,9 +92,9 @@ public final class BorderlessHandler {
      *    fullscreen -- we detect that by asking GLFW whether the window
      *    has a monitor assigned.
      * 2. Applies the mode saved in config/borderlesswindow.json, and
-     *    hands the FPS overlay, fog, cloud, screen overlay, and bobbing
-     *    from the same file to their state holders (single load point for
-     *    the whole config).
+     *    hands the FPS overlay, fog, cloud, screen overlay, bobbing, and
+     *    enchantment numeral settings from the same file to their state
+     *    holders (single load point for the whole config).
      * 3. Marks the handler as initialized, which unblocks F11 handling
      *    in WindowMixin.
      */
@@ -107,6 +108,7 @@ public final class BorderlessHandler {
         ScreenEffectState.init(config.waterOverlay(), config.fireOverlay(),
                 config.smartFire());
         BobbingState.init(config.cameraBobMode(), config.handBob());
+        EnchantmentLevelState.init(config.enchantmentLevelStyle());
 
         if (glfwGetWindowMonitor(window.getWindow()) != 0L) {
             // The game booted in exclusive fullscreen via options.txt.

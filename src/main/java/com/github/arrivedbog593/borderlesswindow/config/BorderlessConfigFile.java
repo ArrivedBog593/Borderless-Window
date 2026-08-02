@@ -3,6 +3,8 @@ package com.github.arrivedbog593.borderlesswindow.config;
 import com.github.arrivedbog593.borderlesswindow.bobbing.BobbingState;
 import com.github.arrivedbog593.borderlesswindow.bobbing.CameraBobMode;
 import com.github.arrivedbog593.borderlesswindow.cloud.CloudState;
+import com.github.arrivedbog593.borderlesswindow.enchantment.EnchantmentLevelState;
+import com.github.arrivedbog593.borderlesswindow.enchantment.EnchantmentLevelStyle;
 import com.github.arrivedbog593.borderlesswindow.fog.FogState;
 import com.github.arrivedbog593.borderlesswindow.fps.FpsOverlayMode;
 import com.github.arrivedbog593.borderlesswindow.fps.FpsOverlayPosition;
@@ -22,14 +24,15 @@ import java.nio.file.Path;
 /**
  * Minimal persistence in config/borderlesswindow.json. Stores the current
  * screen mode, the F11 mode, the FPS overlay settings, the fog toggles,
- * the custom cloud height and the screen overlay toggles so they can be
- * restored at game startup.
+ * the custom cloud height, the screen overlay toggles, the bobbing
+ * settings, and the enchantment numeral style so they can be restored at
+ * game startup.
  * <p>
  * Deliberately fault-tolerant: if the file is missing, corrupt, or has
  * invalid or absent values, the defaults are used (Windowed / F11 ->
  * Borderless / FPS overlay off, top-left / all fog enabled / cloud height
  * default / water and fire overlays on, smart fire off / full camera and
- * hand bobbing) without crashing.
+ * hand bobbing / mixed enchantment numerals) without crashing.
  * Configs written by older versions of the mod simply lack the newer
  * fields and fall back to those defaults -- no migration needed.
  */
@@ -54,6 +57,7 @@ public final class BorderlessConfigFile {
         boolean overlay_fire_smart = false;
         String bob_camera = CameraBobMode.FULL.name();
         boolean bob_hand = true;
+        String enchantment_level_style = EnchantmentLevelStyle.MIXED.name();
     }
 
     public record LoadedConfig(ScreenMode screenMode, F11Mode f11Mode,
@@ -64,7 +68,8 @@ public final class BorderlessConfigFile {
                                int cloudHeight,
                                boolean waterOverlay, boolean fireOverlay,
                                boolean smartFire,
-                               CameraBobMode cameraBobMode, boolean handBob) {
+                               CameraBobMode cameraBobMode, boolean handBob,
+                               EnchantmentLevelStyle enchantmentLevelStyle) {
     }
 
     private BorderlessConfigFile() {
@@ -92,7 +97,9 @@ public final class BorderlessConfigFile {
                 data.cloud_height,
                 data.overlay_water, data.overlay_fire, data.overlay_fire_smart,
                 parseOrDefault(CameraBobMode.class, data.bob_camera, CameraBobMode.FULL),
-                data.bob_hand);
+                data.bob_hand,
+                parseOrDefault(EnchantmentLevelStyle.class, data.enchantment_level_style,
+                        EnchantmentLevelStyle.MIXED));
     }
 
     /**
@@ -100,7 +107,8 @@ public final class BorderlessConfigFile {
      * owner (BorderlessHandler for window state, FpsOverlayState for the
      * overlay, FogState for fog, CloudState for cloud height,
      * ScreenEffectState for the water/fire overlays, BobbingState for the
-     * bobbing settings). Having a single
+     * bobbing settings, EnchantmentLevelState for the numeral style).
+     * Having a single
      * gathering point means new settings can't be accidentally clobbered
      * by a save triggered from an unrelated option, which is what would
      * happen if each caller passed only the values it knows about.
@@ -121,6 +129,7 @@ public final class BorderlessConfigFile {
         data.overlay_fire_smart = ScreenEffectState.isSmartFireEnabled();
         data.bob_camera = BobbingState.getCameraBobMode().name();
         data.bob_hand = BobbingState.isHandBobEnabled();
+        data.enchantment_level_style = EnchantmentLevelState.getStyle().name();
         try {
             Files.writeString(PATH, GSON.toJson(data));
         } catch (IOException ignored) {
