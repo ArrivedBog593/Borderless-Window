@@ -52,7 +52,7 @@
   "borderlesswindow.options.fog_powder_snow.tooltip": "La niebla que se ve dentro de la nieve polvo. Desactívala para mantener la vista despejada.",
 
   "borderlesswindow.options.cloud_height.name": "Altura de las nubes",
-  "borderlesswindow.options.cloud_height.tooltip": "Sube o baja la capa de nubes. \"Por defecto\" deja intacta la altura propia de cada dimensión (incluidas las dimensiones de otros mods y el cielo sin nubes del Nether/End). \"(Regular)\" indica la altura de nubes por defecto de Minecraft, que es 192. Funciona con y sin Sodium.",
+  "borderlesswindow.options.cloud_height.tooltip": "Sube o baja la capa de nubes, entre y=64 y y=320. \"Por defecto\" deja intacta la altura propia de cada dimensión, y \"(Regular)\" marca la de Minecraft, que es 192. Las dimensiones sin nubes — el Nether, el End, las dimensiones sin nubes de otros mods — siguen sin ellas con cualquier valor: esto mueve nubes, nunca las agrega.",
   "borderlesswindow.options.cloud_height.regular": "%s (Regular)",
   "borderlesswindow.options.cloud_height.default": "Por defecto",
 

@@ -52,7 +52,7 @@
   "borderlesswindow.options.fog_powder_snow.tooltip": "The fog seen while inside powder snow. Turn Off to keep your view clear.",
 
   "borderlesswindow.options.cloud_height.name": "Cloud Height",
-  "borderlesswindow.options.cloud_height.tooltip": "Raises or lowers the cloud layer. \"Default\" leaves each dimension's own cloud height untouched (including dimensions from other mods and the Nether/End's cloudless sky). \"(Regular)\" marks Minecraft's own default cloud height, which is 192. Works with and without Sodium.",
+  "borderlesswindow.options.cloud_height.tooltip": "Raises or lowers the cloud layer, between y=64 and y=320. \"Default\" leaves each dimension's own height untouched, and \"(Regular)\" marks Minecraft's own, which is 192. Dimensions with no clouds at all — the Nether, the End, cloudless dimensions from other mods — stay that way at any setting: this moves clouds, it never adds them.",
   "borderlesswindow.options.cloud_height.regular": "%s (Regular)",
   "borderlesswindow.options.cloud_height.default": "Default",
 
