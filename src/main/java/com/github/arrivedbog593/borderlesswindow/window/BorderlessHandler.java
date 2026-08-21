@@ -3,8 +3,10 @@ package com.github.arrivedbog593.borderlesswindow.window;
 import com.github.arrivedbog593.borderlesswindow.bobbing.BobbingState;
 import com.github.arrivedbog593.borderlesswindow.cloud.CloudState;
 import com.github.arrivedbog593.borderlesswindow.config.BorderlessConfigFile;
+import com.github.arrivedbog593.borderlesswindow.distortion.DistortionState;
 import com.github.arrivedbog593.borderlesswindow.enchantment.EnchantmentLevelState;
 import com.github.arrivedbog593.borderlesswindow.fog.FogState;
+import com.github.arrivedbog593.borderlesswindow.fov.FovState;
 import com.github.arrivedbog593.borderlesswindow.fps.FpsOverlayState;
 import com.github.arrivedbog593.borderlesswindow.screeneffect.ScreenEffectState;
 import com.mojang.blaze3d.platform.Window;
@@ -106,9 +108,14 @@ public final class BorderlessHandler {
                 config.lavaFog(), config.powderSnowFog());
         CloudState.init(config.cloudHeight());
         ScreenEffectState.init(config.waterOverlay(), config.fireOverlay(),
-                config.smartFire());
+                config.smartFire(), config.pumpkinOverlay(),
+                config.freezeOverlay(), config.portalOverlay(),
+                config.spyglassOverlay());
         BobbingState.init(config.cameraBobMode(), config.handBob());
         EnchantmentLevelState.init(config.enchantmentLevelStyle());
+        DistortionState.init(config.distortionPortal(), config.distortionNausea());
+        FovState.init(config.fovSpeed(), config.fovFlying(),
+                config.fovBow(), config.fovFluid());
 
         if (glfwGetWindowMonitor(window.getWindow()) != 0L) {
             // The game booted in exclusive fullscreen via options.txt.

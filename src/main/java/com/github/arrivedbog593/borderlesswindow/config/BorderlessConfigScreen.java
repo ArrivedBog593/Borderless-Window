@@ -3,9 +3,11 @@ package com.github.arrivedbog593.borderlesswindow.config;
 import com.github.arrivedbog593.borderlesswindow.bobbing.BobbingState;
 import com.github.arrivedbog593.borderlesswindow.bobbing.CameraBobMode;
 import com.github.arrivedbog593.borderlesswindow.cloud.CloudState;
+import com.github.arrivedbog593.borderlesswindow.distortion.DistortionState;
 import com.github.arrivedbog593.borderlesswindow.enchantment.EnchantmentLevelState;
 import com.github.arrivedbog593.borderlesswindow.enchantment.EnchantmentLevelStyle;
 import com.github.arrivedbog593.borderlesswindow.fog.FogState;
+import com.github.arrivedbog593.borderlesswindow.fov.FovState;
 import com.github.arrivedbog593.borderlesswindow.fps.FpsOverlayMode;
 import com.github.arrivedbog593.borderlesswindow.fps.FpsOverlayPosition;
 import com.github.arrivedbog593.borderlesswindow.fps.FpsOverlayState;
@@ -229,6 +231,41 @@ public class BorderlessConfigScreen extends Screen {
 
         list.addOption(smartFireButton);
 
+        // The four below come from Gui rather than ScreenEffectRenderer
+        // (see GuiMixin), but they belong in the same section: the player
+        // does not care which vanilla class draws what.
+        list.addOption(
+                CycleButton.onOffBuilder(ScreenEffectState.isPumpkinOverlayEnabled())
+                        .withTooltip(value -> Tooltip.create(
+                                Component.translatable("borderlesswindow.options.overlay_pumpkin.tooltip")))
+                        .create(0, 0, OPTION_WIDTH, OPTION_HEIGHT,
+                                Component.translatable("borderlesswindow.options.overlay_pumpkin.name"),
+                                (button, value) -> ScreenEffectState.setPumpkinOverlayEnabled(value)));
+
+        list.addOption(
+                CycleButton.onOffBuilder(ScreenEffectState.isFreezeOverlayEnabled())
+                        .withTooltip(value -> Tooltip.create(
+                                Component.translatable("borderlesswindow.options.overlay_freeze.tooltip")))
+                        .create(0, 0, OPTION_WIDTH, OPTION_HEIGHT,
+                                Component.translatable("borderlesswindow.options.overlay_freeze.name"),
+                                (button, value) -> ScreenEffectState.setFreezeOverlayEnabled(value)));
+
+        list.addOption(
+                CycleButton.onOffBuilder(ScreenEffectState.isPortalOverlayEnabled())
+                        .withTooltip(value -> Tooltip.create(
+                                Component.translatable("borderlesswindow.options.overlay_portal.tooltip")))
+                        .create(0, 0, OPTION_WIDTH, OPTION_HEIGHT,
+                                Component.translatable("borderlesswindow.options.overlay_portal.name"),
+                                (button, value) -> ScreenEffectState.setPortalOverlayEnabled(value)));
+
+        list.addOption(
+                CycleButton.onOffBuilder(ScreenEffectState.isSpyglassOverlayEnabled())
+                        .withTooltip(value -> Tooltip.create(
+                                Component.translatable("borderlesswindow.options.overlay_spyglass.tooltip")))
+                        .create(0, 0, OPTION_WIDTH, OPTION_HEIGHT,
+                                Component.translatable("borderlesswindow.options.overlay_spyglass.name"),
+                                (button, value) -> ScreenEffectState.setSpyglassOverlayEnabled(value)));
+
         // --- Bobbing --------------------------------------------------
         list.addHeader(Component.translatable("config.borderlesswindow.section.bobbing"));
 
@@ -253,6 +290,65 @@ public class BorderlessConfigScreen extends Screen {
                         .create(0, 0, OPTION_WIDTH, OPTION_HEIGHT,
                                 Component.translatable("borderlesswindow.options.hand_bob.name"),
                                 (button, value) -> BobbingState.setHandBobEnabled(value)));
+
+        // --- FOV ------------------------------------------------------
+        // Its own section: these change how WIDE the view is, while the
+        // distortion sliders change how much it warps. Only the fluid
+        // one sits under Minecraft's own FOV Effects slider -- the other
+        // three control effects vanilla does not expose at all. Reusing
+        // DistortionSlider: it is a plain 0-100 percentage widget and
+        // persist() writes the whole config either way. Worth renaming
+        // to PercentSlider now that a second feature uses it.
+        list.addHeader(Component.translatable("config.borderlesswindow.section.fov"));
+
+        DistortionSlider fovSpeedSlider = new DistortionSlider(0, 0, OPTION_WIDTH, OPTION_HEIGHT,
+                "borderlesswindow.options.fov_speed.name",
+                FovState::getSpeedPercent, FovState::applySpeedPercent);
+        fovSpeedSlider.setTooltip(Tooltip.create(
+                Component.translatable("borderlesswindow.options.fov_speed.tooltip")));
+        list.addOption(fovSpeedSlider);
+
+        DistortionSlider fovFlyingSlider = new DistortionSlider(0, 0, OPTION_WIDTH, OPTION_HEIGHT,
+                "borderlesswindow.options.fov_flying.name",
+                FovState::getFlyingPercent, FovState::applyFlyingPercent);
+        fovFlyingSlider.setTooltip(Tooltip.create(
+                Component.translatable("borderlesswindow.options.fov_flying.tooltip")));
+        list.addOption(fovFlyingSlider);
+
+        DistortionSlider fovBowSlider = new DistortionSlider(0, 0, OPTION_WIDTH, OPTION_HEIGHT,
+                "borderlesswindow.options.fov_bow.name",
+                FovState::getBowPercent, FovState::applyBowPercent);
+        fovBowSlider.setTooltip(Tooltip.create(
+                Component.translatable("borderlesswindow.options.fov_bow.tooltip")));
+        list.addOption(fovBowSlider);
+
+        DistortionSlider fovFluidSlider = new DistortionSlider(0, 0, OPTION_WIDTH, OPTION_HEIGHT,
+                "borderlesswindow.options.fov_fluid.name",
+                FovState::getFluidPercent, FovState::applyFluidPercent);
+        fovFluidSlider.setTooltip(Tooltip.create(
+                Component.translatable("borderlesswindow.options.fov_fluid.tooltip")));
+        list.addOption(fovFluidSlider);
+
+        // --- Distortion -----------------------------------------------
+        // Its own section rather than living under Screen Overlays: this
+        // warps the camera, it is not something drawn on top. Both sit
+        // UNDER Minecraft's own Distortion Effects slider, same as the
+        // bobbing options sit under View Bobbing.
+        list.addHeader(Component.translatable("config.borderlesswindow.section.distortion"));
+
+        DistortionSlider portalSlider = new DistortionSlider(0, 0, OPTION_WIDTH, OPTION_HEIGHT,
+                "borderlesswindow.options.distortion_portal.name",
+                DistortionState::getPortalPercent, DistortionState::applyPortalPercent);
+        portalSlider.setTooltip(Tooltip.create(
+                Component.translatable("borderlesswindow.options.distortion_portal.tooltip")));
+        list.addOption(portalSlider);
+
+        DistortionSlider nauseaSlider = new DistortionSlider(0, 0, OPTION_WIDTH, OPTION_HEIGHT,
+                "borderlesswindow.options.distortion_nausea.name",
+                DistortionState::getNauseaPercent, DistortionState::applyNauseaPercent);
+        nauseaSlider.setTooltip(Tooltip.create(
+                Component.translatable("borderlesswindow.options.distortion_nausea.tooltip")));
+        list.addOption(nauseaSlider);
 
         // --- Interface ------------------------------------------------
         // First non-rendering section: this is text shown in tooltips, not
@@ -297,6 +393,8 @@ public class BorderlessConfigScreen extends Screen {
         // Redundant when nothing changed -- saveCurrent() writes the whole
         // live state either way.
         CloudState.persist();
+        DistortionState.persist();
+        FovState.persist();
 
         assert this.minecraft != null;
         this.minecraft.setScreen(this.parent);

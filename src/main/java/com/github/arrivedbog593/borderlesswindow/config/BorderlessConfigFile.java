@@ -3,9 +3,11 @@ package com.github.arrivedbog593.borderlesswindow.config;
 import com.github.arrivedbog593.borderlesswindow.bobbing.BobbingState;
 import com.github.arrivedbog593.borderlesswindow.bobbing.CameraBobMode;
 import com.github.arrivedbog593.borderlesswindow.cloud.CloudState;
+import com.github.arrivedbog593.borderlesswindow.distortion.DistortionState;
 import com.github.arrivedbog593.borderlesswindow.enchantment.EnchantmentLevelState;
 import com.github.arrivedbog593.borderlesswindow.enchantment.EnchantmentLevelStyle;
 import com.github.arrivedbog593.borderlesswindow.fog.FogState;
+import com.github.arrivedbog593.borderlesswindow.fov.FovState;
 import com.github.arrivedbog593.borderlesswindow.fps.FpsOverlayMode;
 import com.github.arrivedbog593.borderlesswindow.fps.FpsOverlayPosition;
 import com.github.arrivedbog593.borderlesswindow.fps.FpsOverlayState;
@@ -25,7 +27,7 @@ import java.nio.file.Path;
  * Minimal persistence in config/borderlesswindow.json. Stores the current
  * screen mode, the F11 mode, the FPS overlay settings, the fog toggles,
  * the custom cloud height, the screen overlay toggles, the bobbing
- * settings, and the enchantment numeral style so they can be restored at
+ * settings and the enchantment numeral style so they can be restored at
  * game startup.
  * <p>
  * Deliberately fault-tolerant: if the file is missing, corrupt, or has
@@ -55,9 +57,19 @@ public final class BorderlessConfigFile {
         boolean overlay_water = true;
         boolean overlay_fire = true;
         boolean overlay_fire_smart = false;
+        boolean overlay_pumpkin = true;
+        boolean overlay_freeze = true;
+        boolean overlay_portal = true;
+        boolean overlay_spyglass = true;
         String bob_camera = CameraBobMode.FULL.name();
         boolean bob_hand = true;
         String enchantment_level_style = EnchantmentLevelStyle.MIXED.name();
+        int distortion_portal = DistortionState.DEFAULT_PERCENT;
+        int distortion_nausea = DistortionState.DEFAULT_PERCENT;
+        int fov_speed = FovState.DEFAULT_PERCENT;
+        int fov_flying = FovState.DEFAULT_PERCENT;
+        int fov_bow = FovState.DEFAULT_PERCENT;
+        int fov_fluid = FovState.DEFAULT_PERCENT;
     }
 
     public record LoadedConfig(ScreenMode screenMode, F11Mode f11Mode,
@@ -68,8 +80,13 @@ public final class BorderlessConfigFile {
                                int cloudHeight,
                                boolean waterOverlay, boolean fireOverlay,
                                boolean smartFire,
+                               boolean pumpkinOverlay, boolean freezeOverlay,
+                               boolean portalOverlay, boolean spyglassOverlay,
                                CameraBobMode cameraBobMode, boolean handBob,
-                               EnchantmentLevelStyle enchantmentLevelStyle) {
+                               EnchantmentLevelStyle enchantmentLevelStyle,
+                               int distortionPortal, int distortionNausea,
+                               int fovSpeed, int fovFlying,
+                               int fovBow, int fovFluid) {
     }
 
     private BorderlessConfigFile() {
@@ -96,10 +113,14 @@ public final class BorderlessConfigFile {
                 data.fog_terrain, data.fog_water, data.fog_lava, data.fog_powder_snow,
                 data.cloud_height,
                 data.overlay_water, data.overlay_fire, data.overlay_fire_smart,
+                data.overlay_pumpkin, data.overlay_freeze,
+                data.overlay_portal, data.overlay_spyglass,
                 parseOrDefault(CameraBobMode.class, data.bob_camera, CameraBobMode.FULL),
                 data.bob_hand,
                 parseOrDefault(EnchantmentLevelStyle.class, data.enchantment_level_style,
-                        EnchantmentLevelStyle.MIXED));
+                        EnchantmentLevelStyle.MIXED),
+                data.distortion_portal, data.distortion_nausea,
+                data.fov_speed, data.fov_flying, data.fov_bow, data.fov_fluid);
     }
 
     /**
@@ -127,9 +148,19 @@ public final class BorderlessConfigFile {
         data.overlay_water = ScreenEffectState.isWaterOverlayEnabled();
         data.overlay_fire = ScreenEffectState.isFireOverlayEnabled();
         data.overlay_fire_smart = ScreenEffectState.isSmartFireEnabled();
+        data.overlay_pumpkin = ScreenEffectState.isPumpkinOverlayEnabled();
+        data.overlay_freeze = ScreenEffectState.isFreezeOverlayEnabled();
+        data.overlay_portal = ScreenEffectState.isPortalOverlayEnabled();
+        data.overlay_spyglass = ScreenEffectState.isSpyglassOverlayEnabled();
         data.bob_camera = BobbingState.getCameraBobMode().name();
         data.bob_hand = BobbingState.isHandBobEnabled();
         data.enchantment_level_style = EnchantmentLevelState.getStyle().name();
+        data.distortion_portal = DistortionState.getPortalPercent();
+        data.distortion_nausea = DistortionState.getNauseaPercent();
+        data.fov_speed = FovState.getSpeedPercent();
+        data.fov_flying = FovState.getFlyingPercent();
+        data.fov_bow = FovState.getBowPercent();
+        data.fov_fluid = FovState.getFluidPercent();
         try {
             Files.writeString(PATH, GSON.toJson(data));
         } catch (IOException ignored) {

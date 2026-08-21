@@ -3,9 +3,12 @@
   "package": "com.github.arrivedbog593.borderlesswindow.mixin",
   "compatibilityLevel": "JAVA_21",
   "mixins": [
+    "AbstractClientPlayerMixin",
     "CloudHeightMixin",
     "EnchantmentMixin",
     "GameRendererMixin",
+    "GuiMixin",
+    "LocalPlayerMixin",
     "WindowMixin"
   ],
   "injectors": {

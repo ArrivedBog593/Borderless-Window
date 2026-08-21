@@ -3,9 +3,11 @@ package com.github.arrivedbog593.borderlesswindow.sodium;
 import com.github.arrivedbog593.borderlesswindow.bobbing.BobbingState;
 import com.github.arrivedbog593.borderlesswindow.bobbing.CameraBobMode;
 import com.github.arrivedbog593.borderlesswindow.cloud.CloudState;
+import com.github.arrivedbog593.borderlesswindow.distortion.DistortionState;
 import com.github.arrivedbog593.borderlesswindow.enchantment.EnchantmentLevelState;
 import com.github.arrivedbog593.borderlesswindow.enchantment.EnchantmentLevelStyle;
 import com.github.arrivedbog593.borderlesswindow.fog.FogState;
+import com.github.arrivedbog593.borderlesswindow.fov.FovState;
 import com.github.arrivedbog593.borderlesswindow.fps.FpsOverlayMode;
 import com.github.arrivedbog593.borderlesswindow.fps.FpsOverlayPosition;
 import com.github.arrivedbog593.borderlesswindow.fps.FpsOverlayState;
@@ -14,6 +16,7 @@ import com.github.arrivedbog593.borderlesswindow.window.BorderlessHandler;
 import com.github.arrivedbog593.borderlesswindow.window.F11Mode;
 import com.github.arrivedbog593.borderlesswindow.window.ScreenMode;
 import com.mojang.blaze3d.platform.Window;
+import net.minecraft.client.Options;
 import net.minecraft.client.Minecraft;
 
 /**
@@ -81,11 +84,52 @@ public final class ScreenModeStorage {
     private boolean pendingSmartFire = ScreenEffectState.isSmartFireEnabled();
     private boolean smartFireDirty = false;
 
+    private boolean pendingPumpkinOverlay = ScreenEffectState.isPumpkinOverlayEnabled();
+    private boolean pumpkinOverlayDirty = false;
+
+    private boolean pendingFreezeOverlay = ScreenEffectState.isFreezeOverlayEnabled();
+    private boolean freezeOverlayDirty = false;
+
+    private boolean pendingPortalOverlay = ScreenEffectState.isPortalOverlayEnabled();
+    private boolean portalOverlayDirty = false;
+
+    private boolean pendingSpyglassOverlay = ScreenEffectState.isSpyglassOverlayEnabled();
+    private boolean spyglassOverlayDirty = false;
+
     private CameraBobMode pendingCameraBob = BobbingState.getCameraBobMode();
     private boolean cameraBobDirty = false;
 
     private boolean pendingHandBob = BobbingState.isHandBobEnabled();
     private boolean handBobDirty = false;
+
+    private int pendingDistortionPortal = DistortionState.getPortalPercent();
+    private boolean distortionPortalDirty = false;
+
+    private int pendingDistortionNausea = DistortionState.getNauseaPercent();
+    private boolean distortionNauseaDirty = false;
+
+    private int pendingFovSpeed = FovState.getSpeedPercent();
+    private boolean fovSpeedDirty = false;
+
+    private int pendingFovFlying = FovState.getFlyingPercent();
+    private boolean fovFlyingDirty = false;
+
+    private int pendingFovBow = FovState.getBowPercent();
+    private boolean fovBowDirty = false;
+
+    private int pendingFovFluid = FovState.getFluidPercent();
+    private boolean fovFluidDirty = false;
+
+    // The two vanilla sliders these pages sit under. Mirrored here so a
+    // Sodium user can reach them without leaving for the accessibility
+    // menu -- Sodium's own video settings drop both. Their value lives
+    // in options.txt, NOT in our config: duplicating it would guarantee
+    // the two copies drift apart.
+    private int pendingVanillaDistortion = 0;
+    private boolean vanillaDistortionDirty = false;
+
+    private int pendingVanillaFov = 0;
+    private boolean vanillaFovDirty = false;
 
     private EnchantmentLevelStyle pendingEnchantmentLevelStyle = EnchantmentLevelState.getStyle();
     private boolean enchantmentLevelStyleDirty = false;
@@ -203,6 +247,42 @@ public final class ScreenModeStorage {
         this.smartFireDirty = true;
     }
 
+    public boolean getPumpkinOverlay() {
+        return ScreenEffectState.isPumpkinOverlayEnabled();
+    }
+
+    public void setPumpkinOverlay(boolean enabled) {
+        this.pendingPumpkinOverlay = enabled;
+        this.pumpkinOverlayDirty = true;
+    }
+
+    public boolean getFreezeOverlay() {
+        return ScreenEffectState.isFreezeOverlayEnabled();
+    }
+
+    public void setFreezeOverlay(boolean enabled) {
+        this.pendingFreezeOverlay = enabled;
+        this.freezeOverlayDirty = true;
+    }
+
+    public boolean getPortalOverlay() {
+        return ScreenEffectState.isPortalOverlayEnabled();
+    }
+
+    public void setPortalOverlay(boolean enabled) {
+        this.pendingPortalOverlay = enabled;
+        this.portalOverlayDirty = true;
+    }
+
+    public boolean getSpyglassOverlay() {
+        return ScreenEffectState.isSpyglassOverlayEnabled();
+    }
+
+    public void setSpyglassOverlay(boolean enabled) {
+        this.pendingSpyglassOverlay = enabled;
+        this.spyglassOverlayDirty = true;
+    }
+
     public CameraBobMode getCameraBob() {
         return BobbingState.getCameraBobMode();
     }
@@ -219,6 +299,93 @@ public final class ScreenModeStorage {
     public void setHandBob(boolean enabled) {
         this.pendingHandBob = enabled;
         this.handBobDirty = true;
+    }
+
+    public int getDistortionPortal() {
+        return DistortionState.getPortalPercent();
+    }
+
+    public void setDistortionPortal(int percent) {
+        this.pendingDistortionPortal = percent;
+        this.distortionPortalDirty = true;
+    }
+
+    public int getDistortionNausea() {
+        return DistortionState.getNauseaPercent();
+    }
+
+    public void setDistortionNausea(int percent) {
+        this.pendingDistortionNausea = percent;
+        this.distortionNauseaDirty = true;
+    }
+
+    public int getFovSpeed() {
+        return FovState.getSpeedPercent();
+    }
+
+    public void setFovSpeed(int percent) {
+        this.pendingFovSpeed = percent;
+        this.fovSpeedDirty = true;
+    }
+
+    public int getFovFlying() {
+        return FovState.getFlyingPercent();
+    }
+
+    public void setFovFlying(int percent) {
+        this.pendingFovFlying = percent;
+        this.fovFlyingDirty = true;
+    }
+
+    public int getFovBow() {
+        return FovState.getBowPercent();
+    }
+
+    public void setFovBow(int percent) {
+        this.pendingFovBow = percent;
+        this.fovBowDirty = true;
+    }
+
+    public int getFovFluid() {
+        return FovState.getFluidPercent();
+    }
+
+    public void setFovFluid(int percent) {
+        this.pendingFovFluid = percent;
+        this.fovFluidDirty = true;
+    }
+
+    /**
+     * Vanilla stores these as a 0..1 Double and labels them with
+     * percentValueOrOffLabel, which prints value * 100 -- so a plain
+     * x100 matches the number Minecraft itself shows.
+     * <p>
+     * Note fovEffectScale's ValueSet carries an
+     * xmap(Mth::square, Math::sqrt). That only bends how far the
+     * physical slider travels for a given value; the stored value and
+     * the printed percentage are unaffected, so no square root is
+     * needed here.
+     */
+    public int getVanillaDistortion() {
+        return percentOf(Minecraft.getInstance().options.screenEffectScale().get());
+    }
+
+    public void setVanillaDistortion(int percent) {
+        this.pendingVanillaDistortion = percent;
+        this.vanillaDistortionDirty = true;
+    }
+
+    public int getVanillaFov() {
+        return percentOf(Minecraft.getInstance().options.fovEffectScale().get());
+    }
+
+    public void setVanillaFov(int percent) {
+        this.pendingVanillaFov = percent;
+        this.vanillaFovDirty = true;
+    }
+
+    private static int percentOf(double value) {
+        return (int) Math.round(value * 100.0D);
     }
 
     public EnchantmentLevelStyle getEnchantmentLevelStyle() {
@@ -296,6 +463,26 @@ public final class ScreenModeStorage {
             this.smartFireDirty = false;
         }
 
+        if (this.pumpkinOverlayDirty) {
+            ScreenEffectState.setPumpkinOverlayEnabled(this.pendingPumpkinOverlay);
+            this.pumpkinOverlayDirty = false;
+        }
+
+        if (this.freezeOverlayDirty) {
+            ScreenEffectState.setFreezeOverlayEnabled(this.pendingFreezeOverlay);
+            this.freezeOverlayDirty = false;
+        }
+
+        if (this.portalOverlayDirty) {
+            ScreenEffectState.setPortalOverlayEnabled(this.pendingPortalOverlay);
+            this.portalOverlayDirty = false;
+        }
+
+        if (this.spyglassOverlayDirty) {
+            ScreenEffectState.setSpyglassOverlayEnabled(this.pendingSpyglassOverlay);
+            this.spyglassOverlayDirty = false;
+        }
+
         if (this.cameraBobDirty) {
             BobbingState.setCameraBobMode(this.pendingCameraBob);
             this.cameraBobDirty = false;
@@ -304,6 +491,52 @@ public final class ScreenModeStorage {
         if (this.handBobDirty) {
             BobbingState.setHandBobEnabled(this.pendingHandBob);
             this.handBobDirty = false;
+        }
+
+        if (this.distortionPortalDirty) {
+            DistortionState.setPortalPercent(this.pendingDistortionPortal);
+            this.distortionPortalDirty = false;
+        }
+
+        if (this.distortionNauseaDirty) {
+            DistortionState.setNauseaPercent(this.pendingDistortionNausea);
+            this.distortionNauseaDirty = false;
+        }
+
+        if (this.fovSpeedDirty) {
+            FovState.setSpeedPercent(this.pendingFovSpeed);
+            this.fovSpeedDirty = false;
+        }
+
+        if (this.fovFlyingDirty) {
+            FovState.setFlyingPercent(this.pendingFovFlying);
+            this.fovFlyingDirty = false;
+        }
+
+        if (this.fovBowDirty) {
+            FovState.setBowPercent(this.pendingFovBow);
+            this.fovBowDirty = false;
+        }
+
+        if (this.fovFluidDirty) {
+            FovState.setFluidPercent(this.pendingFovFluid);
+            this.fovFluidDirty = false;
+        }
+
+        // Vanilla options: written straight to options.txt. save() is
+        // called once per flush rather than per option, since Sodium
+        // applies a whole screenful at a time.
+        if (this.vanillaDistortionDirty || this.vanillaFovDirty) {
+            Options options = Minecraft.getInstance().options;
+            if (this.vanillaDistortionDirty) {
+                options.screenEffectScale().set(this.pendingVanillaDistortion / 100.0D);
+                this.vanillaDistortionDirty = false;
+            }
+            if (this.vanillaFovDirty) {
+                options.fovEffectScale().set(this.pendingVanillaFov / 100.0D);
+                this.vanillaFovDirty = false;
+            }
+            options.save();
         }
 
         if (this.enchantmentLevelStyleDirty) {

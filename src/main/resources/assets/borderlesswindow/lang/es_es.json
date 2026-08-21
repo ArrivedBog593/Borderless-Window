@@ -6,6 +6,8 @@
   "config.borderlesswindow.section.clouds": "Nubes",
   "config.borderlesswindow.section.overlays": "Overlays de pantalla",
   "config.borderlesswindow.section.bobbing": "Balanceo",
+  "config.borderlesswindow.section.fov": "Campo de visión (FOV)",
+  "config.borderlesswindow.section.distortion": "Distorsión",
   "config.borderlesswindow.section.enchantments": "Estilo de encantamientos",
 
   "borderlesswindow.options.sodium.pages.general": "General",
@@ -14,6 +16,8 @@
   "borderlesswindow.options.sodium.pages.clouds": "Nubes",
   "borderlesswindow.options.sodium.pages.overlays": "Overlays de pantalla",
   "borderlesswindow.options.sodium.pages.bobbing": "Balanceo",
+  "borderlesswindow.options.sodium.pages.fov": "Campo de visión (FOV)",
+  "borderlesswindow.options.sodium.pages.distortion": "Distorsión",
   "borderlesswindow.options.sodium.pages.enchantments": "Estilo de encantamientos",
 
   "borderlesswindow.options.screen_mode.name": "Modo de pantalla",
@@ -62,6 +66,14 @@
   "borderlesswindow.options.overlay_fire.tooltip": "Las llamas que se dibujan sobre tu vista mientras estás ardiendo. Desactívalo para mantener la vista despejada cuando estés en llamas. El overlay de asfixia que aparece con la cabeza dentro de un bloque sólido nunca se ve afectado.",
   "borderlesswindow.options.overlay_fire_smart.name": "Overlay de fuego inteligente",
   "borderlesswindow.options.overlay_fire_smart.tooltip": "Conserva el overlay de fuego, pero lo oculta mientras tengas Resistencia al Fuego. Minecraft dibuja ese mismo overlay al nadar en lava, así que esto también te despeja la vista dentro de la lava mientras dure el efecto. Requiere que el Overlay de fuego esté activado.",
+  "borderlesswindow.options.overlay_pumpkin.name": "Overlay de calabaza",
+  "borderlesswindow.options.overlay_pumpkin.tooltip": "El difuminado que se dibuja alrededor de tu vista cuando llevas una calabaza tallada. Desactívalo para ver normal, así puedes usar la calabaza contra los enderman sin el costo visual. Los overlays de casco de otros mods nunca se ven afectados.",
+  "borderlesswindow.options.overlay_freeze.name": "Overlay de congelación",
+  "borderlesswindow.options.overlay_freeze.tooltip": "El borde de escarcha que se dibuja alrededor de tu vista mientras te congelas en nieve polvo. Desactívalo para mantener la vista despejada. Ojo: ese borde también avisa que estás recibiendo daño por frío; los corazones congelados del HUD lo siguen mostrando.",
+  "borderlesswindow.options.overlay_portal.name": "Overlay de portal",
+  "borderlesswindow.options.overlay_portal.tooltip": "La distorsión morada que se dibuja sobre tu vista mientras estás dentro de un portal del Nether. Desactívalo para ver claro al construir o alinear portales.",
+  "borderlesswindow.options.overlay_spyglass.name": "Overlay del catalejo",
+  "borderlesswindow.options.overlay_spyglass.tooltip": "La textura de la mira y las barras negras que se dibujan al mirar por un catalejo. Desactívalo para conservar el zoom en toda la pantalla. El zoom no cambia; solo se quita el marco.",
 
   "borderlesswindow.options.camera_bob.name": "Balanceo de la cámara",
   "borderlesswindow.options.camera_bob.tooltip": "Cuánto se mece la cámara al andar. Completo es lo normal del juego. Solo vertical conserva el rebote de arriba a abajo pero quita el vaivén lateral y la inclinación, de modo que el horizonte nunca se tuerce -- la inclinación es lo que marea a la mayoría. Desactivado deja la cámara quieta. Requiere que la opción Balanceo de cámara de Minecraft esté activada.",
@@ -70,6 +82,28 @@
   "borderlesswindow.camera_bob_mode.off": "Desactivado",
   "borderlesswindow.options.hand_bob.name": "Balanceo de la mano",
   "borderlesswindow.options.hand_bob.tooltip": "Si el objeto que llevas en la mano se mece al andar, aparte de la cámara. Desactívalo para tener la mano firme conservando el movimiento de cámara, o déjalo activado con la cámara quieta. Requiere que la opción Balanceo de la vista de Minecraft esté activada.",
+
+  "borderlesswindow.options.vanilla_fov.name": "Efectos de FOV (Minecraft)",
+  "borderlesswindow.options.vanilla_fov.tooltip": "El slider de Efectos de FOV del propio Minecraft, que escala las cuatro opciones de abajo a la vez. Los ajustes de video de Sodium no lo incluyen, así que aquí se recupera. Es el mismo ajuste que está en Accesibilidad y se guarda con las opciones de Minecraft, no con las del mod.",
+
+  "borderlesswindow.options.fov_speed.name": "FOV por velocidad",
+  "borderlesswindow.options.fov_speed.tooltip": "Cuánto se abre la vista al moverte más rápido: correr, pociones de Rapidez, cualquier cosa que suba tu velocidad. 100% es lo normal del juego. Minecraft tiene un solo slider para las cuatro juntas; aquí van por separado. Requiere que Efectos de FOV de Minecraft esté activado.",
+  "borderlesswindow.options.fov_flying.name": "FOV al volar",
+  "borderlesswindow.options.fov_flying.tooltip": "La apertura extra mientras vuelas en creativo. Planear con elytra no cuenta, no es el mismo tipo de vuelo. Es un tirón chico, del 10%%, y la velocidad al correr suele taparlo. Requiere que Efectos de FOV de Minecraft esté activado.",
+  "borderlesswindow.options.fov_bow.name": "FOV del arco",
+  "borderlesswindow.options.fov_bow.tooltip": "El acercamiento que se acumula mientras tensas un arco. 100% es lo normal del juego, 0% deja la vista quieta. El catalejo nunca se ve afectado: su zoom es lo que hace el objeto, no un efecto visual. Requiere que Efectos de FOV de Minecraft esté activado.",
+  "borderlesswindow.options.fov_fluid.name": "FOV en líquidos",
+  "borderlesswindow.options.fov_fluid.tooltip": "El achatamiento que se aplica con la cabeza dentro del agua o la lava. 100% es lo normal del juego. Requiere que Efectos de FOV de Minecraft esté activado.",
+
+  "borderlesswindow.options.vanilla_distortion.name": "Efectos de distorsión (Minecraft)",
+  "borderlesswindow.options.vanilla_distortion.tooltip": "El slider de Efectos de distorsión del propio Minecraft, que escala las dos opciones de abajo a la vez. Los ajustes de video de Sodium no lo incluyen, así que aquí se recupera. Es el mismo ajuste que está en Accesibilidad y se guarda con las opciones de Minecraft, no con las del mod. Bajarlo también hace aparecer la textura verde de náuseas, que es la señal de reemplazo de Minecraft.",
+
+  "borderlesswindow.options.distortion_portal.name": "Distorsión de portal",
+  "borderlesswindow.options.distortion_portal.tooltip": "Cuánto se distorsiona la vista mientras estás en un portal del Nether. 100% es el valor por defecto. Minecraft tiene un solo deslizador para esto y para el mareo juntos; aquí están separados. Se encuentra debajo del deslizador de Efectos de Distorsión de Minecraft: con eso en Apagado, nada se distorsiona y esto no tiene efecto.",
+  "borderlesswindow.options.distortion_nausea.name": "Distorsión de náuseas",
+  "borderlesswindow.options.distortion_nausea.tooltip": "Cuánto se distorsiona la vista mientras tienes el efecto de Náuseas, ya sea por una poción, un pez globo o un estofado sospechoso. 100% es el valor por defecto. Se encuentra bajo el propio control deslizante de Efectos de Distorsión de Minecraft: con eso en Apagado, nada se distorsiona y esto no tiene efecto.",
+  "borderlesswindow.options.distortion.percent": "%s%%",
+  "borderlesswindow.options.distortion.off": "Desactivado",
 
   "borderlesswindow.options.enchantment_level_style.name": "Números de encantamientos",
   "borderlesswindow.options.enchantment_level_style.tooltip": "Cómo se escriben los niveles junto al nombre del encantamiento. Minecraft solo tiene números romanos hasta el X y por encima de eso muestra texto en crudo como \"enchantment.level.11\". Mixto conserva los romanos y pasa a números normales a partir del XI; las otras dos usan un solo estilo en todos los niveles. Los niveles llegan hasta 255.",

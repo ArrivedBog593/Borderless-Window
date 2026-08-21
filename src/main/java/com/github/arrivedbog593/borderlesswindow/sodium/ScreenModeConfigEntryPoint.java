@@ -2,7 +2,9 @@ package com.github.arrivedbog593.borderlesswindow.sodium;
 
 import com.github.arrivedbog593.borderlesswindow.bobbing.CameraBobMode;
 import com.github.arrivedbog593.borderlesswindow.cloud.CloudState;
+import com.github.arrivedbog593.borderlesswindow.distortion.DistortionState;
 import com.github.arrivedbog593.borderlesswindow.enchantment.EnchantmentLevelStyle;
+import com.github.arrivedbog593.borderlesswindow.fov.FovState;
 import com.github.arrivedbog593.borderlesswindow.fps.FpsOverlayMode;
 import com.github.arrivedbog593.borderlesswindow.fps.FpsOverlayPosition;
 import com.github.arrivedbog593.borderlesswindow.window.F11Mode;
@@ -25,13 +27,15 @@ import net.minecraft.resources.ResourceLocation;
  * - Clouds: the cloud height slider.
  * - Screen Overlays: water / fire / smart fire.
  * - Bobbing: camera bob mode + hand bob.
+ * - FOV: per-source field of view.
+ * - Distortion: portal and nausea warping.
  * - Interface: enchantment numerals.
  * The Screen Mode option itself lives on Sodium's General page, since it
  * REPLACES Sodium's fullscreen checkbox (registerOptionReplacement).
  * <p>
  * The cloud TYPE (Off/Fast/Fancy) is deliberately NOT offered here: that
  * option already exists as vanilla's cloudStatus, shown by Sodium on its
- * own Quality page. We only add the height, which vanilla/Sodium does not
+ * own Quality page. We only add the height, which vanilla/Sodium do not
  * expose. The Sodium API cannot insert an option into Sodium's own pages,
  * so the height lives on our page instead.
  * <p>
@@ -208,6 +212,42 @@ public class ScreenModeConfigEntryPoint implements ConfigEntryPoint {
                                                         ResourceLocation.parse("borderlesswindow:overlay_fire")),
                                                 ResourceLocation.parse("borderlesswindow:overlay_fire"))
                                 )
+                                // From Gui rather than ScreenEffectRenderer
+                                // (see GuiMixin), same section regardless:
+                                // the player does not care which vanilla
+                                // class draws what.
+                                .addOption(builder.createBooleanOption(
+                                                ResourceLocation.parse("borderlesswindow:overlay_pumpkin"))
+                                        .setName(Component.translatable("borderlesswindow.options.overlay_pumpkin.name"))
+                                        .setTooltip(Component.translatable("borderlesswindow.options.overlay_pumpkin.tooltip"))
+                                        .setStorageHandler(this.storage::flush)
+                                        .setBinding(this.storage::setPumpkinOverlay, this.storage::getPumpkinOverlay)
+                                        .setDefaultValue(true)
+                                )
+                                .addOption(builder.createBooleanOption(
+                                                ResourceLocation.parse("borderlesswindow:overlay_freeze"))
+                                        .setName(Component.translatable("borderlesswindow.options.overlay_freeze.name"))
+                                        .setTooltip(Component.translatable("borderlesswindow.options.overlay_freeze.tooltip"))
+                                        .setStorageHandler(this.storage::flush)
+                                        .setBinding(this.storage::setFreezeOverlay, this.storage::getFreezeOverlay)
+                                        .setDefaultValue(true)
+                                )
+                                .addOption(builder.createBooleanOption(
+                                                ResourceLocation.parse("borderlesswindow:overlay_portal"))
+                                        .setName(Component.translatable("borderlesswindow.options.overlay_portal.name"))
+                                        .setTooltip(Component.translatable("borderlesswindow.options.overlay_portal.tooltip"))
+                                        .setStorageHandler(this.storage::flush)
+                                        .setBinding(this.storage::setPortalOverlay, this.storage::getPortalOverlay)
+                                        .setDefaultValue(true)
+                                )
+                                .addOption(builder.createBooleanOption(
+                                                ResourceLocation.parse("borderlesswindow:overlay_spyglass"))
+                                        .setName(Component.translatable("borderlesswindow.options.overlay_spyglass.name"))
+                                        .setTooltip(Component.translatable("borderlesswindow.options.overlay_spyglass.tooltip"))
+                                        .setStorageHandler(this.storage::flush)
+                                        .setBinding(this.storage::setSpyglassOverlay, this.storage::getSpyglassOverlay)
+                                        .setDefaultValue(true)
+                                )
                         )
                 )
                 // Page 6 - Bobbing. Both options sit UNDER vanilla's own
@@ -239,7 +279,138 @@ public class ScreenModeConfigEntryPoint implements ConfigEntryPoint {
                                 )
                         )
                 )
-                // Page 7 - Interface. The first page here that is NOT about
+                // Page 7 - FOV. Separate from Distortion: these change
+                // how wide the view is, not how much it warps. Only the
+                // fluid one sits under Minecraft's FOV Effects slider --
+                // verified against 1.21.1, that option is read in exactly
+                // one place, so sprint/fly/bow are effects vanilla offers
+                // no control over at all. Reuses the distortion
+                // percent/off formatter keys: same 0-100 presentation.
+                .addPage(builder.createOptionPage()
+                        .setName(Component.translatable("borderlesswindow.options.sodium.pages.fov"))
+                        .addOptionGroup(builder.createOptionGroup()
+                                // Vanilla's own slider, first so the
+                                // hierarchy reads top-down: this one
+                                // scales everything below it. Sodium's
+                                // video settings drop it entirely, and
+                                // it only lives in Minecraft's
+                                // accessibility menu otherwise.
+                                .addOption(builder.createIntegerOption(
+                                                ResourceLocation.parse("borderlesswindow:vanilla_fov"))
+                                        .setName(Component.translatable("borderlesswindow.options.vanilla_fov.name"))
+                                        .setTooltip(Component.translatable("borderlesswindow.options.vanilla_fov.tooltip"))
+                                        .setRange(0, 100, 5)
+                                        .setValueFormatter(value -> value <= 0
+                                                ? Component.translatable("borderlesswindow.options.distortion.off")
+                                                : Component.translatable("borderlesswindow.options.distortion.percent", value))
+                                        .setStorageHandler(this.storage::flush)
+                                        .setBinding(this.storage::setVanillaFov, this.storage::getVanillaFov)
+                                        .setDefaultValue(100)
+                                )
+                                .addOption(builder.createIntegerOption(
+                                                ResourceLocation.parse("borderlesswindow:fov_speed"))
+                                        .setName(Component.translatable("borderlesswindow.options.fov_speed.name"))
+                                        .setTooltip(Component.translatable("borderlesswindow.options.fov_speed.tooltip"))
+                                        .setRange(FovState.MIN_PERCENT, FovState.MAX_PERCENT, 5)
+                                        .setValueFormatter(value -> value <= FovState.MIN_PERCENT
+                                                ? Component.translatable("borderlesswindow.options.distortion.off")
+                                                : Component.translatable("borderlesswindow.options.distortion.percent", value))
+                                        .setStorageHandler(this.storage::flush)
+                                        .setBinding(this.storage::setFovSpeed, this.storage::getFovSpeed)
+                                        .setDefaultValue(FovState.DEFAULT_PERCENT)
+                                )
+                                .addOption(builder.createIntegerOption(
+                                                ResourceLocation.parse("borderlesswindow:fov_flying"))
+                                        .setName(Component.translatable("borderlesswindow.options.fov_flying.name"))
+                                        .setTooltip(Component.translatable("borderlesswindow.options.fov_flying.tooltip"))
+                                        .setRange(FovState.MIN_PERCENT, FovState.MAX_PERCENT, 5)
+                                        .setValueFormatter(value -> value <= FovState.MIN_PERCENT
+                                                ? Component.translatable("borderlesswindow.options.distortion.off")
+                                                : Component.translatable("borderlesswindow.options.distortion.percent", value))
+                                        .setStorageHandler(this.storage::flush)
+                                        .setBinding(this.storage::setFovFlying, this.storage::getFovFlying)
+                                        .setDefaultValue(FovState.DEFAULT_PERCENT)
+                                )
+                                .addOption(builder.createIntegerOption(
+                                                ResourceLocation.parse("borderlesswindow:fov_bow"))
+                                        .setName(Component.translatable("borderlesswindow.options.fov_bow.name"))
+                                        .setTooltip(Component.translatable("borderlesswindow.options.fov_bow.tooltip"))
+                                        .setRange(FovState.MIN_PERCENT, FovState.MAX_PERCENT, 5)
+                                        .setValueFormatter(value -> value <= FovState.MIN_PERCENT
+                                                ? Component.translatable("borderlesswindow.options.distortion.off")
+                                                : Component.translatable("borderlesswindow.options.distortion.percent", value))
+                                        .setStorageHandler(this.storage::flush)
+                                        .setBinding(this.storage::setFovBow, this.storage::getFovBow)
+                                        .setDefaultValue(FovState.DEFAULT_PERCENT)
+                                )
+                                .addOption(builder.createIntegerOption(
+                                                ResourceLocation.parse("borderlesswindow:fov_fluid"))
+                                        .setName(Component.translatable("borderlesswindow.options.fov_fluid.name"))
+                                        .setTooltip(Component.translatable("borderlesswindow.options.fov_fluid.tooltip"))
+                                        .setRange(FovState.MIN_PERCENT, FovState.MAX_PERCENT, 5)
+                                        .setValueFormatter(value -> value <= FovState.MIN_PERCENT
+                                                ? Component.translatable("borderlesswindow.options.distortion.off")
+                                                : Component.translatable("borderlesswindow.options.distortion.percent", value))
+                                        .setStorageHandler(this.storage::flush)
+                                        .setBinding(this.storage::setFovFluid, this.storage::getFovFluid)
+                                        .setDefaultValue(FovState.DEFAULT_PERCENT)
+                                )
+                        )
+                )
+                // Page 8 - Distortion. Its own page rather than an extra
+                // pair on Screen Overlays: this warps the camera instead
+                // of drawing on top of it. Both options multiply
+                // Minecraft's own Distortion Effects slider rather than
+                // replacing it; the Sodium API cannot depend on a vanilla
+                // option, so the tooltips say so.
+                .addPage(builder.createOptionPage()
+                        .setName(Component.translatable("borderlesswindow.options.sodium.pages.distortion"))
+                        .addOptionGroup(builder.createOptionGroup()
+                                // Vanilla's own slider, first so the
+                                // hierarchy reads top-down: this one
+                                // scales everything below it. Sodium's
+                                // video settings drop it entirely, and
+                                // it only lives in Minecraft's
+                                // accessibility menu otherwise.
+                                .addOption(builder.createIntegerOption(
+                                                ResourceLocation.parse("borderlesswindow:vanilla_distortion"))
+                                        .setName(Component.translatable("borderlesswindow.options.vanilla_distortion.name"))
+                                        .setTooltip(Component.translatable("borderlesswindow.options.vanilla_distortion.tooltip"))
+                                        .setRange(0, 100, 5)
+                                        .setValueFormatter(value -> value <= 0
+                                                ? Component.translatable("borderlesswindow.options.distortion.off")
+                                                : Component.translatable("borderlesswindow.options.distortion.percent", value))
+                                        .setStorageHandler(this.storage::flush)
+                                        .setBinding(this.storage::setVanillaDistortion, this.storage::getVanillaDistortion)
+                                        .setDefaultValue(100)
+                                )
+                                .addOption(builder.createIntegerOption(
+                                                ResourceLocation.parse("borderlesswindow:distortion_portal"))
+                                        .setName(Component.translatable("borderlesswindow.options.distortion_portal.name"))
+                                        .setTooltip(Component.translatable("borderlesswindow.options.distortion_portal.tooltip"))
+                                        .setRange(DistortionState.MIN_PERCENT, DistortionState.MAX_PERCENT, 5)
+                                        .setValueFormatter(value -> value <= DistortionState.MIN_PERCENT
+                                                ? Component.translatable("borderlesswindow.options.distortion.off")
+                                                : Component.translatable("borderlesswindow.options.distortion.percent", value))
+                                        .setStorageHandler(this.storage::flush)
+                                        .setBinding(this.storage::setDistortionPortal, this.storage::getDistortionPortal)
+                                        .setDefaultValue(DistortionState.DEFAULT_PERCENT)
+                                )
+                                .addOption(builder.createIntegerOption(
+                                                ResourceLocation.parse("borderlesswindow:distortion_nausea"))
+                                        .setName(Component.translatable("borderlesswindow.options.distortion_nausea.name"))
+                                        .setTooltip(Component.translatable("borderlesswindow.options.distortion_nausea.tooltip"))
+                                        .setRange(DistortionState.MIN_PERCENT, DistortionState.MAX_PERCENT, 5)
+                                        .setValueFormatter(value -> value <= DistortionState.MIN_PERCENT
+                                                ? Component.translatable("borderlesswindow.options.distortion.off")
+                                                : Component.translatable("borderlesswindow.options.distortion.percent", value))
+                                        .setStorageHandler(this.storage::flush)
+                                        .setBinding(this.storage::setDistortionNausea, this.storage::getDistortionNausea)
+                                        .setDefaultValue(DistortionState.DEFAULT_PERCENT)
+                                )
+                        )
+                )
+                // Page 9 - Interface. First page here that is NOT about
                 // rendering: enchantment numerals are tooltip text. It
                 // lives in the video settings menu anyway because splitting
                 // the mod's options across two different menus would be

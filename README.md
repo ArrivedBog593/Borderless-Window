@@ -19,6 +19,9 @@ A lightweight client-side mod for **NeoForge 1.21.1** that adds **borderless ful
 - **Fog toggles**: Terrain (the distance haze, including the Nether's thick fog), Water, Lava, and Powder Snow, each independent. Fog from Blindness and Darkness is never affected, so those effects still work as intended.
 - **Cloud height**: raise or lower the cloud layer between y=64 and y=320. On Default every dimension keeps its own height, and dimensions with no clouds at all — the Nether, the End, cloudless dimensions from other mods — stay that way at any setting.
 - **Screen overlays**: remove the water texture drawn over your view while swimming, and the flames drawn while burning. Fire also has a smart mode that hides the flames only while Fire Resistance is active. The suffocation overlay shown inside solid blocks is never touched.
+- **Camera overlays**: remove the pumpkin blur, the powder snow frost border, the Nether portal warp, and the spyglass scope. The spyglass zoom itself is unchanged — only the frame around it goes. The vignette is left alone on purpose: it doubles as the world border warning.
+- **Split field of view**: Minecraft has one FOV Effects slider for every source at once. Here Speed, Flying, Bow, and Fluid are four separate sliders, so you can calm the constant FOV shift from Speed potions without losing the bow zoom.
+- **Split distortion**: same idea for the Distortion Effects slider — the Nether portal and the Nausea effect get one slider each, correctly told apart even when both happen at once.
 - **Split view bobbing**: Minecraft turns bobbing on or off for everything at once. Here the camera and the held item are separate, and the camera adds a **Vertical Only** mode that keeps the up-and-down bounce while removing the sway and the tilt — the horizon stays level, which is the part that causes motion sickness for most people.
 - **Enchantment numerals**: Minecraft only ships Roman numerals up to X and shows raw text like `enchantment.level.11` above that — levels are legal all the way to 255. This fixes it and lets you choose the style: Roman up to X and plain numbers past it, always Roman, or always numbers. Resource packs that do translate high levels keep working.
 
@@ -36,13 +39,13 @@ Exclusive fullscreen changes your monitor's actual display mode, which causes sl
 
 ## Configuration
 
-- **In game (no Sodium):** Mods menu → Borderless Window → Config. Every option lives in one scrollable list grouped by feature: Window, FPS Overlay, Fog, Clouds, Screen Overlays, Bobbing, and Enchantment Style. Changes apply instantly.
-- **In game (with Sodium):** Video Settings → the "Screen Mode" option (replaces Sodium's fullscreen checkbox) and the "Borderless Window" section with its seven pages.
+- **In game (no Sodium):** Mods menu → Borderless Window → Config. Every option lives in one scrollable list grouped by feature: Window, FPS Overlay, Fog, Clouds, Screen Overlays, Bobbing, Field of View, Distortion, and Enchantment Style. Changes apply instantly.
+- **In game (with Sodium):** Video Settings → the "Screen Mode" option (replaces Sodium's fullscreen checkbox) and the "Borderless Window" section with its nine pages. Sodium's video settings leave out Minecraft's Distortion Effects and FOV Effects sliders, so the mod brings both back at the top of the pages they govern.
 - **Config file:** `config/borderlesswindow.json`. If the mod ever gets stuck in a weird state, delete this file and restart — defaults are regenerated safely.
 
 Every setting defaults to vanilla behavior, so installing or updating the mod never changes how the game looks until you ask it to.
 
-**Note on bobbing:** the camera and hand options refine Minecraft's own "View Bobbing" setting rather than replacing it. With View Bobbing turned off in Minecraft's video settings, nothing bobs and these two options have no effect.
+**Note on refined settings:** several options sharpen a Minecraft setting rather than replacing it, and do nothing while that setting is off. Bobbing sits under "View Bobbing", the four FOV sliders under "FOV Effects", and the two distortion sliders under "Distortion Effects". The last two live in Minecraft's Accessibility Settings.
 
 ## Requirements
 
@@ -75,6 +78,9 @@ Un mod ligero client-side para **NeoForge 1.21.1** que agrega **pantalla complet
 - **Opciones de niebla**: Terreno (la neblina de distancia, incluida la niebla densa del Nether), Agua, Lava y Nieve polvo, cada una por separado. La niebla de Ceguera y Oscuridad nunca se ve afectada, así que esos efectos siguen funcionando como deben.
 - **Altura de las nubes**: sube o baja la capa de nubes entre y=64 y y=320. En Por defecto cada dimensión conserva su propia altura, y las dimensiones sin nubes — el Nether, el End, las dimensiones sin nubes de otros mods — siguen sin ellas con cualquier valor.
 - **Overlays de pantalla**: quita la textura de agua que se dibuja sobre tu vista al nadar y las llamas que aparecen mientras te quemas. El fuego además tiene un modo inteligente que oculta las llamas solo mientras tengas Resistencia al Fuego. El overlay de asfixia dentro de bloques sólidos nunca se toca.
+- **Overlays de cámara**: quita el difuminado de la calabaza, el borde de escarcha de la nieve polvo, la distorsión morada del portal del Nether y la mira del catalejo. El zoom del catalejo no cambia — solo se va el marco. La viñeta se deja en paz a propósito: también sirve de aviso del borde del mundo.
+- **Campo de visión separado**: Minecraft tiene un solo slider de Efectos de FOV para todas las fuentes a la vez. Aquí Velocidad, Vuelo, Arco y Líquidos son cuatro sliders, así que puedes calmar el vaivén constante del FOV con pociones de Rapidez sin perder el acercamiento del arco.
+- **Distorsión separada**: la misma idea con el slider de Efectos de distorsión — el portal del Nether y el efecto de Náuseas tienen un slider cada uno, bien diferenciados incluso cuando pasan los dos a la vez.
 - **Balanceo separado**: Minecraft enciende o apaga el balanceo entero de una vez. Aquí la cámara y el objeto en la mano van por separado, y la cámara suma un modo **Solo vertical** que conserva el rebote de arriba a abajo, pero quita el vaivén y la inclinación — el horizonte queda nivelado, que es justo la parte que marea a la mayoría.
 - **Números de encantamientos**: Minecraft solo tiene números romanos hasta el X y arriba de eso muestra texto crudo como `enchantment.level.11` — los niveles llegan legalmente hasta 255. Esto lo arregla y además te deja elegir el estilo: romanos hasta el X y números normales después, siempre romanos, o siempre números. Los resource packs que sí traducen niveles altos siguen funcionando.
 
@@ -92,13 +98,13 @@ El fullscreen exclusivo cambia el modo de video real del monitor, lo que causa a
 
 ### Configuración
 
-- **En juego (sin Sodium):** menú de Mods → Borderless Window → Config. Todas las opciones viven en una sola lista con scroll agrupada por feature: Ventana, Contador de FPS, Niebla, Nubes, Overlays de pantalla, Balanceo y Estilo de encantamientos. Los cambios aplican al instante.
-- **En juego (con Sodium):** Ajustes de video → la opción "Modo de pantalla" (reemplaza el checkbox de fullscreen de Sodium) y la sección "Borderless Window" con sus siete páginas.
+- **En juego (sin Sodium):** menú de Mods → Borderless Window → Config. Todas las opciones viven en una sola lista con scroll agrupada por feature: Ventana, Contador de FPS, Niebla, Nubes, Overlays de pantalla, Balanceo, Campo de visión, Distorsión y Estilo de encantamientos. Los cambios aplican al instante.
+- **En juego (con Sodium):** Ajustes de video → la opción "Modo de pantalla" (reemplaza el checkbox de fullscreen de Sodium) y la sección "Borderless Window" con sus nueve páginas. Los ajustes de video de Sodium no incluyen los sliders de Efectos de distorsión ni de Efectos de FOV de Minecraft, así que el mod los recupera arriba de las páginas que gobiernan.
 - **Archivo de config:** `config/borderlesswindow.json`. Si el mod queda en un estado raro, borra este archivo y reinicia — los valores por defecto se regeneran sin problema.
 
 Todos los ajustes vienen por defecto en el comportamiento normal del juego, así que instalar o actualizar el mod nunca cambia cómo se ve hasta que tú lo pidas.
 
-**Nota sobre el balanceo:** las opciones de cámara y mano refinan el ajuste "Balanceo de cámara" de Minecraft, no lo reemplazan. Si lo desactivas en los ajustes de video de Minecraft, no se mece nada y estas dos opciones no tienen efecto.
+**Nota sobre los ajustes refinados:** varias opciones afinan un ajuste de Minecraft en vez de reemplazarlo, y no hacen nada mientras ese ajuste esté apagado. El balanceo va bajo "Balanceo de cámara", los cuatro sliders de FOV bajo "Efectos de FOV", y los dos de distorsión bajo "Efectos de distorsión". Los dos últimos están en los ajustes de Accesibilidad de Minecraft.
 
 ### Requisitos
 

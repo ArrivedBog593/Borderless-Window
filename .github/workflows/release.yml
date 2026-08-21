@@ -1,70 +1,78 @@
 name: Release
 
-# Fires only when a version tag is pushed:
-#   git tag -a v1.5.0 -m "changelog goes here"
-#   git push origin v1.5.0
-#
-# Pushing to a branch does NOT trigger this, so day-to-day commits never
-# build or publish anything.
 on:
   push:
     tags:
       - "v*"
 
 permissions:
-  # Required to create the release and upload the jar. Without this the
-  # run fails at the last step with a 403, which is the single most
-  # common reason this kind of workflow breaks.
   contents: write
 
 jobs:
   release:
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
 
       - name: Set up JDK 21
-        uses: actions/setup-java@v5
+        uses: actions/setup-java@v5.7.0
         with:
-          distribution: temurin
           java-version: "21"
-          # Caches ~/.gradle between runs. First release is slow, the
-          # rest reuse the NeoForge/Minecraft artifacts.
-          cache: gradle
+          distribution: "temurin"
 
-      # Git does not preserve the executable bit reliably when the repo
-      # is created from Windows, and the runner is Linux.
+      # Both pre-flight checks run BEFORE the build: a wrong version or a
+      # missing changelog should fail in twenty seconds, not in four minutes.
+
+      # The tag rules, but gradle.properties is what ends up inside the jar.
+      # If they don't match, you'd publish a v1.6.1 containing a 1.6.0.
+      - name: Verify tag matches mod_version
+        run: |
+          TAG_VERSION="${GITHUB_REF_NAME#v}"
+          MOD_VERSION=$(grep '^mod_version=' gradle.properties | cut -d'=' -f2 | tr -d '[:space:]')
+          echo "tag: $TAG_VERSION | gradle.properties: $MOD_VERSION"
+          if [ "$TAG_VERSION" != "$MOD_VERSION" ]; then
+            echo "::error::The tag ($TAG_VERSION) does not match mod_version ($MOD_VERSION). Fix gradle.properties or delete and recreate the tag."
+            exit 1
+          fi
+
+      # One changelog file per version means the whole file IS the release
+      # body -- nothing to slice out of a growing document.
+      - name: Locate this version's changelog
+        run: |
+          set -euo pipefail
+          VERSION="${GITHUB_REF_NAME#v}"
+          NOTES="changelogs/changelog-${VERSION}.md"
+          if [ ! -s "$NOTES" ]; then
+            echo "::error::$NOTES is missing or empty. Write the changelog for this version before tagging it."
+            exit 1
+          fi
+          echo "NOTES_PATH=$NOTES" >> "$GITHUB_ENV"
+          # The jar is named after archivesName (= mod_id) plus the version.
+          # Naming it exactly beats a glob: build/libs/borderlesswindow-*.jar
+          # would also match a sources or javadoc jar the day the build
+          # starts producing one, and this project has no -NeoForge suffix
+          # to disambiguate.
+          echo "JAR_PATH=build/libs/borderlesswindow-${VERSION}.jar" >> "$GITHUB_ENV"
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v6
+
       - name: Make gradlew executable
-        run: chmod +x ./gradlew
+        run: chmod +x gradlew
 
       - name: Build
-        run: ./gradlew build --stacktrace
+        run: ./gradlew build
 
-      # The release body is the message of the commit the tag points at
-      # -- the same text that goes to CurseForge, written once. Works
-      # with both annotated and lightweight tags, since it reads the
-      # commit rather than the tag object.
-      #
-      # Practical consequence: tag the commit that carries the changelog.
-      # Tagging a later "fix typo" commit would publish that message
-      # instead.
-      - name: Extract release notes
-        id: notes
-        run: |
-          {
-            echo "body<<RELEASE_NOTES_EOF"
-            git log -1 --pretty=%B "${GITHUB_SHA}"
-            echo "RELEASE_NOTES_EOF"
-          } >> "$GITHUB_OUTPUT"
-
-      - name: Create release
+      - name: Create GitHub Release
         uses: softprops/action-gh-release@v3
         with:
-          name: ${{ github.ref_name }}
-          body: ${{ steps.notes.outputs.body }}
-          files: build/libs/*.jar
-          # Flip to true if you ever want to eyeball the release before
-          # it goes public.
-          draft: false
+          name: Borderless Window ${{ github.ref_name }}
+          body_path: ${{ env.NOTES_PATH }}
+          # A tag with a hyphen (v1.8.0-beta1) is a prerelease and does not
+          # become the "Latest" one people download by default.
+          prerelease: ${{ contains(github.ref_name, '-') }}
+          files: ${{ env.JAR_PATH }}
+          # Without this, a build that produced no jar publishes an empty
+          # release instead of failing.
+          fail_on_unmatched_files: true

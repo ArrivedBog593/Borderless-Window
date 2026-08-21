@@ -6,6 +6,8 @@
   "config.borderlesswindow.section.clouds": "Clouds",
   "config.borderlesswindow.section.overlays": "Screen Overlays",
   "config.borderlesswindow.section.bobbing": "Bobbing",
+  "config.borderlesswindow.section.fov": "Field of View",
+  "config.borderlesswindow.section.distortion": "Distortion",
   "config.borderlesswindow.section.enchantments": "Enchantment Style",
 
   "borderlesswindow.options.sodium.pages.general": "General",
@@ -14,6 +16,8 @@
   "borderlesswindow.options.sodium.pages.clouds": "Clouds",
   "borderlesswindow.options.sodium.pages.overlays": "Screen Overlays",
   "borderlesswindow.options.sodium.pages.bobbing": "Bobbing",
+  "borderlesswindow.options.sodium.pages.fov": "Field of View",
+  "borderlesswindow.options.sodium.pages.distortion": "Distortion",
   "borderlesswindow.options.sodium.pages.enchantments": "Enchantment Style",
 
   "borderlesswindow.options.screen_mode.name": "Screen Mode",
@@ -62,6 +66,14 @@
   "borderlesswindow.options.overlay_fire.tooltip": "The flames drawn across your view while you are burning. Turn Off to keep your view clear while on fire. The suffocation overlay shown when your head is inside a solid block is never affected.",
   "borderlesswindow.options.overlay_fire_smart.name": "Smart Fire Overlay",
   "borderlesswindow.options.overlay_fire_smart.tooltip": "Keeps the fire overlay, but hides it while you have Fire Resistance. Minecraft draws that same overlay while you swim in lava, so this also clears your view inside lava for as long as the effect lasts. Requires the Fire Overlay to be On.",
+  "borderlesswindow.options.overlay_pumpkin.name": "Pumpkin Overlay",
+  "borderlesswindow.options.overlay_pumpkin.tooltip": "The blur drawn around your view while wearing a carved pumpkin. Turn Off to see normally, so a pumpkin can be worn against endermen without the visual cost. Helmet overlays added by other mods are never affected.",
+  "borderlesswindow.options.overlay_freeze.name": "Freeze Overlay",
+  "borderlesswindow.options.overlay_freeze.tooltip": "The frost border drawn around your view while freezing in powder snow. Turn Off to keep your view clear. Note this border is also a warning that you are taking freeze damage; the frozen hearts on the HUD still show it.",
+  "borderlesswindow.options.overlay_portal.name": "Portal Overlay",
+  "borderlesswindow.options.overlay_portal.tooltip": "The purple warp drawn over your view while standing inside a Nether portal. Turn Off to see clearly while building or aligning portals.",
+  "borderlesswindow.options.overlay_spyglass.name": "Spyglass Overlay",
+  "borderlesswindow.options.overlay_spyglass.tooltip": "The scope texture and the black bars drawn while looking through a spyglass. Turn Off to keep the zoom across the whole screen. The zoom itself is unchanged; only the frame around it is removed.",
 
   "borderlesswindow.options.camera_bob.name": "Camera Bobbing",
   "borderlesswindow.options.camera_bob.tooltip": "How much the camera sways as you walk. Full is vanilla. Vertical Only keeps the up-and-down bounce but removes the side-to-side sway and the tilt, so the horizon stays level -- the tilt is what most people find nauseating. Off holds the camera still. Requires Minecraft's own View Bobbing option to be on.",
@@ -70,6 +82,28 @@
   "borderlesswindow.camera_bob_mode.off": "Off",
   "borderlesswindow.options.hand_bob.name": "Hand Bobbing",
   "borderlesswindow.options.hand_bob.tooltip": "Whether the held item sways as you walk, controlled separately from the camera. Turn Off for a steady hand while keeping camera movement, or leave On with the camera off. Requires Minecraft's own View Bobbing option to be on.",
+
+  "borderlesswindow.options.vanilla_fov.name": "FOV Effects (Minecraft)",
+  "borderlesswindow.options.vanilla_fov.tooltip": "Minecraft's own FOV Effects slider, which scales all four options below at once. Sodium's video settings leave it out, so this brings it back here. It is the same setting as the one in Accessibility Settings and is saved with Minecraft's options, not the mod's.",
+
+  "borderlesswindow.options.fov_speed.name": "Speed FOV",
+  "borderlesswindow.options.fov_speed.tooltip": "How much the view widens as you move faster -- sprinting, Speed potions, anything that raises movement speed. 100% is vanilla. Minecraft has one slider for all four of these together; here they are separate. Requires Minecraft's own FOV Effects to be on.",
+  "borderlesswindow.options.fov_flying.name": "Flying FOV",
+  "borderlesswindow.options.fov_flying.tooltip": "The extra widening while flying in creative. Elytra gliding is not affected -- that is not the same flying. It is a small 10%% pull, and sprint speed usually masks it. Requires Minecraft's own FOV Effects to be on.",
+  "borderlesswindow.options.fov_bow.name": "Bow FOV",
+  "borderlesswindow.options.fov_bow.tooltip": "The zoom that builds up while you draw a bow. 100% is vanilla, 0% holds the view still. The spyglass is never affected: its zoom is what the item does, not a visual effect. Requires Minecraft's own FOV Effects to be on.",
+  "borderlesswindow.options.fov_fluid.name": "Fluid FOV",
+  "borderlesswindow.options.fov_fluid.tooltip": "The squeeze applied while your head is in water or lava. 100% is vanilla. Requires Minecraft's own FOV Effects to be on.",
+
+  "borderlesswindow.options.vanilla_distortion.name": "Distortion Effects (Minecraft)",
+  "borderlesswindow.options.vanilla_distortion.tooltip": "Minecraft's own Distortion Effects slider, which scales both options below at once. Sodium's video settings leave it out, so this brings it back here. It is the same setting as the one in Accessibility Settings and is saved with Minecraft's options, not the mod's. Lowering it also brings back the green nausea texture, which is Minecraft's replacement cue.",
+
+  "borderlesswindow.options.distortion_portal.name": "Portal Distortion",
+  "borderlesswindow.options.distortion_portal.tooltip": "How much the view warps while you stand in a Nether portal. 100% is vanilla. Minecraft has one slider for this and for Nausea together; here they are separate. Sits under Minecraft's own Distortion Effects slider: with that at Off, nothing warps and this has no effect.",
+  "borderlesswindow.options.distortion_nausea.name": "Nausea Distortion",
+  "borderlesswindow.options.distortion_nausea.tooltip": "How much the view warps while you have the Nausea effect, from a potion, a pufferfish or suspicious stew. 100% is vanilla. Sits under Minecraft's own Distortion Effects slider: with that at Off, nothing warps and this has no effect.",
+  "borderlesswindow.options.distortion.percent": "%s%%",
+  "borderlesswindow.options.distortion.off": "Off",
 
   "borderlesswindow.options.enchantment_level_style.name": "Enchantment Numerals",
   "borderlesswindow.options.enchantment_level_style.tooltip": "How enchantment levels are written next to the enchantment name. Minecraft only has Roman numerals up to X and shows raw text like \"enchantment.level.11\" above that. Mixed keeps the Roman numerals and switches to plain numbers past X; the other two use a single style at every level. Levels go up to 255.",
