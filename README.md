@@ -1,5 +1,8 @@
 # Borderless Window
 
+[![CurseForge](https://cf.way2muchnoise.eu/versions/borderless-window.svg)](https://www.curseforge.com/minecraft/mc-mods/borderless-window)
+[![CurseForge](https://cf.way2muchnoise.eu/borderless-window.svg)](https://www.curseforge.com/minecraft/mc-mods/borderless-window)
+
 A lightweight client-side mod for **NeoForge 1.21.1** that adds **borderless fullscreen** to Minecraft, replacing the exclusive fullscreen toggle with a proper 3-mode system — plus a set of video and quality-of-life options Minecraft doesn't expose.
 
 *[Español más abajo](#español)*
