@@ -11,7 +11,7 @@ import com.github.arrivedbog593.borderlesswindow.config.BorderlessConfigFile;
  * AbstractClientPlayer.getFieldOfViewModifier, and only once in
  * GameRenderer.getFov (the fluid squeeze). The other application lives
  * in NeoForge's ComputeFovModifierEvent constructor, which replaced
- * vanilla's own leap when the hook was patched in.
+ * vanilla's own lerp when the hook was patched in.
  * <p>
  * That places our three injections BEFORE vanilla's slider: they scale
  * each source inside getFieldOfViewModifier, and the slider then scales

@@ -13,16 +13,25 @@ import org.spongepowered.asm.mixin.injection.At;
  * <p>
  * Vanilla builds one multiplier by chaining them: flying multiplies by
  * 1.1, movement speed by (speed / walkSpeed + 1) / 2, and a drawing bow
- * by 1 - t * 0.15. None of them consult the "FOV Effects" slider, which
- * only reaches the fluid squeeze in GameRenderer -- so these three are
- * effects the game gives no way to soften at all.
+ * by 1 - t * 0.15. The "FOV Effects" slider does not appear in this
+ * method, but it still reaches all three: the combined multiplier is
+ * handed to NeoForge's ClientHooks.getFieldOfViewModifier, and the
+ * ComputeFovModifierEvent constructor lerps it toward 1.0 by that slider
+ * (it replaced vanilla's own lerp when the hook was patched in). What the
+ * game does not offer is a way to soften them SEPARATELY -- one slider
+ * moves all of them at once.
+ * <p>
+ * So these injections sit under vanilla's slider: they scale each source
+ * before the combined value reaches the event, and the slider then scales
+ * the result. With FOV Effects at Off, nothing here has any effect.
  * <p>
  * Each injection scales the DISTANCE from 1.0 rather than the value, so
  * 0% leaves the multiplier at exactly 1.0 and 100% leaves vanilla's
  * number untouched.
  * <p>
  * THE SPYGLASS IS NOT TOUCHED. Its branch returns 0.1F outright, and
- * that value is the zoom itself; see FovState.
+ * that value is the zoom itself; see FovState. That early return also
+ * skips the NeoForge hook, so vanilla's slider never touches it either.
  * <p>
  * NOTE ON CONSTANTS: two of these target inline float constants rather
  * than method calls, because that is what the arithmetic is -- there is
@@ -35,7 +44,9 @@ public abstract class AbstractClientPlayerMixin {
 
     /**
      * Flying multiplies by 1.1. Scaling the constant toward 1.0 is the
-     * whole feature: at 0% the creative/elytra pull disappears.
+     * whole feature: at 0% the creative flight pull disappears. The
+     * check is abilities.flying, which is creative (and spectator)
+     * flight only -- elytra gliding never reaches this branch.
      */
     @ModifyExpressionValue(
             method = "getFieldOfViewModifier",

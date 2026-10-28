@@ -10,22 +10,36 @@ import com.github.arrivedbog593.borderlesswindow.config.BorderlessConfigFile;
  * WHY A SPLIT IS POSSIBLE AT ALL. LocalPlayer keeps ONE accumulator,
  * spinningEffectIntensity, and handleConfusionTransitionEffect feeds it
  * from either source through an if/else chain -- the portal ramps it up
- * by 0.0125 per tick, Nausea by 0.0066, and neither leaves it decaying
- * by 0.05. So there is no per-source value to read: the source has to
- * be attributed at render time, by asking whether the player currently
- * has the Nausea effect.
+ * by 0.0125 per tick, Nausea by 0.006667, and neither leaves it decaying
+ * by 0.05. There is no per-source value to read, so the source is
+ * attributed once per tick and stored in lastSourceWasPortal:
  * <p>
- * Vanilla does exactly the same thing one line further down in
- * GameRenderer.renderLevel, where it picks the spin speed with
- * "hasEffect(CONFUSION) ? 7 : 20". We are matching an existing pattern,
- * not inventing one.
+ * - LocalPlayerMixin reads the rate vanilla picked. That rate IS the
+ *   branch that ran, so the portal wins over Nausea when both apply,
+ *   exactly as in vanilla's if/else.
  * <p>
- * KNOWN AMBIGUITY: standing in a portal WHILE under Nausea attributes
- * the whole thing to Nausea, so the Nausea percentage applies even
- * though the portal is what is driving the intensity. Vanilla's spin
- * speed has the identical ambiguity in the identical situation, so
- * this does not introduce a new failure mode -- but it is real, and it
- * is why neither slider can promise to be exact in that overlap.
+ * - EntityMixin records any contact with a Nether portal, because the
+ *   rate misses one case: arriving through a portal. The player lands
+ *   inside the destination portal on cooldown, vanilla skips its portal
+ *   branch, and the rate says Nausea while the player is still standing
+ *   in the portal. Contact counts as the portal.
+ * <p>
+ * - While decaying (or idle) the last attribution is kept, so the
+ *   fade-out uses the percentage of whatever caused it.
+ * <p>
+ * Asking hasEffect(CONFUSION) at render time, the first approach, got
+ * the overlap backwards; see LocalPlayerMixin for the approaches that
+ * failed and why.
+ * <p>
+ * THE GREEN NAUSEA TEXTURE follows the Nausea slider on purpose. Vanilla
+ * draws it under Nausea whenever Distortion Effects is below 100%, at
+ * intensity (1 - scale): it is the static cue that replaces the spin as
+ * the spin is turned down. GameRendererMixin folds the Nausea factor into
+ * the scale that texture reads, so lowering the Nausea slider trades
+ * spin for the green cue the same way Minecraft's own slider does --
+ * at 0% there is no spin and the texture is at full strength. While the
+ * portal is the source, the texture reads vanilla's scale untouched:
+ * the Nausea slider does not speak for the portal.
  * <p>
  * SCALE: percentages, 0..100, default 100 (vanilla). The mixin squares
  * the factor before applying it, because vanilla squares its own scale
@@ -143,6 +157,24 @@ public final class DistortionState {
 
     public static boolean isLastSourcePortal() {
         return lastSourceWasPortal;
+    }
+
+    /**
+     * Set by EntityMixin whenever the player touches a Nether portal, even
+     * while vanilla ignores it because of the portal cooldown. Consumed
+     * once per tick by LocalPlayerMixin. Client thread only.
+     */
+    private static boolean touchingPortal = false;
+
+    public static void markTouchingPortal() {
+        touchingPortal = true;
+    }
+
+    /** Returns whether a portal was touched since the last call, and clears it. */
+    public static boolean consumeTouchingPortal() {
+        boolean touched = touchingPortal;
+        touchingPortal = false;
+        return touched;
     }
 
 }

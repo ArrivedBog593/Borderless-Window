@@ -293,9 +293,9 @@ public class BorderlessConfigScreen extends Screen {
 
         // --- FOV ------------------------------------------------------
         // Its own section: these change how WIDE the view is, while the
-        // distortion sliders change how much it warps. Only the fluid
-        // one sits under Minecraft's own FOV Effects slider -- the other
-        // three control effects vanilla does not expose at all. Reusing
+        // distortion sliders change how much it warps. All four sit under
+        // Minecraft's own FOV Effects slider, which moves every source at
+        // once; these split it per source (see FovState). Reusing
         // DistortionSlider: it is a plain 0-100 percentage widget and
         // persist() writes the whole config either way. Worth renaming
         // to PercentSlider now that a second feature uses it.

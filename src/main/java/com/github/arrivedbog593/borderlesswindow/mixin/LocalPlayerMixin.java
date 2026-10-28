@@ -42,6 +42,14 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
  *    reads one enormous fake delta.
  * <p>
  * Injecting at RETURN means vanilla's branch has already run.
+ * <p>
+ * THE RATE ALONE MISSES ONE CASE: arriving through a portal. The player
+ * lands inside the destination portal on cooldown, vanilla skips its
+ * portal branch, and the rate reads as Nausea (or decay) while the player
+ * is still standing in the portal. EntityMixin records portal contact
+ * regardless of cooldown, and that contact counts as the portal here.
+ * Contact is recorded while moving and consumed on the next tick, the
+ * same one-tick lag vanilla's own isInsidePortalThisTick has.
  */
 @Mixin(LocalPlayer.class)
 public abstract class LocalPlayerMixin {
@@ -60,7 +68,8 @@ public abstract class LocalPlayerMixin {
             @Local(ordinal = 0) float rate) {
         // insidePortal is part of the target signature and deliberately
         // unused -- see approach 2 in the class javadoc.
-        if (rate > PORTAL_RATE_THRESHOLD) {
+        boolean touchingPortal = DistortionState.consumeTouchingPortal();
+        if (rate > PORTAL_RATE_THRESHOLD || touchingPortal) {
             DistortionState.setLastSourceWasPortal(true);
         } else if (rate > 0.0F) {
             DistortionState.setLastSourceWasPortal(false);
