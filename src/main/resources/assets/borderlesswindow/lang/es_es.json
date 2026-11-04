@@ -9,16 +9,12 @@
   "config.borderlesswindow.section.fov": "Campo de visión (FOV)",
   "config.borderlesswindow.section.distortion": "Distorsión",
   "config.borderlesswindow.section.enchantments": "Estilo de encantamientos",
+  "config.borderlesswindow.section.distances": "Distancias",
 
   "borderlesswindow.options.sodium.pages.general": "General",
-  "borderlesswindow.options.sodium.pages.fps": "Contador de FPS",
-  "borderlesswindow.options.sodium.pages.fog": "Niebla",
-  "borderlesswindow.options.sodium.pages.clouds": "Nubes",
-  "borderlesswindow.options.sodium.pages.overlays": "Overlays de pantalla",
-  "borderlesswindow.options.sodium.pages.bobbing": "Balanceo",
-  "borderlesswindow.options.sodium.pages.fov": "Campo de visión (FOV)",
-  "borderlesswindow.options.sodium.pages.distortion": "Distorsión",
-  "borderlesswindow.options.sodium.pages.enchantments": "Estilo de encantamientos",
+  "borderlesswindow.options.sodium.pages.visuals": "Efectos visuales",
+  "borderlesswindow.options.sodium.pages.camera": "Cámara",
+  "borderlesswindow.options.sodium.pages.distances": "Distancias",
 
   "borderlesswindow.options.screen_mode.name": "Modo de pantalla",
   "borderlesswindow.options.screen_mode.tooltip": "Elige entre ventana normal, pantalla completa sin bordes, o la pantalla completa normal de Minecraft.",
@@ -45,6 +41,9 @@
   "borderlesswindow.fps_overlay_position.bottom_right": "Abajo a la derecha",
   "borderlesswindow.fps_overlay.fps": "%s FPS",
   "borderlesswindow.fps_overlay.extended": "%s FPS (Mín %s \u00b7 Media %s \u00b7 Máx %s)",
+  "borderlesswindow.options.unfocused_fps_limit.name": "Límite de FPS sin foco",
+  "borderlesswindow.options.unfocused_fps_limit.tooltip": "Limita los FPS mientras la ventana del juego no tiene el foco: al hacer Alt+Tab, al minimizarla o al hacer clic en otra ventana o monitor. Ahorra GPU y temperatura mientras el juego está en segundo plano. Desactivado mantiene lo normal del juego, que sigue renderizando a toda velocidad. Si tus FPS máximos ya son más bajos, se respetan esos. El límite se quita en cuanto vuelves al juego.",
+  "borderlesswindow.options.unfocused_fps_limit.tooltip_dynamic_fps": "Desactivado porque tienes Dynamic FPS instalado: ese mod ya limita los FPS en segundo plano, de modo que esto se ajusta desde sus propias opciones.",
 
   "borderlesswindow.options.fog_terrain.name": "Niebla de terreno",
   "borderlesswindow.options.fog_terrain.tooltip": "La neblina atmosférica que difumina el terreno lejano, incluida la niebla densa del Nether. Desactívala para ver más lejos y con más claridad. La niebla de los efectos de Ceguera y Oscuridad nunca se ve afectada por estas opciones.",
@@ -109,5 +108,15 @@
   "borderlesswindow.options.enchantment_level_style.tooltip": "Cómo se escriben los niveles junto al nombre del encantamiento. Minecraft solo tiene números romanos hasta el X y por encima de eso muestra texto en crudo como \"enchantment.level.11\". Mixto conserva los romanos y pasa a números normales a partir del XI; las otras dos usan un solo estilo en todos los niveles. Los niveles llegan hasta 255.",
   "borderlesswindow.enchantment_level_style.mixed": "Mixto",
   "borderlesswindow.enchantment_level_style.roman": "Siempre romanos",
-  "borderlesswindow.enchantment_level_style.arabic": "Siempre números"
+  "borderlesswindow.enchantment_level_style.arabic": "Siempre números",
+
+  "borderlesswindow.options.distance.blocks": "%s bloques",
+  "borderlesswindow.options.distance_items.name": "Objetos tirados",
+  "borderlesswindow.options.distance_items.tooltip": "A qué distancia se dibujan los objetos tirados en el suelo. Minecraft los dibuja hasta 16 bloques, más si subes su opción de Distancia de entidades. Bájala para aligerar granjas de objetos y cuartos de almacenamiento desordenados. Por defecto deja la distancia de Minecraft. Los objetos solo se ocultan, nunca se borran: siguen ahí y se pueden recoger. Los objetos brillantes siempre se dibujan.",
+  "borderlesswindow.options.distance_xp_orbs.name": "Orbes de experiencia",
+  "borderlesswindow.options.distance_xp_orbs.tooltip": "A qué distancia se dibujan los orbes de experiencia. Minecraft los dibuja hasta 32 bloques, más si subes su opción de Distancia de entidades. Bájala para granjas de mobs que dejan una nube de orbes. Por defecto deja la distancia de Minecraft. Los orbes solo se ocultan: siguen volando hacia ti y dando experiencia.",
+  "borderlesswindow.options.distance_armor_stands.name": "Soportes para armadura",
+  "borderlesswindow.options.distance_armor_stands.tooltip": "A qué distancia se dibujan los soportes para armadura. Minecraft los dibuja hasta donde el servidor los envía, unos 160 bloques. Bájala para bases y construcciones llenas de armaduras en exhibición. Por defecto deja la distancia de Minecraft. Los soportes con nombre visible siempre se dibujan, porque los servidores y mapas los usan para texto flotante y hologramas.",
+  "borderlesswindow.options.distance_particles.name": "Partículas",
+  "borderlesswindow.options.distance_particles.tooltip": "A qué distancia pueden aparecer partículas nuevas. Minecraft las permite hasta 32 bloques. Bájala para aligerar granjas, redstone y peleas grandes. Por defecto deja la distancia de Minecraft. Las partículas que el juego marca como siempre visibles no se tocan. Funciona encima de la opción Partículas de Minecraft."
 }

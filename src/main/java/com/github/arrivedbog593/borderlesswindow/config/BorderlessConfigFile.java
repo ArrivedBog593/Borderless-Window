@@ -3,6 +3,7 @@ package com.github.arrivedbog593.borderlesswindow.config;
 import com.github.arrivedbog593.borderlesswindow.bobbing.BobbingState;
 import com.github.arrivedbog593.borderlesswindow.bobbing.CameraBobMode;
 import com.github.arrivedbog593.borderlesswindow.cloud.CloudState;
+import com.github.arrivedbog593.borderlesswindow.distance.DistanceState;
 import com.github.arrivedbog593.borderlesswindow.distortion.DistortionState;
 import com.github.arrivedbog593.borderlesswindow.enchantment.EnchantmentLevelState;
 import com.github.arrivedbog593.borderlesswindow.enchantment.EnchantmentLevelStyle;
@@ -11,6 +12,7 @@ import com.github.arrivedbog593.borderlesswindow.fov.FovState;
 import com.github.arrivedbog593.borderlesswindow.fps.FpsOverlayMode;
 import com.github.arrivedbog593.borderlesswindow.fps.FpsOverlayPosition;
 import com.github.arrivedbog593.borderlesswindow.fps.FpsOverlayState;
+import com.github.arrivedbog593.borderlesswindow.fps.UnfocusedFpsState;
 import com.github.arrivedbog593.borderlesswindow.screeneffect.ScreenEffectState;
 import com.github.arrivedbog593.borderlesswindow.window.BorderlessHandler;
 import com.github.arrivedbog593.borderlesswindow.window.F11Mode;
@@ -32,7 +34,7 @@ import java.nio.file.Path;
  * <p>
  * Deliberately fault-tolerant: if the file is missing, corrupt, or has
  * invalid or absent values, the defaults are used (Windowed / F11 ->
- * Borderless / FPS overlay off, top-left / all fog enabled / cloud height
+ * Borderless / FPS overlay off, top-left / no unfocused FPS cap / all fog enabled / cloud height
  * default / water and fire overlays on, smart fire off / full camera and
  * hand bobbing / mixed enchantment numerals) without crashing.
  * Configs written by older versions of the mod simply lack the newer
@@ -49,6 +51,7 @@ public final class BorderlessConfigFile {
         String f11_mode = F11Mode.BORDERLESS.name();
         String fps_overlay_mode = FpsOverlayMode.OFF.name();
         String fps_overlay_position = FpsOverlayPosition.TOP_LEFT.name();
+        int unfocused_fps_limit = UnfocusedFpsState.OFF;
         boolean fog_terrain = true;
         boolean fog_water = true;
         boolean fog_lava = true;
@@ -70,11 +73,16 @@ public final class BorderlessConfigFile {
         int fov_flying = FovState.DEFAULT_PERCENT;
         int fov_bow = FovState.DEFAULT_PERCENT;
         int fov_fluid = FovState.DEFAULT_PERCENT;
+        int distance_items = DistanceState.DEFAULT;
+        int distance_xp_orbs = DistanceState.DEFAULT;
+        int distance_armor_stands = DistanceState.DEFAULT;
+        int distance_particles = DistanceState.DEFAULT;
     }
 
     public record LoadedConfig(ScreenMode screenMode, F11Mode f11Mode,
                                FpsOverlayMode fpsOverlayMode,
                                FpsOverlayPosition fpsOverlayPosition,
+                               int unfocusedFpsLimit,
                                boolean terrainFog, boolean waterFog,
                                boolean lavaFog, boolean powderSnowFog,
                                int cloudHeight,
@@ -86,7 +94,9 @@ public final class BorderlessConfigFile {
                                EnchantmentLevelStyle enchantmentLevelStyle,
                                int distortionPortal, int distortionNausea,
                                int fovSpeed, int fovFlying,
-                               int fovBow, int fovFluid) {
+                               int fovBow, int fovFluid,
+                               int distanceItems, int distanceOrbs,
+                               int distanceArmorStands, int distanceParticles) {
     }
 
     private BorderlessConfigFile() {
@@ -110,6 +120,7 @@ public final class BorderlessConfigFile {
                 parseOrDefault(FpsOverlayMode.class, data.fps_overlay_mode, FpsOverlayMode.OFF),
                 parseOrDefault(FpsOverlayPosition.class, data.fps_overlay_position,
                         FpsOverlayPosition.TOP_LEFT),
+                data.unfocused_fps_limit,
                 data.fog_terrain, data.fog_water, data.fog_lava, data.fog_powder_snow,
                 data.cloud_height,
                 data.overlay_water, data.overlay_fire, data.overlay_fire_smart,
@@ -120,7 +131,9 @@ public final class BorderlessConfigFile {
                 parseOrDefault(EnchantmentLevelStyle.class, data.enchantment_level_style,
                         EnchantmentLevelStyle.MIXED),
                 data.distortion_portal, data.distortion_nausea,
-                data.fov_speed, data.fov_flying, data.fov_bow, data.fov_fluid);
+                data.fov_speed, data.fov_flying, data.fov_bow, data.fov_fluid,
+                data.distance_items, data.distance_xp_orbs,
+                data.distance_armor_stands, data.distance_particles);
     }
 
     /**
@@ -140,6 +153,7 @@ public final class BorderlessConfigFile {
         data.f11_mode = BorderlessHandler.getF11Target().name();
         data.fps_overlay_mode = FpsOverlayState.getMode().name();
         data.fps_overlay_position = FpsOverlayState.getPosition().name();
+        data.unfocused_fps_limit = UnfocusedFpsState.getLimit();
         data.fog_terrain = FogState.isTerrainFogEnabled();
         data.fog_water = FogState.isWaterFogEnabled();
         data.fog_lava = FogState.isLavaFogEnabled();
@@ -161,6 +175,10 @@ public final class BorderlessConfigFile {
         data.fov_flying = FovState.getFlyingPercent();
         data.fov_bow = FovState.getBowPercent();
         data.fov_fluid = FovState.getFluidPercent();
+        data.distance_items = DistanceState.getItems();
+        data.distance_xp_orbs = DistanceState.getOrbs();
+        data.distance_armor_stands = DistanceState.getArmorStands();
+        data.distance_particles = DistanceState.getParticles();
         try {
             Files.writeString(PATH, GSON.toJson(data));
         } catch (IOException ignored) {

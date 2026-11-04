@@ -2,11 +2,13 @@ package com.github.arrivedbog593.borderlesswindow.sodium;
 
 import com.github.arrivedbog593.borderlesswindow.bobbing.CameraBobMode;
 import com.github.arrivedbog593.borderlesswindow.cloud.CloudState;
+import com.github.arrivedbog593.borderlesswindow.distance.DistanceState;
 import com.github.arrivedbog593.borderlesswindow.distortion.DistortionState;
 import com.github.arrivedbog593.borderlesswindow.enchantment.EnchantmentLevelStyle;
 import com.github.arrivedbog593.borderlesswindow.fov.FovState;
 import com.github.arrivedbog593.borderlesswindow.fps.FpsOverlayMode;
 import com.github.arrivedbog593.borderlesswindow.fps.FpsOverlayPosition;
+import com.github.arrivedbog593.borderlesswindow.fps.UnfocusedFpsState;
 import com.github.arrivedbog593.borderlesswindow.window.F11Mode;
 import com.github.arrivedbog593.borderlesswindow.window.ScreenMode;
 import net.caffeinemc.mods.sodium.api.config.ConfigEntryPoint;
@@ -20,16 +22,20 @@ import net.minecraft.resources.ResourceLocation;
  * registerConfigLate() after the game has started.
  * <p>
  * The mod registers its own header ("Borderless Window") in the left-hand
- * list of the video settings menu, with one page per feature:
- * - General: F11 behavior.
- * - FPS Overlay: overlay mode + position.
- * - Fog: the four per-type fog toggles.
- * - Clouds: the cloud height slider.
- * - Screen Overlays: water / fire / smart fire.
- * - Bobbing: camera bob mode + hand bob.
- * - FOV: per-source field of view.
- * - Distortion: portal and nausea warping.
- * - Interface: enchantment numerals.
+ * list of the video settings menu. Options are gathered into a few pages,
+ * each split into unnamed option groups -- the same visual grouping
+ * Sodium's own General page uses -- instead of one page per feature,
+ * which had grown to nine entries in the sidebar:
+ * - General: F11 behavior | FPS overlay + unfocused FPS cap |
+ *   enchantment numerals. Small features with no better home.
+ * - Visual Effects: fog | cloud height | screen overlays. What is drawn
+ *   over or around the world.
+ * - Camera: bobbing | FOV | distortion. How the view itself moves and
+ *   is shaped.
+ * - Distances: dropped items, orbs, armor stands | particles.
+ * A new feature should become a group on one of these pages; it only
+ * earns a page of its own if it brings several options with it.
+ * <p>
  * The Screen Mode option itself lives on Sodium's General page, since it
  * REPLACES Sodium's fullscreen checkbox (registerOptionReplacement).
  * <p>
@@ -61,7 +67,7 @@ public class ScreenModeConfigEntryPoint implements ConfigEntryPoint {
     public void registerConfigLate(ConfigBuilder builder) {
         builder.registerOwnModOptions()
                 .setName("Borderless Window")
-                // Page 1 - General: F11 behavior.
+                // Page 1 - General.
                 .addPage(builder.createOptionPage()
                         .setName(Component.translatable("borderlesswindow.options.sodium.pages.general"))
                         .addOptionGroup(builder.createOptionGroup()
@@ -76,10 +82,7 @@ public class ScreenModeConfigEntryPoint implements ConfigEntryPoint {
                                         .setDefaultValue(F11Mode.BORDERLESS)
                                 )
                         )
-                )
-                // Page 2 - FPS Overlay: mode + position.
-                .addPage(builder.createOptionPage()
-                        .setName(Component.translatable("borderlesswindow.options.sodium.pages.fps"))
+                        // FPS: the overlay and the unfocused cap.
                         .addOptionGroup(builder.createOptionGroup()
                                 .addOption(builder.createEnumOption(
                                                 ResourceLocation.parse("borderlesswindow:fps_overlay_mode"),
@@ -106,11 +109,46 @@ public class ScreenModeConfigEntryPoint implements ConfigEntryPoint {
                                                         FpsOverlayMode.class) != FpsOverlayMode.OFF,
                                                 ResourceLocation.parse("borderlesswindow:fps_overlay_mode"))
                                 )
+                                // Lives with the overlay because both are
+                                // about frame rate. Vanilla 1.21.2+ has this
+                                // built in; see UnfocusedFpsState.
+                                .addOption(builder.createIntegerOption(
+                                                ResourceLocation.parse("borderlesswindow:unfocused_fps_limit"))
+                                        .setName(Component.translatable("borderlesswindow.options.unfocused_fps_limit.name"))
+                                        .setTooltip(Component.translatable(UnfocusedFpsState.getTooltipKey()))
+                                        .setEnabled(!UnfocusedFpsState.isDeferredToOtherMod())
+                                        .setRange(UnfocusedFpsState.OFF, UnfocusedFpsState.MAX_LIMIT, UnfocusedFpsState.STEP)
+                                        .setValueFormatter(value -> value <= UnfocusedFpsState.OFF
+                                                ? Component.translatable("borderlesswindow.options.distortion.off")
+                                                : Component.translatable("borderlesswindow.fps_overlay.fps", value))
+                                        .setStorageHandler(this.storage::flush)
+                                        .setBinding(this.storage::setUnfocusedFpsLimit, this.storage::getUnfocusedFpsLimit)
+                                        .setDefaultValue(UnfocusedFpsState.OFF)
+                                )
+                        )
+                        // Enchantment numerals: tooltip text, not rendering.
+                        // It lives in the video settings menu anyway because
+                        // splitting the mod's options across two different
+                        // menus would be worse for the user than the
+                        // category being loose.
+                        .addOptionGroup(builder.createOptionGroup()
+                                .addOption(builder.createEnumOption(
+                                                ResourceLocation.parse("borderlesswindow:enchantment_level_style"),
+                                                EnchantmentLevelStyle.class)
+                                        .setName(Component.translatable("borderlesswindow.options.enchantment_level_style.name"))
+                                        .setTooltip(Component.translatable("borderlesswindow.options.enchantment_level_style.tooltip"))
+                                        .setElementNameProvider(style -> Component.translatable(style.getTranslationKey()))
+                                        .setStorageHandler(this.storage::flush)
+                                        .setBinding(this.storage::setEnchantmentLevelStyle,
+                                                this.storage::getEnchantmentLevelStyle)
+                                        .setDefaultValue(EnchantmentLevelStyle.MIXED)
+                                )
                         )
                 )
-                // Page 3 - Fog: the four per-type toggles.
+                // Page 2 - Visual Effects: fog, clouds, screen overlays.
                 .addPage(builder.createOptionPage()
-                        .setName(Component.translatable("borderlesswindow.options.sodium.pages.fog"))
+                        .setName(Component.translatable("borderlesswindow.options.sodium.pages.visuals"))
+                        // Fog: the four per-type toggles.
                         .addOptionGroup(builder.createOptionGroup()
                                 .addOption(builder.createBooleanOption(
                                                 ResourceLocation.parse("borderlesswindow:fog_terrain"))
@@ -145,13 +183,10 @@ public class ScreenModeConfigEntryPoint implements ConfigEntryPoint {
                                         .setDefaultValue(true)
                                 )
                         )
-                )
-                // Page 4 - Clouds: the cloud height slider.
-                // Range is [DEFAULT_SLOT .. MAX_HEIGHT]; the leftmost slot
-                // (just below MIN_HEIGHT) shows "Default" and disables the
-                // override. See ScreenModeStorage for the encoding.
-                .addPage(builder.createOptionPage()
-                        .setName(Component.translatable("borderlesswindow.options.sodium.pages.clouds"))
+                        // Cloud height.
+                        // Range is [DEFAULT_SLOT .. MAX_HEIGHT]; the leftmost slot
+                        // (just below MIN_HEIGHT) shows "Default" and disables the
+                        // override. See ScreenModeStorage for the encoding.
                         .addOptionGroup(builder.createOptionGroup()
                                 .addOption(builder.createIntegerOption(
                                                 ResourceLocation.parse("borderlesswindow:cloud_height"))
@@ -174,12 +209,9 @@ public class ScreenModeConfigEntryPoint implements ConfigEntryPoint {
                                         .setDefaultValue(ScreenModeStorage.SODIUM_CLOUD_DEFAULT_SLOT)
                                 )
                         )
-                )
-                // Page 5 - Screen Overlays: the water and fire view overlays.
-                // The block/suffocation overlay is deliberately not exposed;
-                // see ScreenEffectHandler.
-                .addPage(builder.createOptionPage()
-                        .setName(Component.translatable("borderlesswindow.options.sodium.pages.overlays"))
+                        // Screen overlays: drawn on top of the view.
+                        // The block/suffocation overlay is deliberately not exposed;
+                        // see ScreenEffectHandler.
                         .addOptionGroup(builder.createOptionGroup()
                                 .addOption(builder.createBooleanOption(
                                                 ResourceLocation.parse("borderlesswindow:overlay_water"))
@@ -250,14 +282,16 @@ public class ScreenModeConfigEntryPoint implements ConfigEntryPoint {
                                 )
                         )
                 )
-                // Page 6 - Bobbing. Both options sit UNDER vanilla's own
-                // View Bobbing setting (Sodium shows it on its Quality
-                // page): with that off, GameRenderer never calls bobView
-                // and neither of these has any effect. The Sodium API
-                // cannot add a dependency on a vanilla option, so this is
-                // stated in the tooltips instead of greying them out.
+                // Page 3 - Camera: bobbing, FOV and distortion, how the view itself
+                // moves and is shaped rather than what is drawn over it.
                 .addPage(builder.createOptionPage()
-                        .setName(Component.translatable("borderlesswindow.options.sodium.pages.bobbing"))
+                        .setName(Component.translatable("borderlesswindow.options.sodium.pages.camera"))
+                        // Bobbing. Both options sit UNDER vanilla's own
+                        // View Bobbing setting (Sodium shows it on its Quality
+                        // page): with that off, GameRenderer never calls bobView
+                        // and neither of these has any effect. The Sodium API
+                        // cannot add a dependency on a vanilla option, so this is
+                        // stated in the tooltips instead of greying them out.
                         .addOptionGroup(builder.createOptionGroup()
                                 .addOption(builder.createEnumOption(
                                                 ResourceLocation.parse("borderlesswindow:camera_bob"),
@@ -278,16 +312,13 @@ public class ScreenModeConfigEntryPoint implements ConfigEntryPoint {
                                         .setDefaultValue(true)
                                 )
                         )
-                )
-                // Page 7 - FOV. Separate from Distortion: these change
-                // how wide the view is, not how much it warps. Only the
-                // fluid one sits under Minecraft's FOV Effects slider --
-                // verified against 1.21.1, that option is read in exactly
-                // one place, so sprint/fly/bow are effects vanilla offers
-                // no control over at all. Reuses the distortion
-                // percent/off formatter keys: same 0-100 presentation.
-                .addPage(builder.createOptionPage()
-                        .setName(Component.translatable("borderlesswindow.options.sodium.pages.fov"))
+                        // FOV. A separate group from distortion: these change
+                        // how wide the view is, not how much it warps. Only the
+                        // fluid one sits under Minecraft's FOV Effects slider --
+                        // verified against 1.21.1, that option is read in exactly
+                        // one place, so sprint/fly/bow are effects vanilla offers
+                        // no control over at all. Reuses the distortion
+                        // percent/off formatter keys: same 0-100 presentation.
                         .addOptionGroup(builder.createOptionGroup()
                                 // Vanilla's own slider, first so the
                                 // hierarchy reads top-down: this one
@@ -356,15 +387,11 @@ public class ScreenModeConfigEntryPoint implements ConfigEntryPoint {
                                         .setDefaultValue(FovState.DEFAULT_PERCENT)
                                 )
                         )
-                )
-                // Page 8 - Distortion. Its own page rather than an extra
-                // pair on Screen Overlays: this warps the camera instead
-                // of drawing on top of it. Both options multiply
-                // Minecraft's own Distortion Effects slider rather than
-                // replacing it; the Sodium API cannot depend on a vanilla
-                // option, so the tooltips say so.
-                .addPage(builder.createOptionPage()
-                        .setName(Component.translatable("borderlesswindow.options.sodium.pages.distortion"))
+                        // Distortion: warps the camera instead of drawing
+                        // on top of it. Both options multiply
+                        // Minecraft's own Distortion Effects slider rather than
+                        // replacing it; the Sodium API cannot depend on a vanilla
+                        // option, so the tooltips say so.
                         .addOptionGroup(builder.createOptionGroup()
                                 // Vanilla's own slider, first so the
                                 // hierarchy reads top-down: this one
@@ -410,26 +437,57 @@ public class ScreenModeConfigEntryPoint implements ConfigEntryPoint {
                                 )
                         )
                 )
-                // Page 9 - Interface. First page here that is NOT about
-                // rendering: enchantment numerals are tooltip text. It
-                // lives in the video settings menu anyway because splitting
-                // the mod's options across two different menus would be
-                // worse for the user than the category being loose. Named
-                // "Interface" rather than "Enchantments" so future
-                // tooltip/HUD text options have somewhere to land.
+                // Page 4 - Distances: how far things are drawn. Its own
+                // page because it brings four options and none of them
+                // fits the others' themes. Every slider starts at
+                // "Default" (no cap) on the left, like the cloud height,
+                // and can only lower vanilla's own distance.
                 .addPage(builder.createOptionPage()
-                        .setName(Component.translatable("borderlesswindow.options.sodium.pages.enchantments"))
+                        .setName(Component.translatable("borderlesswindow.options.sodium.pages.distances"))
+                        // Entities: drawing only, see EntityRenderDispatcherMixin.
                         .addOptionGroup(builder.createOptionGroup()
-                                .addOption(builder.createEnumOption(
-                                                ResourceLocation.parse("borderlesswindow:enchantment_level_style"),
-                                                EnchantmentLevelStyle.class)
-                                        .setName(Component.translatable("borderlesswindow.options.enchantment_level_style.name"))
-                                        .setTooltip(Component.translatable("borderlesswindow.options.enchantment_level_style.tooltip"))
-                                        .setElementNameProvider(style -> Component.translatable(style.getTranslationKey()))
+                                .addOption(builder.createIntegerOption(
+                                                ResourceLocation.parse("borderlesswindow:distance_items"))
+                                        .setName(Component.translatable("borderlesswindow.options.distance_items.name"))
+                                        .setTooltip(Component.translatable("borderlesswindow.options.distance_items.tooltip"))
+                                        .setRange(DistanceState.DEFAULT, DistanceState.ITEM_MAX, DistanceState.ITEM_STEP)
+                                        .setValueFormatter(DistanceState::format)
                                         .setStorageHandler(this.storage::flush)
-                                        .setBinding(this.storage::setEnchantmentLevelStyle,
-                                                this.storage::getEnchantmentLevelStyle)
-                                        .setDefaultValue(EnchantmentLevelStyle.MIXED)
+                                        .setBinding(this.storage::setDistanceItems, this.storage::getDistanceItems)
+                                        .setDefaultValue(DistanceState.DEFAULT)
+                                )
+                                .addOption(builder.createIntegerOption(
+                                                ResourceLocation.parse("borderlesswindow:distance_xp_orbs"))
+                                        .setName(Component.translatable("borderlesswindow.options.distance_xp_orbs.name"))
+                                        .setTooltip(Component.translatable("borderlesswindow.options.distance_xp_orbs.tooltip"))
+                                        .setRange(DistanceState.DEFAULT, DistanceState.ORB_MAX, DistanceState.ORB_STEP)
+                                        .setValueFormatter(DistanceState::format)
+                                        .setStorageHandler(this.storage::flush)
+                                        .setBinding(this.storage::setDistanceOrbs, this.storage::getDistanceOrbs)
+                                        .setDefaultValue(DistanceState.DEFAULT)
+                                )
+                                .addOption(builder.createIntegerOption(
+                                                ResourceLocation.parse("borderlesswindow:distance_armor_stands"))
+                                        .setName(Component.translatable("borderlesswindow.options.distance_armor_stands.name"))
+                                        .setTooltip(Component.translatable("borderlesswindow.options.distance_armor_stands.tooltip"))
+                                        .setRange(DistanceState.DEFAULT, DistanceState.ARMOR_STAND_MAX, DistanceState.ARMOR_STAND_STEP)
+                                        .setValueFormatter(DistanceState::format)
+                                        .setStorageHandler(this.storage::flush)
+                                        .setBinding(this.storage::setDistanceArmorStands, this.storage::getDistanceArmorStands)
+                                        .setDefaultValue(DistanceState.DEFAULT)
+                                )
+                        )
+                        // Particles: refused at spawn, see LevelRendererMixin.
+                        .addOptionGroup(builder.createOptionGroup()
+                                .addOption(builder.createIntegerOption(
+                                                ResourceLocation.parse("borderlesswindow:distance_particles"))
+                                        .setName(Component.translatable("borderlesswindow.options.distance_particles.name"))
+                                        .setTooltip(Component.translatable("borderlesswindow.options.distance_particles.tooltip"))
+                                        .setRange(DistanceState.DEFAULT, DistanceState.PARTICLE_MAX, DistanceState.PARTICLE_STEP)
+                                        .setValueFormatter(DistanceState::format)
+                                        .setStorageHandler(this.storage::flush)
+                                        .setBinding(this.storage::setDistanceParticles, this.storage::getDistanceParticles)
+                                        .setDefaultValue(DistanceState.DEFAULT)
                                 )
                         )
                 )

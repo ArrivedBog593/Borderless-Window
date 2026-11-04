@@ -3,6 +3,7 @@ package com.github.arrivedbog593.borderlesswindow.config;
 import com.github.arrivedbog593.borderlesswindow.bobbing.BobbingState;
 import com.github.arrivedbog593.borderlesswindow.bobbing.CameraBobMode;
 import com.github.arrivedbog593.borderlesswindow.cloud.CloudState;
+import com.github.arrivedbog593.borderlesswindow.distance.DistanceState;
 import com.github.arrivedbog593.borderlesswindow.distortion.DistortionState;
 import com.github.arrivedbog593.borderlesswindow.enchantment.EnchantmentLevelState;
 import com.github.arrivedbog593.borderlesswindow.enchantment.EnchantmentLevelStyle;
@@ -11,6 +12,7 @@ import com.github.arrivedbog593.borderlesswindow.fov.FovState;
 import com.github.arrivedbog593.borderlesswindow.fps.FpsOverlayMode;
 import com.github.arrivedbog593.borderlesswindow.fps.FpsOverlayPosition;
 import com.github.arrivedbog593.borderlesswindow.fps.FpsOverlayState;
+import com.github.arrivedbog593.borderlesswindow.fps.UnfocusedFpsState;
 import com.github.arrivedbog593.borderlesswindow.screeneffect.ScreenEffectState;
 import com.github.arrivedbog593.borderlesswindow.window.BorderlessHandler;
 import com.github.arrivedbog593.borderlesswindow.window.F11Mode;
@@ -32,18 +34,20 @@ import org.jetbrains.annotations.NotNull;
  * integrated in its video settings menu.
  * <p>
  * Options live inside a scrollable BorderlessOptionsList grouped by
- * feature ("Window", "FPS Overlay", "Fog", "Clouds", "Screen Overlays",
- * "Bobbing", "Interface"),
- * mirroring the pages the Sodium integration shows. The list scrolls, so
+ * feature, in the order of the Sodium integration's pages and groups:
+ * General ("Window", "FPS Overlay", "Interface"), Visual Effects ("Fog",
+ * "Clouds", "Screen Overlays"), Camera ("Bobbing", "Field of View",
+ * "Distortion") and Distances. Sodium separates groups with spacing alone; a
+ * single scrolling list needs the headers instead. The list scrolls, so
  * adding features never pushes options off-screen the way the previous
  * flat layout did; a new feature only needs addHeader() + addOption()
  * calls here.
  * <p>
  * Changes apply immediately (same behavior as vanilla's fullscreen
  * option). Persistence is automatic: the state holders save to
- * config/borderlesswindow.json on every change. The one exception is the
- * cloud height slider, which defers its write to avoid hammering the disk
- * mid-drag -- onClose() covers the keyboard path for it.
+ * config/borderlesswindow.json on every change. The exception is the
+ * sliders, which defer their write to avoid hammering the disk mid-drag
+ * -- onClose() covers the keyboard path for them.
  */
 public class BorderlessConfigScreen extends Screen {
 
@@ -143,6 +147,43 @@ public class BorderlessConfigScreen extends Screen {
                         .create(0, 0, OPTION_WIDTH, OPTION_HEIGHT,
                                 Component.translatable("borderlesswindow.options.fps_overlay_position.name"),
                                 (button, position) -> FpsOverlayState.setPosition(position)));
+
+        // Cap while the window is unfocused. "Off" (leftmost) is vanilla:
+        // full speed in the background. See UnfocusedFpsState.
+        IntOptionSlider unfocusedFpsSlider = new IntOptionSlider(0, 0, OPTION_WIDTH, OPTION_HEIGHT,
+                "borderlesswindow.options.unfocused_fps_limit.name",
+                UnfocusedFpsState.OFF, UnfocusedFpsState.MAX_LIMIT, UnfocusedFpsState.STEP,
+                value -> value <= UnfocusedFpsState.OFF
+                        ? Component.translatable("borderlesswindow.options.distortion.off")
+                        : Component.translatable("borderlesswindow.fps_overlay.fps", value),
+                UnfocusedFpsState::getLimit, UnfocusedFpsState::applyLimit,
+                UnfocusedFpsState::persist);
+        unfocusedFpsSlider.setTooltip(Tooltip.create(
+                Component.translatable(UnfocusedFpsState.getTooltipKey())));
+        // Greyed out with Dynamic FPS installed; the tooltip says why.
+        unfocusedFpsSlider.active = !UnfocusedFpsState.isDeferredToOtherMod();
+        list.addOption(unfocusedFpsSlider);
+
+        // --- Interface ------------------------------------------------
+        // First non-rendering section: this is text shown in tooltips, not
+        // anything drawn in the world. Kept as its own group so future
+        // tooltip/HUD tweaks have an obvious home instead of being wedged
+        // into a rendering section.
+        list.addHeader(Component.translatable("config.borderlesswindow.section.enchantments"));
+
+        // Applies live: the mixin reads EnchantmentLevelState every time
+        // an enchantment name is built, so reopening an inventory is
+        // enough to see the change.
+        list.addOption(
+                CycleButton.builder((EnchantmentLevelStyle style) ->
+                                Component.translatable(style.getTranslationKey()))
+                        .withValues(EnchantmentLevelStyle.values())
+                        .withInitialValue(EnchantmentLevelState.getStyle())
+                        .withTooltip(style -> Tooltip.create(
+                                Component.translatable("borderlesswindow.options.enchantment_level_style.tooltip")))
+                        .create(0, 0, OPTION_WIDTH, OPTION_HEIGHT,
+                                Component.translatable("borderlesswindow.options.enchantment_level_style.name"),
+                                (button, style) -> EnchantmentLevelState.setStyle(style)));
 
         // --- Fog -----------------------------------------------------
         list.addHeader(Component.translatable("config.borderlesswindow.section.fog"));
@@ -350,26 +391,47 @@ public class BorderlessConfigScreen extends Screen {
                 Component.translatable("borderlesswindow.options.distortion_nausea.tooltip")));
         list.addOption(nauseaSlider);
 
-        // --- Interface ------------------------------------------------
-        // First non-rendering section: this is text shown in tooltips, not
-        // anything drawn in the world. Kept as its own group so future
-        // tooltip/HUD tweaks have an obvious home instead of being wedged
-        // into a rendering section.
-        list.addHeader(Component.translatable("config.borderlesswindow.section.enchantments"));
+        // --- Distances ------------------------------------------------
+        // "Default" (leftmost) keeps vanilla's own distance; any other
+        // value can only lower it. Entities are only hidden, never
+        // removed, and particles are refused at spawn (see DistanceState).
+        list.addHeader(Component.translatable("config.borderlesswindow.section.distances"));
 
-        // Applies live: the mixin reads EnchantmentLevelState every time
-        // an enchantment name is built, so reopening an inventory is
-        // enough to see the change.
-        list.addOption(
-                CycleButton.builder((EnchantmentLevelStyle style) ->
-                                Component.translatable(style.getTranslationKey()))
-                        .withValues(EnchantmentLevelStyle.values())
-                        .withInitialValue(EnchantmentLevelState.getStyle())
-                        .withTooltip(style -> Tooltip.create(
-                                Component.translatable("borderlesswindow.options.enchantment_level_style.tooltip")))
-                        .create(0, 0, OPTION_WIDTH, OPTION_HEIGHT,
-                                Component.translatable("borderlesswindow.options.enchantment_level_style.name"),
-                                (button, style) -> EnchantmentLevelState.setStyle(style)));
+        IntOptionSlider itemsSlider = new IntOptionSlider(0, 0, OPTION_WIDTH, OPTION_HEIGHT,
+                "borderlesswindow.options.distance_items.name",
+                DistanceState.DEFAULT, DistanceState.ITEM_MAX, DistanceState.ITEM_STEP,
+                DistanceState::format,
+                DistanceState::getItems, DistanceState::applyItems, DistanceState::persist);
+        itemsSlider.setTooltip(Tooltip.create(
+                Component.translatable("borderlesswindow.options.distance_items.tooltip")));
+        list.addOption(itemsSlider);
+
+        IntOptionSlider orbsSlider = new IntOptionSlider(0, 0, OPTION_WIDTH, OPTION_HEIGHT,
+                "borderlesswindow.options.distance_xp_orbs.name",
+                DistanceState.DEFAULT, DistanceState.ORB_MAX, DistanceState.ORB_STEP,
+                DistanceState::format,
+                DistanceState::getOrbs, DistanceState::applyOrbs, DistanceState::persist);
+        orbsSlider.setTooltip(Tooltip.create(
+                Component.translatable("borderlesswindow.options.distance_xp_orbs.tooltip")));
+        list.addOption(orbsSlider);
+
+        IntOptionSlider armorStandsSlider = new IntOptionSlider(0, 0, OPTION_WIDTH, OPTION_HEIGHT,
+                "borderlesswindow.options.distance_armor_stands.name",
+                DistanceState.DEFAULT, DistanceState.ARMOR_STAND_MAX, DistanceState.ARMOR_STAND_STEP,
+                DistanceState::format,
+                DistanceState::getArmorStands, DistanceState::applyArmorStands, DistanceState::persist);
+        armorStandsSlider.setTooltip(Tooltip.create(
+                Component.translatable("borderlesswindow.options.distance_armor_stands.tooltip")));
+        list.addOption(armorStandsSlider);
+
+        IntOptionSlider particlesSlider = new IntOptionSlider(0, 0, OPTION_WIDTH, OPTION_HEIGHT,
+                "borderlesswindow.options.distance_particles.name",
+                DistanceState.DEFAULT, DistanceState.PARTICLE_MAX, DistanceState.PARTICLE_STEP,
+                DistanceState::format,
+                DistanceState::getParticles, DistanceState::applyParticles, DistanceState::persist);
+        particlesSlider.setTooltip(Tooltip.create(
+                Component.translatable("borderlesswindow.options.distance_particles.tooltip")));
+        list.addOption(particlesSlider);
 
         this.addRenderableWidget(list);
 
@@ -388,13 +450,15 @@ public class BorderlessConfigScreen extends Screen {
 
     @Override
     public void onClose() {
-        // The cloud slider applies in memory and persists on mouse release;
+        // The sliders apply in memory and persist on mouse release;
         // arrow-key changes never produce a release, so flush here too.
         // Redundant when nothing changed -- saveCurrent() writes the whole
         // live state either way.
         CloudState.persist();
         DistortionState.persist();
         FovState.persist();
+        UnfocusedFpsState.persist();
+        DistanceState.persist();
 
         assert this.minecraft != null;
         this.minecraft.setScreen(this.parent);

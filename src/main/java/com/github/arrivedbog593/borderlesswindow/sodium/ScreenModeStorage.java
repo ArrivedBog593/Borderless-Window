@@ -3,6 +3,7 @@ package com.github.arrivedbog593.borderlesswindow.sodium;
 import com.github.arrivedbog593.borderlesswindow.bobbing.BobbingState;
 import com.github.arrivedbog593.borderlesswindow.bobbing.CameraBobMode;
 import com.github.arrivedbog593.borderlesswindow.cloud.CloudState;
+import com.github.arrivedbog593.borderlesswindow.distance.DistanceState;
 import com.github.arrivedbog593.borderlesswindow.distortion.DistortionState;
 import com.github.arrivedbog593.borderlesswindow.enchantment.EnchantmentLevelState;
 import com.github.arrivedbog593.borderlesswindow.enchantment.EnchantmentLevelStyle;
@@ -11,6 +12,7 @@ import com.github.arrivedbog593.borderlesswindow.fov.FovState;
 import com.github.arrivedbog593.borderlesswindow.fps.FpsOverlayMode;
 import com.github.arrivedbog593.borderlesswindow.fps.FpsOverlayPosition;
 import com.github.arrivedbog593.borderlesswindow.fps.FpsOverlayState;
+import com.github.arrivedbog593.borderlesswindow.fps.UnfocusedFpsState;
 import com.github.arrivedbog593.borderlesswindow.screeneffect.ScreenEffectState;
 import com.github.arrivedbog593.borderlesswindow.window.BorderlessHandler;
 import com.github.arrivedbog593.borderlesswindow.window.F11Mode;
@@ -59,6 +61,9 @@ public final class ScreenModeStorage {
 
     private FpsOverlayPosition pendingFpsOverlayPosition = FpsOverlayState.getPosition();
     private boolean fpsOverlayPositionDirty = false;
+
+    private int pendingUnfocusedFpsLimit = UnfocusedFpsState.getLimit();
+    private boolean unfocusedFpsLimitDirty = false;
 
     private boolean pendingTerrainFog = FogState.isTerrainFogEnabled();
     private boolean terrainFogDirty = false;
@@ -120,6 +125,18 @@ public final class ScreenModeStorage {
     private int pendingFovFluid = FovState.getFluidPercent();
     private boolean fovFluidDirty = false;
 
+    private int pendingDistanceItems = DistanceState.getItems();
+    private boolean distanceItemsDirty = false;
+
+    private int pendingDistanceOrbs = DistanceState.getOrbs();
+    private boolean distanceOrbsDirty = false;
+
+    private int pendingDistanceArmorStands = DistanceState.getArmorStands();
+    private boolean distanceArmorStandsDirty = false;
+
+    private int pendingDistanceParticles = DistanceState.getParticles();
+    private boolean distanceParticlesDirty = false;
+
     // The two vanilla sliders these pages sit under. Mirrored here so a
     // Sodium user can reach them without leaving for the accessibility
     // menu -- Sodium's own video settings drop both. Their value lives
@@ -168,6 +185,15 @@ public final class ScreenModeStorage {
     public void setFpsOverlayPosition(FpsOverlayPosition position) {
         this.pendingFpsOverlayPosition = position;
         this.fpsOverlayPositionDirty = true;
+    }
+
+    public int getUnfocusedFpsLimit() {
+        return UnfocusedFpsState.getLimit();
+    }
+
+    public void setUnfocusedFpsLimit(int limit) {
+        this.pendingUnfocusedFpsLimit = limit;
+        this.unfocusedFpsLimitDirty = true;
     }
 
     public boolean getTerrainFog() {
@@ -355,6 +381,42 @@ public final class ScreenModeStorage {
         this.fovFluidDirty = true;
     }
 
+    public int getDistanceItems() {
+        return DistanceState.getItems();
+    }
+
+    public void setDistanceItems(int blocks) {
+        this.pendingDistanceItems = blocks;
+        this.distanceItemsDirty = true;
+    }
+
+    public int getDistanceOrbs() {
+        return DistanceState.getOrbs();
+    }
+
+    public void setDistanceOrbs(int blocks) {
+        this.pendingDistanceOrbs = blocks;
+        this.distanceOrbsDirty = true;
+    }
+
+    public int getDistanceArmorStands() {
+        return DistanceState.getArmorStands();
+    }
+
+    public void setDistanceArmorStands(int blocks) {
+        this.pendingDistanceArmorStands = blocks;
+        this.distanceArmorStandsDirty = true;
+    }
+
+    public int getDistanceParticles() {
+        return DistanceState.getParticles();
+    }
+
+    public void setDistanceParticles(int blocks) {
+        this.pendingDistanceParticles = blocks;
+        this.distanceParticlesDirty = true;
+    }
+
     /**
      * Vanilla stores these as a 0..1 Double and labels them with
      * percentValueOrOffLabel, which prints value * 100 -- so a plain
@@ -421,6 +483,11 @@ public final class ScreenModeStorage {
         if (this.fpsOverlayPositionDirty) {
             FpsOverlayState.setPosition(this.pendingFpsOverlayPosition);
             this.fpsOverlayPositionDirty = false;
+        }
+
+        if (this.unfocusedFpsLimitDirty) {
+            UnfocusedFpsState.setLimit(this.pendingUnfocusedFpsLimit);
+            this.unfocusedFpsLimitDirty = false;
         }
 
         if (this.terrainFogDirty) {
@@ -521,6 +588,26 @@ public final class ScreenModeStorage {
         if (this.fovFluidDirty) {
             FovState.setFluidPercent(this.pendingFovFluid);
             this.fovFluidDirty = false;
+        }
+
+        if (this.distanceItemsDirty) {
+            DistanceState.setItems(this.pendingDistanceItems);
+            this.distanceItemsDirty = false;
+        }
+
+        if (this.distanceOrbsDirty) {
+            DistanceState.setOrbs(this.pendingDistanceOrbs);
+            this.distanceOrbsDirty = false;
+        }
+
+        if (this.distanceArmorStandsDirty) {
+            DistanceState.setArmorStands(this.pendingDistanceArmorStands);
+            this.distanceArmorStandsDirty = false;
+        }
+
+        if (this.distanceParticlesDirty) {
+            DistanceState.setParticles(this.pendingDistanceParticles);
+            this.distanceParticlesDirty = false;
         }
 
         // Vanilla options: written straight to options.txt. save() is

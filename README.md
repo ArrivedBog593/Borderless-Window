@@ -19,6 +19,8 @@ A lightweight client-side mod for **NeoForge 1.21.1** that adds **borderless ful
 ### Video and quality of life
 
 - **FPS overlay**: the current FPS, or a single line with the Min / Avg / Max over the last 15 seconds. Any screen corner. It samples the game's own counter, so it always matches F3 and respects VSync and FPS caps, and it hides itself while F3 is open.
+- **Unfocused FPS limit**: cap the frame rate while the game is in the background (alt-tabbed, minimized, or behind another window), from 5 to 60 FPS. Minecraft 1.21.1 otherwise keeps rendering at full speed for nobody. Steps aside automatically if Dynamic FPS is installed.
+- **Draw distances**: stop drawing dropped items, experience orbs, and armor stands past a distance you choose, and stop particles from spawning past one. Purely visual — items can still be picked up and orbs still reach you. Glowing entities and named armor stands (holograms, floating text) are always drawn.
 - **Fog toggles**: Terrain (the distance haze, including the Nether's thick fog), Water, Lava, and Powder Snow, each independent. Fog from Blindness and Darkness is never affected, so those effects still work as intended.
 - **Cloud height**: raise or lower the cloud layer between y=64 and y=320. On Default every dimension keeps its own height, and dimensions with no clouds at all — the Nether, the End, cloudless dimensions from other mods — stay that way at any setting.
 - **Screen overlays**: remove the water texture drawn over your view while swimming, and the flames drawn while burning. Fire also has a smart mode that hides the flames only while Fire Resistance is active. The suffocation overlay shown inside solid blocks is never touched.
@@ -31,7 +33,7 @@ A lightweight client-side mod for **NeoForge 1.21.1** that adds **borderless ful
 ### Configuration and compatibility
 
 - **Config screen included**: change everything from the Mods menu (select the mod → Config button). No other mod needed.
-- **Sodium integration** (optional): with [Sodium](https://www.curseforge.com/minecraft/mc-mods/sodium) 0.8.x installed, the "Fullscreen" checkbox in its video settings is replaced by a "Screen Mode" selector, and the mod gets its own section with per-feature pages. Built entirely on Sodium's official Config API — no fragile mixins into Sodium internals. Also plays nice with Reese's Sodium Options.
+- **Sodium integration** (optional): with [Sodium](https://www.curseforge.com/minecraft/mc-mods/sodium) 0.8.x installed, the "Fullscreen" checkbox in its video settings is replaced by a "Screen Mode" selector, and the mod gets its own section with four pages. Built entirely on Sodium's official Config API — no fragile mixins into Sodium internals. Also plays nice with Reese's Sodium Options.
 - **Zero required dependencies**: works with or without Sodium.
 - **Persistent**: all settings are remembered between sessions (`config/borderlesswindow.json`).
 - **Translatable**: all strings live in standard lang files (`en_us`, `es_mx`, `es_es` included — contributions welcome).
@@ -42,8 +44,8 @@ Exclusive fullscreen changes your monitor's actual display mode, which causes sl
 
 ## Configuration
 
-- **In game (no Sodium):** Mods menu → Borderless Window → Config. Every option lives in one scrollable list grouped by feature: Window, FPS Overlay, Fog, Clouds, Screen Overlays, Bobbing, Field of View, Distortion, and Enchantment Style. Changes apply instantly.
-- **In game (with Sodium):** Video Settings → the "Screen Mode" option (replaces Sodium's fullscreen checkbox) and the "Borderless Window" section with its nine pages. Sodium's video settings leave out Minecraft's Distortion Effects and FOV Effects sliders, so the mod brings both back at the top of the pages they govern.
+- **In game (no Sodium):** Mods menu → Borderless Window → Config. Every option lives in one scrollable list grouped by feature, in the same order as the Sodium pages. Changes apply instantly.
+- **In game (with Sodium):** Video Settings → the "Screen Mode" option (replaces Sodium's fullscreen checkbox) and the "Borderless Window" section with its four pages: General, Visual Effects, Camera, and Distances. Sodium's video settings leave out Minecraft's Distortion Effects and FOV Effects sliders, so the mod brings both back at the top of the pages they govern.
 - **Config file:** `config/borderlesswindow.json`. If the mod ever gets stuck in a weird state, delete this file and restart — defaults are regenerated safely.
 
 Every setting defaults to vanilla behavior, so installing or updating the mod never changes how the game looks until you ask it to.
@@ -78,6 +80,8 @@ Un mod ligero client-side para **NeoForge 1.21.1** que agrega **pantalla complet
 #### Video y calidad de vida
 
 - **Contador de FPS**: los FPS actuales, o una sola línea con el Mín. / Prom. / Máx. de los últimos 15 segundos. En cualquier esquina de la pantalla. Muestrea el contador del propio juego, así que siempre coincide con F3 y respeta el VSync y el límite de FPS, y se oculta solo mientras F3 está abierto.
+- **Límite de FPS sin foco**: limita los FPS mientras el juego está en segundo plano (con Alt+Tab, minimizado o detrás de otra ventana), de 5 a 60 FPS. Si no, Minecraft 1.21.1 sigue renderizando a toda velocidad para nadie. Se hace a un lado solo si tienes Dynamic FPS instalado.
+- **Distancias de dibujado**: deja de dibujar objetos tirados, orbes de experiencia y soportes para armadura más allá de la distancia que elijas, y evita que aparezcan partículas más lejos de otra. Es puramente visual — los objetos se pueden seguir recogiendo y los orbes te siguen llegando. Las entidades brillantes y los soportes con nombre (hologramas, texto flotante) siempre se dibujan.
 - **Opciones de niebla**: Terreno (la neblina de distancia, incluida la niebla densa del Nether), Agua, Lava y Nieve polvo, cada una por separado. La niebla de Ceguera y Oscuridad nunca se ve afectada, así que esos efectos siguen funcionando como deben.
 - **Altura de las nubes**: sube o baja la capa de nubes entre y=64 y y=320. En Por defecto cada dimensión conserva su propia altura, y las dimensiones sin nubes — el Nether, el End, las dimensiones sin nubes de otros mods — siguen sin ellas con cualquier valor.
 - **Overlays de pantalla**: quita la textura de agua que se dibuja sobre tu vista al nadar y las llamas que aparecen mientras te quemas. El fuego además tiene un modo inteligente que oculta las llamas solo mientras tengas Resistencia al Fuego. El overlay de asfixia dentro de bloques sólidos nunca se toca.
@@ -90,7 +94,7 @@ Un mod ligero client-side para **NeoForge 1.21.1** que agrega **pantalla complet
 #### Configuración y compatibilidad
 
 - **Pantalla de configuración incluida**: cambia todo desde el menú de Mods (selecciona el mod → botón Config). No requiere ningún otro mod.
-- **Integración con Sodium** (opcional): con [Sodium](https://www.curseforge.com/minecraft/mc-mods/sodium) 0.8.x instalado, el checkbox de "Pantalla completa" de su menú de video se reemplaza por un selector de "Modo de pantalla", y el mod obtiene su propia sección con páginas por feature. Construido completamente sobre la Config API oficial de Sodium — sin mixins frágiles a sus clases internas. También funciona bien con Reese's Sodium Options.
+- **Integración con Sodium** (opcional): con [Sodium](https://www.curseforge.com/minecraft/mc-mods/sodium) 0.8.x instalado, el checkbox de "Pantalla completa" de su menú de video se reemplaza por un selector de "Modo de pantalla", y el mod obtiene su propia sección con cuatro páginas. Construido completamente sobre la Config API oficial de Sodium — sin mixins frágiles a sus clases internas. También funciona bien con Reese's Sodium Options.
 - **Cero dependencias obligatorias**: funciona con o sin Sodium.
 - **Persistente**: todos los ajustes se recuerdan entre sesiones (`config/borderlesswindow.json`).
 - **Traducible**: todos los textos viven en lang files estándar (`en_us`, `es_mx`, `es_es` incluidos — se aceptan contribuciones).
@@ -101,8 +105,8 @@ El fullscreen exclusivo cambia el modo de video real del monitor, lo que causa a
 
 ### Configuración
 
-- **En juego (sin Sodium):** menú de Mods → Borderless Window → Config. Todas las opciones viven en una sola lista con scroll agrupada por feature: Ventana, Contador de FPS, Niebla, Nubes, Overlays de pantalla, Balanceo, Campo de visión, Distorsión y Estilo de encantamientos. Los cambios aplican al instante.
-- **En juego (con Sodium):** Ajustes de video → la opción "Modo de pantalla" (reemplaza el checkbox de fullscreen de Sodium) y la sección "Borderless Window" con sus nueve páginas. Los ajustes de video de Sodium no incluyen los sliders de Efectos de distorsión ni de Efectos de FOV de Minecraft, así que el mod los recupera arriba de las páginas que gobiernan.
+- **En juego (sin Sodium):** menú de Mods → Borderless Window → Config. Todas las opciones viven en una sola lista con scroll agrupada por feature, en el mismo orden que las páginas de Sodium. Los cambios aplican al instante.
+- **En juego (con Sodium):** Ajustes de video → la opción "Modo de pantalla" (reemplaza el checkbox de fullscreen de Sodium) y la sección "Borderless Window" con sus cuatro páginas: General, Efectos visuales, Cámara y Distancias. Los ajustes de video de Sodium no incluyen los sliders de Efectos de distorsión ni de Efectos de FOV de Minecraft, así que el mod los recupera arriba de las páginas que gobiernan.
 - **Archivo de config:** `config/borderlesswindow.json`. Si el mod queda en un estado raro, borra este archivo y reinicia — los valores por defecto se regeneran sin problema.
 
 Todos los ajustes vienen por defecto en el comportamiento normal del juego, así que instalar o actualizar el mod nunca cambia cómo se ve hasta que tú lo pidas.

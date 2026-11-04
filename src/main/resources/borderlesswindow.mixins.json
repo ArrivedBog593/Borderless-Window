@@ -7,9 +7,12 @@
     "CloudHeightMixin",
     "EnchantmentMixin",
     "EntityMixin",
+    "EntityRenderDispatcherMixin",
     "GameRendererMixin",
     "GuiMixin",
+    "LevelRendererMixin",
     "LocalPlayerMixin",
+    "MinecraftMixin",
     "WindowMixin"
   ],
   "injectors": {
