@@ -10,9 +10,13 @@
     "EntityRenderDispatcherMixin",
     "GameRendererMixin",
     "GuiMixin",
+    "KeyboardHandlerMixin",
     "LevelRendererMixin",
+    "ListenerMixin",
     "LocalPlayerMixin",
     "MinecraftMixin",
+    "MouseHandlerMixin",
+    "SoundManagerAccessor",
     "WindowMixin"
   ],
   "injectors": {

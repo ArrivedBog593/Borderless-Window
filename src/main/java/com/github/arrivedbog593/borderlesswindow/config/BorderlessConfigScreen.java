@@ -12,8 +12,11 @@ import com.github.arrivedbog593.borderlesswindow.fov.FovState;
 import com.github.arrivedbog593.borderlesswindow.fps.FpsOverlayMode;
 import com.github.arrivedbog593.borderlesswindow.fps.FpsOverlayPosition;
 import com.github.arrivedbog593.borderlesswindow.fps.FpsOverlayState;
+import com.github.arrivedbog593.borderlesswindow.fps.IdleFpsState;
+import com.github.arrivedbog593.borderlesswindow.fps.MinimizedRenderState;
 import com.github.arrivedbog593.borderlesswindow.fps.UnfocusedFpsState;
 import com.github.arrivedbog593.borderlesswindow.screeneffect.ScreenEffectState;
+import com.github.arrivedbog593.borderlesswindow.sound.UnfocusedVolumeState;
 import com.github.arrivedbog593.borderlesswindow.window.BorderlessHandler;
 import com.github.arrivedbog593.borderlesswindow.window.F11Mode;
 import com.github.arrivedbog593.borderlesswindow.window.ScreenMode;
@@ -35,7 +38,8 @@ import org.jetbrains.annotations.NotNull;
  * <p>
  * Options live inside a scrollable BorderlessOptionsList grouped by
  * feature, in the order of the Sodium integration's pages and groups:
- * General ("Window", "FPS Overlay", "Interface"), Visual Effects ("Fog",
+ * General ("Window"), Enchantments ("Interface"), FPS &amp; Background ("FPS Overlay",
+ * "Background"), Visual Effects ("Fog",
  * "Clouds", "Screen Overlays"), Camera ("Bobbing", "Field of View",
  * "Distortion") and Distances. Sodium separates groups with spacing alone; a
  * single scrolling list needs the headers instead. The list scrolls, so
@@ -120,6 +124,27 @@ public class BorderlessConfigScreen extends Screen {
                                 Component.translatable("borderlesswindow.options.f11_mode.name"),
                                 (button, mode) -> BorderlessHandler.setF11Target(mode)));
 
+        // --- Interface ------------------------------------------------
+        // First non-rendering section: this is text shown in tooltips, not
+        // anything drawn in the world. Kept as its own group so future
+        // tooltip/HUD tweaks have an obvious home instead of being wedged
+        // into a rendering section.
+        list.addHeader(Component.translatable("config.borderlesswindow.section.enchantments"));
+
+        // Applies live: the mixin reads EnchantmentLevelState every time
+        // an enchantment name is built, so reopening an inventory is
+        // enough to see the change.
+        list.addOption(
+                CycleButton.builder((EnchantmentLevelStyle style) ->
+                                Component.translatable(style.getTranslationKey()))
+                        .withValues(EnchantmentLevelStyle.values())
+                        .withInitialValue(EnchantmentLevelState.getStyle())
+                        .withTooltip(style -> Tooltip.create(
+                                Component.translatable("borderlesswindow.options.enchantment_level_style.tooltip")))
+                        .create(0, 0, OPTION_WIDTH, OPTION_HEIGHT,
+                                Component.translatable("borderlesswindow.options.enchantment_level_style.name"),
+                                (button, style) -> EnchantmentLevelState.setStyle(style)));
+
         // --- FPS overlay --------------------------------------------
         list.addHeader(Component.translatable("config.borderlesswindow.section.fps"));
 
@@ -148,42 +173,72 @@ public class BorderlessConfigScreen extends Screen {
                                 Component.translatable("borderlesswindow.options.fps_overlay_position.name"),
                                 (button, position) -> FpsOverlayState.setPosition(position)));
 
-        // Cap while the window is unfocused. "Off" (leftmost) is vanilla:
-        // full speed in the background. See UnfocusedFpsState.
+        // --- Background -----------------------------------------------
+        // What changes while the game is not in front.
+        list.addHeader(Component.translatable("config.borderlesswindow.section.background"));
+
+        // Cap while the window is unfocused. "Off" (leftmost slot) is
+        // vanilla: full speed in the background. See UnfocusedFpsState.
         IntOptionSlider unfocusedFpsSlider = new IntOptionSlider(0, 0, OPTION_WIDTH, OPTION_HEIGHT,
                 "borderlesswindow.options.unfocused_fps_limit.name",
-                UnfocusedFpsState.OFF, UnfocusedFpsState.MAX_LIMIT, UnfocusedFpsState.STEP,
-                value -> value <= UnfocusedFpsState.OFF
+                UnfocusedFpsState.OFF_SLOT, UnfocusedFpsState.MAX_LIMIT, UnfocusedFpsState.STEP,
+                value -> value <= UnfocusedFpsState.OFF_SLOT
                         ? Component.translatable("borderlesswindow.options.distortion.off")
                         : Component.translatable("borderlesswindow.fps_overlay.fps", value),
-                UnfocusedFpsState::getLimit, UnfocusedFpsState::applyLimit,
+                () -> UnfocusedFpsState.toSlot(UnfocusedFpsState.getLimit()),
+                slot -> UnfocusedFpsState.applyLimit(UnfocusedFpsState.fromSlot(slot)),
                 UnfocusedFpsState::persist);
         unfocusedFpsSlider.setTooltip(Tooltip.create(
-                Component.translatable(UnfocusedFpsState.getTooltipKey())));
-        // Greyed out with Dynamic FPS installed; the tooltip says why.
-        unfocusedFpsSlider.active = !UnfocusedFpsState.isDeferredToOtherMod();
+                Component.translatable("borderlesswindow.options.unfocused_fps_limit.tooltip")));
         list.addOption(unfocusedFpsSlider);
 
-        // --- Interface ------------------------------------------------
-        // First non-rendering section: this is text shown in tooltips, not
-        // anything drawn in the world. Kept as its own group so future
-        // tooltip/HUD tweaks have an obvious home instead of being wedged
-        // into a rendering section.
-        list.addHeader(Component.translatable("config.borderlesswindow.section.enchantments"));
+        // Idle cap: minutes without input before it kicks in ("Off" is
+        // vanilla), then the cap itself. See IdleFpsState.
+        IntOptionSlider idleDelaySlider = new IntOptionSlider(0, 0, OPTION_WIDTH, OPTION_HEIGHT,
+                "borderlesswindow.options.idle_fps_delay.name",
+                IdleFpsState.OFF, IdleFpsState.MAX_DELAY_MINUTES, 1,
+                value -> value <= IdleFpsState.OFF
+                        ? Component.translatable("borderlesswindow.options.distortion.off")
+                        : Component.translatable("borderlesswindow.options.idle_fps_delay.minutes", value),
+                IdleFpsState::getDelayMinutes, IdleFpsState::applyDelayMinutes,
+                IdleFpsState::persist);
+        idleDelaySlider.setTooltip(Tooltip.create(
+                Component.translatable("borderlesswindow.options.idle_fps_delay.tooltip")));
+        list.addOption(idleDelaySlider);
 
-        // Applies live: the mixin reads EnchantmentLevelState every time
-        // an enchantment name is built, so reopening an inventory is
-        // enough to see the change.
-        list.addOption(
-                CycleButton.builder((EnchantmentLevelStyle style) ->
-                                Component.translatable(style.getTranslationKey()))
-                        .withValues(EnchantmentLevelStyle.values())
-                        .withInitialValue(EnchantmentLevelState.getStyle())
-                        .withTooltip(style -> Tooltip.create(
-                                Component.translatable("borderlesswindow.options.enchantment_level_style.tooltip")))
-                        .create(0, 0, OPTION_WIDTH, OPTION_HEIGHT,
-                                Component.translatable("borderlesswindow.options.enchantment_level_style.name"),
-                                (button, style) -> EnchantmentLevelState.setStyle(style)));
+        IntOptionSlider idleLimitSlider = new IntOptionSlider(0, 0, OPTION_WIDTH, OPTION_HEIGHT,
+                "borderlesswindow.options.idle_fps_limit.name",
+                UnfocusedFpsState.MIN_LIMIT, UnfocusedFpsState.MAX_LIMIT, 1,
+                value -> Component.translatable("borderlesswindow.fps_overlay.fps", value),
+                IdleFpsState::getLimit, IdleFpsState::applyLimit,
+                IdleFpsState::persist);
+        idleLimitSlider.setTooltip(Tooltip.create(
+                Component.translatable("borderlesswindow.options.idle_fps_limit.tooltip")));
+        list.addOption(idleLimitSlider);
+
+        // Skip drawing while minimized. Off is vanilla. See
+        // MinimizedRenderState.
+        CycleButton<Boolean> minimizedButton = CycleButton.onOffBuilder(MinimizedRenderState.isEnabled())
+                .withTooltip(value -> Tooltip.create(
+                        Component.translatable("borderlesswindow.options.minimized_skip_render.tooltip")))
+                .create(0, 0, OPTION_WIDTH, OPTION_HEIGHT,
+                        Component.translatable("borderlesswindow.options.minimized_skip_render.name"),
+                        (button, value) -> MinimizedRenderState.setEnabled(value));
+        list.addOption(minimizedButton);
+
+        // Volume while unfocused, as a share of Master Volume. 100%
+        // (rightmost) is vanilla. See UnfocusedVolumeState.
+        IntOptionSlider unfocusedVolumeSlider = new IntOptionSlider(0, 0, OPTION_WIDTH, OPTION_HEIGHT,
+                "borderlesswindow.options.unfocused_volume.name",
+                UnfocusedVolumeState.MIN_PERCENT, UnfocusedVolumeState.MAX_PERCENT, UnfocusedVolumeState.STEP,
+                value -> value <= UnfocusedVolumeState.MIN_PERCENT
+                        ? Component.translatable("borderlesswindow.options.unfocused_volume.muted")
+                        : Component.translatable("borderlesswindow.options.distortion.percent", value),
+                UnfocusedVolumeState::getPercent, UnfocusedVolumeState::applyPercent,
+                UnfocusedVolumeState::persist);
+        unfocusedVolumeSlider.setTooltip(Tooltip.create(
+                Component.translatable("borderlesswindow.options.unfocused_volume.tooltip")));
+        list.addOption(unfocusedVolumeSlider);
 
         // --- Fog -----------------------------------------------------
         list.addHeader(Component.translatable("config.borderlesswindow.section.fog"));
@@ -458,6 +513,8 @@ public class BorderlessConfigScreen extends Screen {
         DistortionState.persist();
         FovState.persist();
         UnfocusedFpsState.persist();
+        UnfocusedVolumeState.persist();
+        IdleFpsState.persist();
         DistanceState.persist();
 
         assert this.minecraft != null;

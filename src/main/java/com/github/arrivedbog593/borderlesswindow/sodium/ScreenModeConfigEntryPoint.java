@@ -8,7 +8,9 @@ import com.github.arrivedbog593.borderlesswindow.enchantment.EnchantmentLevelSty
 import com.github.arrivedbog593.borderlesswindow.fov.FovState;
 import com.github.arrivedbog593.borderlesswindow.fps.FpsOverlayMode;
 import com.github.arrivedbog593.borderlesswindow.fps.FpsOverlayPosition;
+import com.github.arrivedbog593.borderlesswindow.fps.IdleFpsState;
 import com.github.arrivedbog593.borderlesswindow.fps.UnfocusedFpsState;
+import com.github.arrivedbog593.borderlesswindow.sound.UnfocusedVolumeState;
 import com.github.arrivedbog593.borderlesswindow.window.F11Mode;
 import com.github.arrivedbog593.borderlesswindow.window.ScreenMode;
 import net.caffeinemc.mods.sodium.api.config.ConfigEntryPoint;
@@ -26,8 +28,11 @@ import net.minecraft.resources.ResourceLocation;
  * each split into unnamed option groups -- the same visual grouping
  * Sodium's own General page uses -- instead of one page per feature,
  * which had grown to nine entries in the sidebar:
- * - General: F11 behavior | FPS overlay + unfocused FPS cap |
- *   enchantment numerals. Small features with no better home.
+ * - General: F11 behavior | menu background blur. Small features with no
+ *   better home.
+ * - Enchantments: numerals | glint speed and strength.
+ * - FPS & Background: FPS overlay | background (unfocused FPS cap, idle
+ *   FPS cap, rendering while minimized, unfocused volume).
  * - Visual Effects: fog | cloud height | screen overlays. What is drawn
  *   over or around the world.
  * - Camera: bobbing | FOV | distortion. How the view itself moves and
@@ -82,7 +87,76 @@ public class ScreenModeConfigEntryPoint implements ConfigEntryPoint {
                                         .setDefaultValue(F11Mode.BORDERLESS)
                                 )
                         )
-                        // FPS: the overlay and the unfocused cap.
+                        // Vanilla's menu background blur. Like the FOV and
+                        // distortion scales, it otherwise lives only in
+                        // Minecraft's accessibility menu.
+                        .addOptionGroup(builder.createOptionGroup()
+                                .addOption(builder.createIntegerOption(
+                                                ResourceLocation.parse("borderlesswindow:vanilla_menu_blur"))
+                                        .setName(Component.translatable("borderlesswindow.options.vanilla_menu_blur.name"))
+                                        .setTooltip(Component.translatable("borderlesswindow.options.vanilla_menu_blur.tooltip"))
+                                        .setRange(0, 10, 1)
+                                        .setValueFormatter(value -> value <= 0
+                                                ? Component.translatable("borderlesswindow.options.distortion.off")
+                                                : Component.literal(String.valueOf(value)))
+                                        .setStorageHandler(this.storage::flush)
+                                        .setBinding(this.storage::setVanillaMenuBlur, this.storage::getVanillaMenuBlur)
+                                        .setDefaultValue(5)
+                                )
+                        )
+                )
+                // Page 2 - Enchantments: the numerals in tooltips, and the
+                // glint drawn on enchanted items.
+                .addPage(builder.createOptionPage()
+                        .setName(Component.translatable("borderlesswindow.options.sodium.pages.enchantments"))
+                        .addOptionGroup(builder.createOptionGroup()
+                                .addOption(builder.createEnumOption(
+                                                ResourceLocation.parse("borderlesswindow:enchantment_level_style"),
+                                                EnchantmentLevelStyle.class)
+                                        .setName(Component.translatable("borderlesswindow.options.enchantment_level_style.name"))
+                                        .setTooltip(Component.translatable("borderlesswindow.options.enchantment_level_style.tooltip"))
+                                        .setElementNameProvider(style -> Component.translatable(style.getTranslationKey()))
+                                        .setStorageHandler(this.storage::flush)
+                                        .setBinding(this.storage::setEnchantmentLevelStyle,
+                                                this.storage::getEnchantmentLevelStyle)
+                                        .setDefaultValue(EnchantmentLevelStyle.MIXED)
+                                )
+                        )
+                        // Vanilla's glint sliders, missing from Sodium's
+                        // video settings. Strength's own callback
+                        // (RenderSystem.setShaderGlintAlpha) runs on set(),
+                        // so the change shows without a restart.
+                        .addOptionGroup(builder.createOptionGroup()
+                                .addOption(builder.createIntegerOption(
+                                                ResourceLocation.parse("borderlesswindow:vanilla_glint_speed"))
+                                        .setName(Component.translatable("borderlesswindow.options.vanilla_glint_speed.name"))
+                                        .setTooltip(Component.translatable("borderlesswindow.options.vanilla_glint_speed.tooltip"))
+                                        .setRange(0, 100, 1)
+                                        .setValueFormatter(value -> value <= 0
+                                                ? Component.translatable("borderlesswindow.options.distortion.off")
+                                                : Component.translatable("borderlesswindow.options.distortion.percent", value))
+                                        .setStorageHandler(this.storage::flush)
+                                        .setBinding(this.storage::setVanillaGlintSpeed, this.storage::getVanillaGlintSpeed)
+                                        .setDefaultValue(50)
+                                )
+                                .addOption(builder.createIntegerOption(
+                                                ResourceLocation.parse("borderlesswindow:vanilla_glint_strength"))
+                                        .setName(Component.translatable("borderlesswindow.options.vanilla_glint_strength.name"))
+                                        .setTooltip(Component.translatable("borderlesswindow.options.vanilla_glint_strength.tooltip"))
+                                        .setRange(0, 100, 1)
+                                        .setValueFormatter(value -> value <= 0
+                                                ? Component.translatable("borderlesswindow.options.distortion.off")
+                                                : Component.translatable("borderlesswindow.options.distortion.percent", value))
+                                        .setStorageHandler(this.storage::flush)
+                                        .setBinding(this.storage::setVanillaGlintStrength, this.storage::getVanillaGlintStrength)
+                                        .setDefaultValue(75)
+                                )
+                        )
+                )
+                // Page 3 - FPS & Background: the counter, and everything
+                // that changes while the game is not in front.
+                .addPage(builder.createOptionPage()
+                        .setName(Component.translatable("borderlesswindow.options.sodium.pages.fps"))
                         .addOptionGroup(builder.createOptionGroup()
                                 .addOption(builder.createEnumOption(
                                                 ResourceLocation.parse("borderlesswindow:fps_overlay_mode"),
@@ -109,43 +183,74 @@ public class ScreenModeConfigEntryPoint implements ConfigEntryPoint {
                                                         FpsOverlayMode.class) != FpsOverlayMode.OFF,
                                                 ResourceLocation.parse("borderlesswindow:fps_overlay_mode"))
                                 )
-                                // Lives with the overlay because both are
-                                // about frame rate. Vanilla 1.21.2+ has this
-                                // built in; see UnfocusedFpsState.
+                        )
+                        // Background. Vanilla 1.21.2+ covers the caps and
+                        // the minimized behavior; see UnfocusedFpsState.
+                        // Stays available with Dynamic FPS installed: the
+                        // two stack, and the lower cap wins.
+                        .addOptionGroup(builder.createOptionGroup()
                                 .addOption(builder.createIntegerOption(
                                                 ResourceLocation.parse("borderlesswindow:unfocused_fps_limit"))
                                         .setName(Component.translatable("borderlesswindow.options.unfocused_fps_limit.name"))
-                                        .setTooltip(Component.translatable(UnfocusedFpsState.getTooltipKey()))
-                                        .setEnabled(!UnfocusedFpsState.isDeferredToOtherMod())
-                                        .setRange(UnfocusedFpsState.OFF, UnfocusedFpsState.MAX_LIMIT, UnfocusedFpsState.STEP)
-                                        .setValueFormatter(value -> value <= UnfocusedFpsState.OFF
+                                        .setTooltip(Component.translatable("borderlesswindow.options.unfocused_fps_limit.tooltip"))
+                                        .setRange(UnfocusedFpsState.OFF_SLOT, UnfocusedFpsState.MAX_LIMIT, UnfocusedFpsState.STEP)
+                                        .setValueFormatter(value -> value <= UnfocusedFpsState.OFF_SLOT
                                                 ? Component.translatable("borderlesswindow.options.distortion.off")
                                                 : Component.translatable("borderlesswindow.fps_overlay.fps", value))
                                         .setStorageHandler(this.storage::flush)
                                         .setBinding(this.storage::setUnfocusedFpsLimit, this.storage::getUnfocusedFpsLimit)
-                                        .setDefaultValue(UnfocusedFpsState.OFF)
+                                        .setDefaultValue(UnfocusedFpsState.OFF_SLOT)
                                 )
-                        )
-                        // Enchantment numerals: tooltip text, not rendering.
-                        // It lives in the video settings menu anyway because
-                        // splitting the mod's options across two different
-                        // menus would be worse for the user than the
-                        // category being loose.
-                        .addOptionGroup(builder.createOptionGroup()
-                                .addOption(builder.createEnumOption(
-                                                ResourceLocation.parse("borderlesswindow:enchantment_level_style"),
-                                                EnchantmentLevelStyle.class)
-                                        .setName(Component.translatable("borderlesswindow.options.enchantment_level_style.name"))
-                                        .setTooltip(Component.translatable("borderlesswindow.options.enchantment_level_style.tooltip"))
-                                        .setElementNameProvider(style -> Component.translatable(style.getTranslationKey()))
+                                .addOption(builder.createIntegerOption(
+                                                ResourceLocation.parse("borderlesswindow:idle_fps_delay"))
+                                        .setName(Component.translatable("borderlesswindow.options.idle_fps_delay.name"))
+                                        .setTooltip(Component.translatable("borderlesswindow.options.idle_fps_delay.tooltip"))
+                                        .setRange(IdleFpsState.OFF, IdleFpsState.MAX_DELAY_MINUTES, 1)
+                                        .setValueFormatter(value -> value <= IdleFpsState.OFF
+                                                ? Component.translatable("borderlesswindow.options.distortion.off")
+                                                : Component.translatable("borderlesswindow.options.idle_fps_delay.minutes", value))
                                         .setStorageHandler(this.storage::flush)
-                                        .setBinding(this.storage::setEnchantmentLevelStyle,
-                                                this.storage::getEnchantmentLevelStyle)
-                                        .setDefaultValue(EnchantmentLevelStyle.MIXED)
+                                        .setBinding(this.storage::setIdleFpsDelay, this.storage::getIdleFpsDelay)
+                                        .setDefaultValue(IdleFpsState.OFF)
+                                )
+                                // Only meaningful once a delay is set.
+                                .addOption(builder.createIntegerOption(
+                                                ResourceLocation.parse("borderlesswindow:idle_fps_limit"))
+                                        .setName(Component.translatable("borderlesswindow.options.idle_fps_limit.name"))
+                                        .setTooltip(Component.translatable("borderlesswindow.options.idle_fps_limit.tooltip"))
+                                        .setEnabledProvider(
+                                                state -> state.readIntOption(
+                                                        ResourceLocation.parse("borderlesswindow:idle_fps_delay")) != IdleFpsState.OFF,
+                                                ResourceLocation.parse("borderlesswindow:idle_fps_delay"))
+                                        .setRange(UnfocusedFpsState.MIN_LIMIT, UnfocusedFpsState.MAX_LIMIT, 1)
+                                        .setValueFormatter(value -> Component.translatable("borderlesswindow.fps_overlay.fps", value))
+                                        .setStorageHandler(this.storage::flush)
+                                        .setBinding(this.storage::setIdleFpsLimit, this.storage::getIdleFpsLimit)
+                                        .setDefaultValue(IdleFpsState.DEFAULT_LIMIT)
+                                )
+                                .addOption(builder.createBooleanOption(
+                                                ResourceLocation.parse("borderlesswindow:minimized_skip_render"))
+                                        .setName(Component.translatable("borderlesswindow.options.minimized_skip_render.name"))
+                                        .setTooltip(Component.translatable("borderlesswindow.options.minimized_skip_render.tooltip"))
+                                        .setStorageHandler(this.storage::flush)
+                                        .setBinding(this.storage::setMinimizedSkipRender, this.storage::getMinimizedSkipRender)
+                                        .setDefaultValue(false)
+                                )
+                                .addOption(builder.createIntegerOption(
+                                                ResourceLocation.parse("borderlesswindow:unfocused_volume"))
+                                        .setName(Component.translatable("borderlesswindow.options.unfocused_volume.name"))
+                                        .setTooltip(Component.translatable("borderlesswindow.options.unfocused_volume.tooltip"))
+                                        .setRange(UnfocusedVolumeState.MIN_PERCENT, UnfocusedVolumeState.MAX_PERCENT, UnfocusedVolumeState.STEP)
+                                        .setValueFormatter(value -> value <= UnfocusedVolumeState.MIN_PERCENT
+                                                ? Component.translatable("borderlesswindow.options.unfocused_volume.muted")
+                                                : Component.translatable("borderlesswindow.options.distortion.percent", value))
+                                        .setStorageHandler(this.storage::flush)
+                                        .setBinding(this.storage::setUnfocusedVolume, this.storage::getUnfocusedVolume)
+                                        .setDefaultValue(UnfocusedVolumeState.DEFAULT_PERCENT)
                                 )
                         )
                 )
-                // Page 2 - Visual Effects: fog, clouds, screen overlays.
+                // Page 4 - Visual Effects: fog, clouds, screen overlays.
                 .addPage(builder.createOptionPage()
                         .setName(Component.translatable("borderlesswindow.options.sodium.pages.visuals"))
                         // Fog: the four per-type toggles.
@@ -282,7 +387,7 @@ public class ScreenModeConfigEntryPoint implements ConfigEntryPoint {
                                 )
                         )
                 )
-                // Page 3 - Camera: bobbing, FOV and distortion, how the view itself
+                // Page 5 - Camera: bobbing, FOV and distortion, how the view itself
                 // moves and is shaped rather than what is drawn over it.
                 .addPage(builder.createOptionPage()
                         .setName(Component.translatable("borderlesswindow.options.sodium.pages.camera"))
@@ -330,7 +435,7 @@ public class ScreenModeConfigEntryPoint implements ConfigEntryPoint {
                                                 ResourceLocation.parse("borderlesswindow:vanilla_fov"))
                                         .setName(Component.translatable("borderlesswindow.options.vanilla_fov.name"))
                                         .setTooltip(Component.translatable("borderlesswindow.options.vanilla_fov.tooltip"))
-                                        .setRange(0, 100, 5)
+                                        .setRange(0, 100, 1)
                                         .setValueFormatter(value -> value <= 0
                                                 ? Component.translatable("borderlesswindow.options.distortion.off")
                                                 : Component.translatable("borderlesswindow.options.distortion.percent", value))
@@ -342,7 +447,7 @@ public class ScreenModeConfigEntryPoint implements ConfigEntryPoint {
                                                 ResourceLocation.parse("borderlesswindow:fov_speed"))
                                         .setName(Component.translatable("borderlesswindow.options.fov_speed.name"))
                                         .setTooltip(Component.translatable("borderlesswindow.options.fov_speed.tooltip"))
-                                        .setRange(FovState.MIN_PERCENT, FovState.MAX_PERCENT, 5)
+                                        .setRange(FovState.MIN_PERCENT, FovState.MAX_PERCENT, 1)
                                         .setValueFormatter(value -> value <= FovState.MIN_PERCENT
                                                 ? Component.translatable("borderlesswindow.options.distortion.off")
                                                 : Component.translatable("borderlesswindow.options.distortion.percent", value))
@@ -354,7 +459,7 @@ public class ScreenModeConfigEntryPoint implements ConfigEntryPoint {
                                                 ResourceLocation.parse("borderlesswindow:fov_flying"))
                                         .setName(Component.translatable("borderlesswindow.options.fov_flying.name"))
                                         .setTooltip(Component.translatable("borderlesswindow.options.fov_flying.tooltip"))
-                                        .setRange(FovState.MIN_PERCENT, FovState.MAX_PERCENT, 5)
+                                        .setRange(FovState.MIN_PERCENT, FovState.MAX_PERCENT, 1)
                                         .setValueFormatter(value -> value <= FovState.MIN_PERCENT
                                                 ? Component.translatable("borderlesswindow.options.distortion.off")
                                                 : Component.translatable("borderlesswindow.options.distortion.percent", value))
@@ -366,7 +471,7 @@ public class ScreenModeConfigEntryPoint implements ConfigEntryPoint {
                                                 ResourceLocation.parse("borderlesswindow:fov_bow"))
                                         .setName(Component.translatable("borderlesswindow.options.fov_bow.name"))
                                         .setTooltip(Component.translatable("borderlesswindow.options.fov_bow.tooltip"))
-                                        .setRange(FovState.MIN_PERCENT, FovState.MAX_PERCENT, 5)
+                                        .setRange(FovState.MIN_PERCENT, FovState.MAX_PERCENT, 1)
                                         .setValueFormatter(value -> value <= FovState.MIN_PERCENT
                                                 ? Component.translatable("borderlesswindow.options.distortion.off")
                                                 : Component.translatable("borderlesswindow.options.distortion.percent", value))
@@ -378,7 +483,7 @@ public class ScreenModeConfigEntryPoint implements ConfigEntryPoint {
                                                 ResourceLocation.parse("borderlesswindow:fov_fluid"))
                                         .setName(Component.translatable("borderlesswindow.options.fov_fluid.name"))
                                         .setTooltip(Component.translatable("borderlesswindow.options.fov_fluid.tooltip"))
-                                        .setRange(FovState.MIN_PERCENT, FovState.MAX_PERCENT, 5)
+                                        .setRange(FovState.MIN_PERCENT, FovState.MAX_PERCENT, 1)
                                         .setValueFormatter(value -> value <= FovState.MIN_PERCENT
                                                 ? Component.translatable("borderlesswindow.options.distortion.off")
                                                 : Component.translatable("borderlesswindow.options.distortion.percent", value))
@@ -403,7 +508,7 @@ public class ScreenModeConfigEntryPoint implements ConfigEntryPoint {
                                                 ResourceLocation.parse("borderlesswindow:vanilla_distortion"))
                                         .setName(Component.translatable("borderlesswindow.options.vanilla_distortion.name"))
                                         .setTooltip(Component.translatable("borderlesswindow.options.vanilla_distortion.tooltip"))
-                                        .setRange(0, 100, 5)
+                                        .setRange(0, 100, 1)
                                         .setValueFormatter(value -> value <= 0
                                                 ? Component.translatable("borderlesswindow.options.distortion.off")
                                                 : Component.translatable("borderlesswindow.options.distortion.percent", value))
@@ -415,7 +520,7 @@ public class ScreenModeConfigEntryPoint implements ConfigEntryPoint {
                                                 ResourceLocation.parse("borderlesswindow:distortion_portal"))
                                         .setName(Component.translatable("borderlesswindow.options.distortion_portal.name"))
                                         .setTooltip(Component.translatable("borderlesswindow.options.distortion_portal.tooltip"))
-                                        .setRange(DistortionState.MIN_PERCENT, DistortionState.MAX_PERCENT, 5)
+                                        .setRange(DistortionState.MIN_PERCENT, DistortionState.MAX_PERCENT, 1)
                                         .setValueFormatter(value -> value <= DistortionState.MIN_PERCENT
                                                 ? Component.translatable("borderlesswindow.options.distortion.off")
                                                 : Component.translatable("borderlesswindow.options.distortion.percent", value))
@@ -427,7 +532,7 @@ public class ScreenModeConfigEntryPoint implements ConfigEntryPoint {
                                                 ResourceLocation.parse("borderlesswindow:distortion_nausea"))
                                         .setName(Component.translatable("borderlesswindow.options.distortion_nausea.name"))
                                         .setTooltip(Component.translatable("borderlesswindow.options.distortion_nausea.tooltip"))
-                                        .setRange(DistortionState.MIN_PERCENT, DistortionState.MAX_PERCENT, 5)
+                                        .setRange(DistortionState.MIN_PERCENT, DistortionState.MAX_PERCENT, 1)
                                         .setValueFormatter(value -> value <= DistortionState.MIN_PERCENT
                                                 ? Component.translatable("borderlesswindow.options.distortion.off")
                                                 : Component.translatable("borderlesswindow.options.distortion.percent", value))
@@ -437,7 +542,7 @@ public class ScreenModeConfigEntryPoint implements ConfigEntryPoint {
                                 )
                         )
                 )
-                // Page 4 - Distances: how far things are drawn. Its own
+                // Page 6 - Distances: how far things are drawn. Its own
                 // page because it brings four options and none of them
                 // fits the others' themes. Every slider starts at
                 // "Default" (no cap) on the left, like the cloud height,

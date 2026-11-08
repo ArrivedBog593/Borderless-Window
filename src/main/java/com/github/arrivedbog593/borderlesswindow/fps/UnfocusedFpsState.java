@@ -1,7 +1,6 @@
 package com.github.arrivedbog593.borderlesswindow.fps;
 
 import com.github.arrivedbog593.borderlesswindow.config.BorderlessConfigFile;
-import net.neoforged.fml.ModList;
 
 /**
  * Holds the FPS cap applied while the game window is not focused (alt-tabbed,
@@ -18,6 +17,23 @@ import net.neoforged.fml.ModList;
  * {@link #STEP}. The cap can only lower the frame rate: if the regular Max
  * Framerate is already below it, the regular limit wins.
  * <p>
+ * DYNAMIC FPS hooks the same method (verified against 3.11.4 for NeoForge
+ * 1.21.1). With both installed the caps simply stack -- whichever is
+ * lower wins -- and this option stays available on purpose: it keeps the
+ * setting in Sodium's video menu, where Dynamic FPS's own needs Cloth
+ * Config and the mod list. The same goes for every background option.
+ * <p>
+ * WHY NOT BELOW 5. runTick runs at most 10 client ticks per frame and drops
+ * the rest, so under 2 FPS the client falls behind the 20 ticks per second
+ * the game expects. 5 keeps a comfortable margin.
+ * <p>
+ * SLIDER SLOTS. Both UIs move in steps of 1, and a contiguous range from
+ * {@link #OFF} would offer 1..4. Instead the slider starts at
+ * {@link #OFF_SLOT} (MIN_LIMIT - 1), labelled "Off", and
+ * {@link #toSlot}/{@link #fromSlot} translate -- the same trick as the
+ * cloud height's "Default" slot. The stored value stays {@link #OFF}, so
+ * existing configs keep working.
+ * <p>
  * Split apply/persist like DistortionState, for the same reason: it is a
  * slider, and AbstractSliderButton fires applyValue on every step of a drag.
  */
@@ -28,34 +44,14 @@ public final class UnfocusedFpsState {
 
     public static final int MIN_LIMIT = 5;
     public static final int MAX_LIMIT = 60;
-    public static final int STEP = 5;
+    public static final int STEP = 1;
 
-    /**
-     * Dynamic FPS does this and more (idle detection, stopping rendering
-     * while minimized, muting) and hooks the same two methods: its own
-     * mixins sit on Minecraft.getFramerateLimit and
-     * Window.getFramerateLimit (verified against 3.11.4 for NeoForge
-     * 1.21.1). Both caps stacking would not crash -- the lower one would
-     * win -- but two settings fighting over one behavior is confusing, so
-     * with Dynamic FPS installed this option steps aside entirely and both
-     * UIs grey it out.
-     */
-    private static final String DYNAMIC_FPS_ID = "dynamic_fps";
+    /** The slider position that stands for {@link #OFF}. */
+    public static final int OFF_SLOT = MIN_LIMIT - 1;
 
     private static int limit = OFF;
 
-    /** Resolved on first use: ModList is complete by the first frame. */
-    private static Boolean deferred;
-
     private UnfocusedFpsState() {
-    }
-
-    /** True when another mod owns this behavior and ours must stay out. */
-    public static boolean isDeferredToOtherMod() {
-        if (deferred == null) {
-            deferred = ModList.get().isLoaded(DYNAMIC_FPS_ID);
-        }
-        return deferred;
     }
 
     /** Called once at startup with the value loaded from disk. */
@@ -70,14 +66,17 @@ public final class UnfocusedFpsState {
 
     /** Whether the mixin should cap anything at all. */
     public static boolean isEnabled() {
-        return limit != OFF && !isDeferredToOtherMod();
+        return limit != OFF;
     }
 
-    /** The tooltip to show: the regular one, or why the option is greyed out. */
-    public static String getTooltipKey() {
-        return isDeferredToOtherMod()
-                ? "borderlesswindow.options.unfocused_fps_limit.tooltip_dynamic_fps"
-                : "borderlesswindow.options.unfocused_fps_limit.tooltip";
+    /** Stored value -> slider position. */
+    public static int toSlot(int value) {
+        return value == OFF ? OFF_SLOT : value;
+    }
+
+    /** Slider position -> stored value. */
+    public static int fromSlot(int slot) {
+        return slot <= OFF_SLOT ? OFF : slot;
     }
 
     /** Memory only -- the change applies on the next frame. */

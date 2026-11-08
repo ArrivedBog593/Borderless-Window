@@ -35,17 +35,17 @@ public final class DistanceState {
     public static final int DEFAULT = 0;
 
     public static final int ITEM_MAX = 64;
-    public static final int ITEM_STEP = 4;
+    public static final int ITEM_STEP = 1;
 
     public static final int ORB_MAX = 64;
-    public static final int ORB_STEP = 4;
+    public static final int ORB_STEP = 1;
 
     public static final int ARMOR_STAND_MAX = 160;
-    public static final int ARMOR_STAND_STEP = 8;
+    public static final int ARMOR_STAND_STEP = 1;
 
     /** Vanilla's own particle limit; there is nothing to cap above it. */
     public static final int PARTICLE_MAX = 32;
-    public static final int PARTICLE_STEP = 4;
+    public static final int PARTICLE_STEP = 1;
 
     private static int items = DEFAULT;
     private static int orbs = DEFAULT;

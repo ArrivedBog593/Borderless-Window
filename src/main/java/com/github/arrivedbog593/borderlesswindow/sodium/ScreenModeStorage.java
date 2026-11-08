@@ -12,8 +12,11 @@ import com.github.arrivedbog593.borderlesswindow.fov.FovState;
 import com.github.arrivedbog593.borderlesswindow.fps.FpsOverlayMode;
 import com.github.arrivedbog593.borderlesswindow.fps.FpsOverlayPosition;
 import com.github.arrivedbog593.borderlesswindow.fps.FpsOverlayState;
+import com.github.arrivedbog593.borderlesswindow.fps.IdleFpsState;
+import com.github.arrivedbog593.borderlesswindow.fps.MinimizedRenderState;
 import com.github.arrivedbog593.borderlesswindow.fps.UnfocusedFpsState;
 import com.github.arrivedbog593.borderlesswindow.screeneffect.ScreenEffectState;
+import com.github.arrivedbog593.borderlesswindow.sound.UnfocusedVolumeState;
 import com.github.arrivedbog593.borderlesswindow.window.BorderlessHandler;
 import com.github.arrivedbog593.borderlesswindow.window.F11Mode;
 import com.github.arrivedbog593.borderlesswindow.window.ScreenMode;
@@ -64,6 +67,18 @@ public final class ScreenModeStorage {
 
     private int pendingUnfocusedFpsLimit = UnfocusedFpsState.getLimit();
     private boolean unfocusedFpsLimitDirty = false;
+
+    private int pendingUnfocusedVolume = UnfocusedVolumeState.getPercent();
+    private boolean unfocusedVolumeDirty = false;
+
+    private boolean pendingMinimizedSkipRender = MinimizedRenderState.isEnabled();
+    private boolean minimizedSkipRenderDirty = false;
+
+    private int pendingIdleFpsDelay = IdleFpsState.getDelayMinutes();
+    private boolean idleFpsDelayDirty = false;
+
+    private int pendingIdleFpsLimit = IdleFpsState.getLimit();
+    private boolean idleFpsLimitDirty = false;
 
     private boolean pendingTerrainFog = FogState.isTerrainFogEnabled();
     private boolean terrainFogDirty = false;
@@ -148,6 +163,15 @@ public final class ScreenModeStorage {
     private int pendingVanillaFov = 0;
     private boolean vanillaFovDirty = false;
 
+    private int pendingVanillaGlintSpeed = 0;
+    private boolean vanillaGlintSpeedDirty = false;
+
+    private int pendingVanillaGlintStrength = 0;
+    private boolean vanillaGlintStrengthDirty = false;
+
+    private int pendingVanillaMenuBlur = 0;
+    private boolean vanillaMenuBlurDirty = false;
+
     private EnchantmentLevelStyle pendingEnchantmentLevelStyle = EnchantmentLevelState.getStyle();
     private boolean enchantmentLevelStyleDirty = false;
 
@@ -187,13 +211,50 @@ public final class ScreenModeStorage {
         this.fpsOverlayPositionDirty = true;
     }
 
+    /** In slider positions: see UnfocusedFpsState.OFF_SLOT. */
     public int getUnfocusedFpsLimit() {
-        return UnfocusedFpsState.getLimit();
+        return UnfocusedFpsState.toSlot(UnfocusedFpsState.getLimit());
     }
 
     public void setUnfocusedFpsLimit(int limit) {
         this.pendingUnfocusedFpsLimit = limit;
         this.unfocusedFpsLimitDirty = true;
+    }
+
+    public int getUnfocusedVolume() {
+        return UnfocusedVolumeState.getPercent();
+    }
+
+    public void setUnfocusedVolume(int percent) {
+        this.pendingUnfocusedVolume = percent;
+        this.unfocusedVolumeDirty = true;
+    }
+
+    public boolean getMinimizedSkipRender() {
+        return MinimizedRenderState.isEnabled();
+    }
+
+    public void setMinimizedSkipRender(boolean enabled) {
+        this.pendingMinimizedSkipRender = enabled;
+        this.minimizedSkipRenderDirty = true;
+    }
+
+    public int getIdleFpsDelay() {
+        return IdleFpsState.getDelayMinutes();
+    }
+
+    public void setIdleFpsDelay(int minutes) {
+        this.pendingIdleFpsDelay = minutes;
+        this.idleFpsDelayDirty = true;
+    }
+
+    public int getIdleFpsLimit() {
+        return IdleFpsState.getLimit();
+    }
+
+    public void setIdleFpsLimit(int limit) {
+        this.pendingIdleFpsLimit = limit;
+        this.idleFpsLimitDirty = true;
     }
 
     public boolean getTerrainFog() {
@@ -446,6 +507,34 @@ public final class ScreenModeStorage {
         this.vanillaFovDirty = true;
     }
 
+    public int getVanillaGlintSpeed() {
+        return percentOf(Minecraft.getInstance().options.glintSpeed().get());
+    }
+
+    public void setVanillaGlintSpeed(int percent) {
+        this.pendingVanillaGlintSpeed = percent;
+        this.vanillaGlintSpeedDirty = true;
+    }
+
+    public int getVanillaGlintStrength() {
+        return percentOf(Minecraft.getInstance().options.glintStrength().get());
+    }
+
+    public void setVanillaGlintStrength(int percent) {
+        this.pendingVanillaGlintStrength = percent;
+        this.vanillaGlintStrengthDirty = true;
+    }
+
+    /** Already an integer 0..10 in vanilla; no conversion needed. */
+    public int getVanillaMenuBlur() {
+        return Minecraft.getInstance().options.menuBackgroundBlurriness().get();
+    }
+
+    public void setVanillaMenuBlur(int level) {
+        this.pendingVanillaMenuBlur = level;
+        this.vanillaMenuBlurDirty = true;
+    }
+
     private static int percentOf(double value) {
         return (int) Math.round(value * 100.0D);
     }
@@ -486,8 +575,28 @@ public final class ScreenModeStorage {
         }
 
         if (this.unfocusedFpsLimitDirty) {
-            UnfocusedFpsState.setLimit(this.pendingUnfocusedFpsLimit);
+            UnfocusedFpsState.setLimit(UnfocusedFpsState.fromSlot(this.pendingUnfocusedFpsLimit));
             this.unfocusedFpsLimitDirty = false;
+        }
+
+        if (this.unfocusedVolumeDirty) {
+            UnfocusedVolumeState.setPercent(this.pendingUnfocusedVolume);
+            this.unfocusedVolumeDirty = false;
+        }
+
+        if (this.minimizedSkipRenderDirty) {
+            MinimizedRenderState.setEnabled(this.pendingMinimizedSkipRender);
+            this.minimizedSkipRenderDirty = false;
+        }
+
+        if (this.idleFpsDelayDirty) {
+            IdleFpsState.setDelayMinutes(this.pendingIdleFpsDelay);
+            this.idleFpsDelayDirty = false;
+        }
+
+        if (this.idleFpsLimitDirty) {
+            IdleFpsState.setLimit(this.pendingIdleFpsLimit);
+            this.idleFpsLimitDirty = false;
         }
 
         if (this.terrainFogDirty) {
@@ -613,7 +722,9 @@ public final class ScreenModeStorage {
         // Vanilla options: written straight to options.txt. save() is
         // called once per flush rather than per option, since Sodium
         // applies a whole screenful at a time.
-        if (this.vanillaDistortionDirty || this.vanillaFovDirty) {
+        if (this.vanillaDistortionDirty || this.vanillaFovDirty
+                || this.vanillaGlintSpeedDirty || this.vanillaGlintStrengthDirty
+                || this.vanillaMenuBlurDirty) {
             Options options = Minecraft.getInstance().options;
             if (this.vanillaDistortionDirty) {
                 options.screenEffectScale().set(this.pendingVanillaDistortion / 100.0D);
@@ -622,6 +733,18 @@ public final class ScreenModeStorage {
             if (this.vanillaFovDirty) {
                 options.fovEffectScale().set(this.pendingVanillaFov / 100.0D);
                 this.vanillaFovDirty = false;
+            }
+            if (this.vanillaGlintSpeedDirty) {
+                options.glintSpeed().set(this.pendingVanillaGlintSpeed / 100.0D);
+                this.vanillaGlintSpeedDirty = false;
+            }
+            if (this.vanillaGlintStrengthDirty) {
+                options.glintStrength().set(this.pendingVanillaGlintStrength / 100.0D);
+                this.vanillaGlintStrengthDirty = false;
+            }
+            if (this.vanillaMenuBlurDirty) {
+                options.menuBackgroundBlurriness().set(this.pendingVanillaMenuBlur);
+                this.vanillaMenuBlurDirty = false;
             }
             options.save();
         }

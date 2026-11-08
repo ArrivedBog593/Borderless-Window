@@ -9,8 +9,11 @@ import com.github.arrivedbog593.borderlesswindow.enchantment.EnchantmentLevelSta
 import com.github.arrivedbog593.borderlesswindow.fog.FogState;
 import com.github.arrivedbog593.borderlesswindow.fov.FovState;
 import com.github.arrivedbog593.borderlesswindow.fps.FpsOverlayState;
+import com.github.arrivedbog593.borderlesswindow.fps.IdleFpsState;
+import com.github.arrivedbog593.borderlesswindow.fps.MinimizedRenderState;
 import com.github.arrivedbog593.borderlesswindow.fps.UnfocusedFpsState;
 import com.github.arrivedbog593.borderlesswindow.screeneffect.ScreenEffectState;
+import com.github.arrivedbog593.borderlesswindow.sound.UnfocusedVolumeState;
 import com.mojang.blaze3d.platform.Window;
 import org.lwjgl.PointerBuffer;
 import org.lwjgl.glfw.GLFWVidMode;
@@ -107,6 +110,9 @@ public final class BorderlessHandler {
         f11Target = config.f11Mode();
         FpsOverlayState.init(config.fpsOverlayMode(), config.fpsOverlayPosition());
         UnfocusedFpsState.init(config.unfocusedFpsLimit());
+        UnfocusedVolumeState.init(config.unfocusedVolume());
+        MinimizedRenderState.init(config.minimizedSkipRender());
+        IdleFpsState.init(config.idleFpsDelay(), config.idleFpsLimit());
         FogState.init(config.terrainFog(), config.waterFog(),
                 config.lavaFog(), config.powderSnowFog());
         CloudState.init(config.cloudHeight());

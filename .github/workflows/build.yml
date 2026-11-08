@@ -64,8 +64,8 @@ jobs:
           if-no-files-found: error
 
   # Publishes the jar to CurseForge only when the pushed commit message contains [curseforge], optionally with a
-  # release type: [curseforge], [curseforge beta] or [curseforge alpha]. The changelog is
-  # changelogs/changelog-<version>.md without its "# x.y.z" title or, without it, the body of the commit message.
+  # release type: [curseforge], [curseforge beta] or [curseforge alpha]. The changelog is the English part of
+  # changelogs/changelog-<version>.md or, without it, the body of the commit message.
   # Needs the CURSEFORGE_TOKEN secret and the CURSEFORGE_PROJECT_ID variable of the repository. It is its own job so
   # only it gets write access.
   publish-curseforge:
@@ -99,12 +99,13 @@ jobs:
           RELEASE_TYPE=release
           if [[ "$COMMIT_MESSAGE" =~ \[curseforge\ (alpha|beta|release)\] ]]; then RELEASE_TYPE="${BASH_REMATCH[1]}"; fi
 
-          # The changelog file minus its "# x.y.z" title (CurseForge already shows the version), else the commit
+          # The English part of changelogs/changelog-<version>.md (from the first "## " heading up to the "---" or
+          # <details> before the Spanish notes; CurseForge already shows the version and date), else the commit
           # message without its first line and without the [curseforge] markers, else a plain line
           CHANGELOG=""
           file="changelogs/changelog-$MOD_VERSION.md"
           if [ -f "$file" ]; then
-            CHANGELOG=$(sed '1{/^# /d}' "$file" | sed '/./,$!d')
+            CHANGELOG=$(awk '/^---[[:space:]]*$/ || /^<details>/{ exit } /^## /{ found=1 } found' "$file")
           fi
           if [ -z "$CHANGELOG" ]; then
             CHANGELOG=$(printf '%s\n' "$COMMIT_MESSAGE" | tail -n +2 | sed -E 's/\[curseforge[^]]*\]//g' | sed '/./,$!d')

@@ -2,6 +2,7 @@
   "config.borderlesswindow.title": "Configuración de Borderless Window",
   "config.borderlesswindow.section.window": "Ventana",
   "config.borderlesswindow.section.fps": "Contador de FPS",
+  "config.borderlesswindow.section.background": "Segundo plano",
   "config.borderlesswindow.section.fog": "Niebla",
   "config.borderlesswindow.section.clouds": "Nubes",
   "config.borderlesswindow.section.overlays": "Overlays de pantalla",
@@ -12,6 +13,8 @@
   "config.borderlesswindow.section.distances": "Distancias",
 
   "borderlesswindow.options.sodium.pages.general": "General",
+  "borderlesswindow.options.sodium.pages.enchantments": "Encantamientos",
+  "borderlesswindow.options.sodium.pages.fps": "FPS y segundo plano",
   "borderlesswindow.options.sodium.pages.visuals": "Efectos visuales",
   "borderlesswindow.options.sodium.pages.camera": "Cámara",
   "borderlesswindow.options.sodium.pages.distances": "Distancias",
@@ -28,6 +31,9 @@
   "borderlesswindow.f11_mode.fullscreen": "Pantalla completa",
   "borderlesswindow.f11_mode.cycle": "Alternar entre los 3 modos",
 
+  "borderlesswindow.options.vanilla_menu_blur.name": "Desenfoque de menús (Minecraft)",
+  "borderlesswindow.options.vanilla_menu_blur.tooltip": "El control de Desenfoque del fondo del propio Minecraft: cuánto se difumina el mundo detrás de los menús y el inventario. Los ajustes de vídeo de Sodium no lo incluyen, de modo que aquí se recupera. Es el mismo ajuste que está en Accesibilidad y se guarda con las opciones de Minecraft, no con las del mod.",
+
   "borderlesswindow.options.fps_overlay_mode.name": "Contador de FPS",
   "borderlesswindow.options.fps_overlay_mode.tooltip": "Muestra un contador de FPS en pantalla. Simple muestra solo los FPS actuales; Extendido muestra una sola línea con los FPS actuales más el Mín, la Media y el Máx de los últimos 15 segundos. El contador se oculta solo mientras la pantalla de depuración (F3) está abierta o la interfaz está oculta (F1).",
   "borderlesswindow.options.fps_overlay_position.name": "Posición del contador",
@@ -43,7 +49,16 @@
   "borderlesswindow.fps_overlay.extended": "%s FPS (Mín %s \u00b7 Media %s \u00b7 Máx %s)",
   "borderlesswindow.options.unfocused_fps_limit.name": "Límite de FPS sin foco",
   "borderlesswindow.options.unfocused_fps_limit.tooltip": "Limita los FPS mientras la ventana del juego no tiene el foco: al hacer Alt+Tab, al minimizarla o al hacer clic en otra ventana o monitor. Ahorra GPU y temperatura mientras el juego está en segundo plano. Desactivado mantiene lo normal del juego, que sigue renderizando a toda velocidad. Si tus FPS máximos ya son más bajos, se respetan esos. El límite se quita en cuanto vuelves al juego.",
-  "borderlesswindow.options.unfocused_fps_limit.tooltip_dynamic_fps": "Desactivado porque tienes Dynamic FPS instalado: ese mod ya limita los FPS en segundo plano, de modo que esto se ajusta desde sus propias opciones.",
+  "borderlesswindow.options.idle_fps_delay.name": "Límite por inactividad tras",
+  "borderlesswindow.options.idle_fps_delay.tooltip": "Baja los FPS después de estos minutos sin usar el teclado ni el ratón, aunque la ventana del juego esté enfocada. Útil cuando te alejas del ordenador con el juego abierto. Cualquier tecla, clic, desplazamiento o movimiento del ratón quita el límite al instante. Desactivado deja lo normal del juego.",
+  "borderlesswindow.options.idle_fps_delay.minutes": "%s min",
+  "borderlesswindow.options.idle_fps_limit.name": "Límite de FPS por inactividad",
+  "borderlesswindow.options.idle_fps_limit.tooltip": "El límite de FPS que se aplica una vez pasado el tiempo de inactividad de arriba. Si tus FPS máximos o tu límite sin foco son más bajos, se respetan esos.",
+  "borderlesswindow.options.minimized_skip_render.name": "Pausar renderizado al minimizar",
+  "borderlesswindow.options.minimized_skip_render.tooltip": "Deja de dibujar fotogramas mientras la ventana del juego está minimizada y baja el ciclo del juego a 10 FPS. El juego sigue funcionando: el mundo, los sonidos y las conexiones multijugador no se ven afectados; solo se detiene la imagen hasta que restauras la ventana. Ahorra más GPU que el límite de FPS sin foco. Desactivado deja lo normal del juego.",
+  "borderlesswindow.options.unfocused_volume.name": "Volumen sin foco",
+  "borderlesswindow.options.unfocused_volume.tooltip": "Baja el volumen del juego mientras la ventana no está enfocada: al hacer Alt+Tab, al minimizarla o al hacer clic en otra ventana o monitor. Es una proporción de tu Volumen general; Silenciado lo apaga por completo. 100% deja lo normal del juego. El volumen completo vuelve en cuanto regresas al juego.",
+  "borderlesswindow.options.unfocused_volume.muted": "Silenciado",
 
   "borderlesswindow.options.fog_terrain.name": "Niebla de terreno",
   "borderlesswindow.options.fog_terrain.tooltip": "La neblina atmosférica que difumina el terreno lejano, incluida la niebla densa del Nether. Desactívala para ver más lejos y con más claridad. La niebla de los efectos de Ceguera y Oscuridad nunca se ve afectada por estas opciones.",
@@ -109,6 +124,11 @@
   "borderlesswindow.enchantment_level_style.mixed": "Mixto",
   "borderlesswindow.enchantment_level_style.roman": "Siempre romanos",
   "borderlesswindow.enchantment_level_style.arabic": "Siempre números",
+
+  "borderlesswindow.options.vanilla_glint_speed.name": "Velocidad del brillo (Minecraft)",
+  "borderlesswindow.options.vanilla_glint_speed.tooltip": "El control de Velocidad del brillo del propio Minecraft: lo rápido que se mueve el destello en los objetos encantados. Los ajustes de vídeo de Sodium no lo incluyen, de modo que aquí se recupera. Es el mismo ajuste que está en Accesibilidad y se guarda con las opciones de Minecraft, no con las del mod.",
+  "borderlesswindow.options.vanilla_glint_strength.name": "Intensidad del brillo (Minecraft)",
+  "borderlesswindow.options.vanilla_glint_strength.tooltip": "El control de Intensidad del brillo del propio Minecraft: lo visible que es el destello en los objetos encantados. Desactivado lo oculta por completo. Los ajustes de vídeo de Sodium no lo incluyen, de modo que aquí se recupera. Es el mismo ajuste que está en Accesibilidad y se guarda con las opciones de Minecraft, no con las del mod.",
 
   "borderlesswindow.options.distance.blocks": "%s bloques",
   "borderlesswindow.options.distance_items.name": "Objetos tirados",

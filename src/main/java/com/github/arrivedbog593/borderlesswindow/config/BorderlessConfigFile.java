@@ -12,8 +12,11 @@ import com.github.arrivedbog593.borderlesswindow.fov.FovState;
 import com.github.arrivedbog593.borderlesswindow.fps.FpsOverlayMode;
 import com.github.arrivedbog593.borderlesswindow.fps.FpsOverlayPosition;
 import com.github.arrivedbog593.borderlesswindow.fps.FpsOverlayState;
+import com.github.arrivedbog593.borderlesswindow.fps.IdleFpsState;
+import com.github.arrivedbog593.borderlesswindow.fps.MinimizedRenderState;
 import com.github.arrivedbog593.borderlesswindow.fps.UnfocusedFpsState;
 import com.github.arrivedbog593.borderlesswindow.screeneffect.ScreenEffectState;
+import com.github.arrivedbog593.borderlesswindow.sound.UnfocusedVolumeState;
 import com.github.arrivedbog593.borderlesswindow.window.BorderlessHandler;
 import com.github.arrivedbog593.borderlesswindow.window.F11Mode;
 import com.github.arrivedbog593.borderlesswindow.window.ScreenMode;
@@ -34,7 +37,8 @@ import java.nio.file.Path;
  * <p>
  * Deliberately fault-tolerant: if the file is missing, corrupt, or has
  * invalid or absent values, the defaults are used (Windowed / F11 ->
- * Borderless / FPS overlay off, top-left / no unfocused FPS cap / all fog enabled / cloud height
+ * Borderless / FPS overlay off, top-left / no unfocused FPS cap / no idle FPS
+ * cap / full volume while unfocused / rendering while minimized / all fog enabled / cloud height
  * default / water and fire overlays on, smart fire off / full camera and
  * hand bobbing / mixed enchantment numerals) without crashing.
  * Configs written by older versions of the mod simply lack the newer
@@ -52,6 +56,10 @@ public final class BorderlessConfigFile {
         String fps_overlay_mode = FpsOverlayMode.OFF.name();
         String fps_overlay_position = FpsOverlayPosition.TOP_LEFT.name();
         int unfocused_fps_limit = UnfocusedFpsState.OFF;
+        int unfocused_volume = UnfocusedVolumeState.DEFAULT_PERCENT;
+        boolean minimized_skip_render = false;
+        int idle_fps_delay = IdleFpsState.OFF;
+        int idle_fps_limit = IdleFpsState.DEFAULT_LIMIT;
         boolean fog_terrain = true;
         boolean fog_water = true;
         boolean fog_lava = true;
@@ -82,7 +90,9 @@ public final class BorderlessConfigFile {
     public record LoadedConfig(ScreenMode screenMode, F11Mode f11Mode,
                                FpsOverlayMode fpsOverlayMode,
                                FpsOverlayPosition fpsOverlayPosition,
-                               int unfocusedFpsLimit,
+                               int unfocusedFpsLimit, int unfocusedVolume,
+                               boolean minimizedSkipRender,
+                               int idleFpsDelay, int idleFpsLimit,
                                boolean terrainFog, boolean waterFog,
                                boolean lavaFog, boolean powderSnowFog,
                                int cloudHeight,
@@ -120,7 +130,9 @@ public final class BorderlessConfigFile {
                 parseOrDefault(FpsOverlayMode.class, data.fps_overlay_mode, FpsOverlayMode.OFF),
                 parseOrDefault(FpsOverlayPosition.class, data.fps_overlay_position,
                         FpsOverlayPosition.TOP_LEFT),
-                data.unfocused_fps_limit,
+                data.unfocused_fps_limit, data.unfocused_volume,
+                data.minimized_skip_render,
+                data.idle_fps_delay, data.idle_fps_limit,
                 data.fog_terrain, data.fog_water, data.fog_lava, data.fog_powder_snow,
                 data.cloud_height,
                 data.overlay_water, data.overlay_fire, data.overlay_fire_smart,
@@ -154,6 +166,10 @@ public final class BorderlessConfigFile {
         data.fps_overlay_mode = FpsOverlayState.getMode().name();
         data.fps_overlay_position = FpsOverlayState.getPosition().name();
         data.unfocused_fps_limit = UnfocusedFpsState.getLimit();
+        data.unfocused_volume = UnfocusedVolumeState.getPercent();
+        data.minimized_skip_render = MinimizedRenderState.isEnabled();
+        data.idle_fps_delay = IdleFpsState.getDelayMinutes();
+        data.idle_fps_limit = IdleFpsState.getLimit();
         data.fog_terrain = FogState.isTerrainFogEnabled();
         data.fog_water = FogState.isWaterFogEnabled();
         data.fog_lava = FogState.isLavaFogEnabled();

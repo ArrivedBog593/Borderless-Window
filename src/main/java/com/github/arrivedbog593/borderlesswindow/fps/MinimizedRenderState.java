@@ -1,0 +1,60 @@
+package com.github.arrivedbog593.borderlesswindow.fps;
+
+import com.github.arrivedbog593.borderlesswindow.config.BorderlessConfigFile;
+import net.minecraft.client.Minecraft;
+import org.lwjgl.glfw.GLFW;
+
+/**
+ * Holds the "skip rendering while minimized" toggle. MinecraftMixin
+ * consults it every frame: while the window is minimized it skips
+ * GameRenderer.render() and caps the loop at {@link #MINIMIZED_FPS}.
+ * <p>
+ * WHY BOTH. Skipping the draw alone would leave runTick spinning as fast
+ * as the CPU allows -- a minimized window has nothing to vsync against --
+ * so the frame rate is capped too. Skipping only the draw keeps everything
+ * else in runTick running: client ticks, network packets, sound, the
+ * integrated server. Only the picture stops, and it resumes on the first
+ * frame after the window is restored.
+ * <p>
+ * WHY 10 FPS. runTick runs at most 10 client ticks per frame and drops the
+ * rest, so the loop needs at least 2 frames per second to keep the 20
+ * ticks per second the game expects; 10 leaves ample headroom. It is also
+ * what vanilla 1.21.2+ uses for a minimized window -- drop this feature
+ * along with UnfocusedFpsState when porting.
+ * <p>
+ * Minimized is read straight from GLFW (GLFW_ICONIFIED) each frame rather
+ * than tracked through an iconify callback: vanilla installs none, and
+ * installing ours could silently replace another mod's.
+ */
+public final class MinimizedRenderState {
+
+    public static final int MINIMIZED_FPS = 10;
+
+    private static boolean enabled = false;
+
+    private MinimizedRenderState() {
+    }
+
+    /** Called once at startup with the value loaded from disk. */
+    public static void init(boolean loadedEnabled) {
+        enabled = loadedEnabled;
+    }
+
+    public static boolean isEnabled() {
+        return enabled;
+    }
+
+    public static void setEnabled(boolean value) {
+        enabled = value;
+        BorderlessConfigFile.saveCurrent();
+    }
+
+    /** Whether this frame should skip drawing. The toggle is checked first, so the default never calls GLFW. */
+    public static boolean shouldSkipRendering() {
+        if (!enabled) {
+            return false;
+        }
+        long handle = Minecraft.getInstance().getWindow().getWindow();
+        return GLFW.glfwGetWindowAttrib(handle, GLFW.GLFW_ICONIFIED) == GLFW.GLFW_TRUE;
+    }
+}
