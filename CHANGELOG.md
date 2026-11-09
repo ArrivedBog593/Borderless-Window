@@ -6,6 +6,7 @@ English only.
 
 | Version | Notes                                               |
 |---------|-----------------------------------------------------|
+| 1.9.0   | [changelog-1.9.0.md](changelogs/changelog-1.9.0.md) |
 | 1.8.0   | [changelog-1.8.0.md](changelogs/changelog-1.8.0.md) |
 | 1.7.0   | [changelog-1.7.0.md](changelogs/changelog-1.7.0.md) |
 | 1.6.1   | [changelog-1.6.1.md](changelogs/changelog-1.6.1.md) |

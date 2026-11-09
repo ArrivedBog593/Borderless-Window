@@ -1,15 +1,20 @@
 name: Build
 
+# One branch per Minecraft version (NeoFabric/1.21.1, NeoFabric/26.1.2...),
+# each building every loader it supports. This file reads the versions from
+# gradle.properties, so it is the same on every branch.
 on:
   push:
     branches:
-      - master
+      - "NeoFabric/**"
+      - "Fabric/**"
     paths-ignore:
       - "**.md"
       - "LICENSE"
   pull_request:
     branches:
-      - master
+      - "NeoFabric/**"
+      - "Fabric/**"
   workflow_dispatch:
 
 permissions:
@@ -21,13 +26,14 @@ jobs:
     outputs:
       mod_version: ${{ steps.gradle_props.outputs.mod_version }}
       minecraft_version: ${{ steps.gradle_props.outputs.minecraft_version }}
+      loaders: ${{ steps.loaders.outputs.loaders }}
     steps:
       - name: Checkout
         uses: actions/checkout@v7.0.1
 
-      # Must match java.toolchain.languageVersion in build.gradle. If it doesn't,
-      # foojay downloads the right JDK mid-build: it works, but it re-downloads
-      # every run and turns an outage in someone else's service into a failed build.
+      # Must match java_version in gradle.properties. If it doesn't, foojay
+      # downloads the right JDK mid-build: it works, but it re-downloads every
+      # run and turns an outage in someone else's service into a failed build.
       - name: Set up JDK 21
         uses: actions/setup-java@v6.1.0
         with:
@@ -50,30 +56,62 @@ jobs:
             echo "$key=$value" >> "$GITHUB_OUTPUT"
           done
 
+      # The loaders this branch builds are the loader modules it has, so a
+      # Fabric-only branch (Fabric/1.20.1) needs no edit here.
+      - name: Detect loaders
+        id: loaders
+        run: |
+          set -euo pipefail
+          loaders=()
+          for loader in fabric neoforge; do
+            [ -f "$loader/build.gradle" ] && loaders+=("\"$loader\"")
+          done
+          [ ${#loaders[@]} -gt 0 ] || { echo "No loader module found"; exit 1; }
+          echo "loaders=[$(IFS=,; echo "${loaders[*]}")]" >> "$GITHUB_OUTPUT"
+
       - name: Build
         run: ./gradlew build
 
-      # Named exactly, like in release.yml: build/libs/*.jar would also pick up
-      # a sources or javadoc jar the day the build starts producing one.
+      # Named exactly, like in release.yml: a glob would also pick up a
+      # sources or javadoc jar the day the build starts producing one.
+      - name: Collect jars
+        env:
+          MOD_VERSION: ${{ steps.gradle_props.outputs.mod_version }}
+          MC: ${{ steps.gradle_props.outputs.minecraft_version }}
+        run: |
+          set -euo pipefail
+          mkdir -p dist
+          for loader in fabric neoforge; do
+            [ -f "$loader/build.gradle" ] || continue
+            cp "$loader/build/libs/borderlesswindow-$loader-$MOD_VERSION+mc$MC.jar" dist/
+          done
+          ls -l dist
+
       - name: Upload artifact
         uses: actions/upload-artifact@v7
         with:
           name: borderlesswindow-dev
-          path: build/libs/borderlesswindow-${{ steps.gradle_props.outputs.mod_version }}.jar
+          path: dist/*.jar
           retention-days: 14
           if-no-files-found: error
 
-  # Publishes the jar to CurseForge only when the pushed commit message contains [curseforge], optionally with a
-  # release type: [curseforge], [curseforge beta] or [curseforge alpha]. The changelog is the English part of
-  # changelogs/changelog-<version>.md or, without it, the body of the commit message.
-  # Needs the CURSEFORGE_TOKEN secret and the CURSEFORGE_PROJECT_ID variable of the repository. It is its own job so
-  # only it gets write access.
+  # Publishes the jars to CurseForge only when the pushed commit message contains [curseforge], optionally with a
+  # release type: [curseforge], [curseforge beta] or [curseforge alpha]. One upload per loader. The changelog is the
+  # English part of changelogs/changelog-<version>.md or, without it, the body of the commit message. Needs the
+  # CURSEFORGE_TOKEN secret and the CURSEFORGE_PROJECT_ID variable of the repository. It is its own job so only it gets
+  # write access.
   publish-curseforge:
     needs: build
     if: ${{ github.event_name == 'push' && contains(github.event.head_commit.message, '[curseforge') }}
     runs-on: ubuntu-latest
     permissions:
-      contents: write # needed to push the curseforge-* tag
+      contents: write # needed to push the curseforge-* tags
+    strategy:
+      # Each loader uploads on its own: one failing must not cancel the other,
+      # and a re-run then only uploads what is missing (see the tag check).
+      fail-fast: false
+      matrix:
+        loader: ${{ fromJSON(needs.build.outputs.loaders) }}
     steps:
       - name: Checkout
         uses: actions/checkout@v7.0.1
@@ -82,7 +120,7 @@ jobs:
         uses: actions/download-artifact@v8
         with:
           name: borderlesswindow-dev
-          path: build/libs
+          path: dist
 
       - name: Publish to CurseForge
         env:
@@ -91,10 +129,17 @@ jobs:
           COMMIT_MESSAGE: ${{ github.event.head_commit.message }}
           MOD_VERSION: ${{ needs.build.outputs.mod_version }}
           MC: ${{ needs.build.outputs.minecraft_version }}
+          LOADER: ${{ matrix.loader }}
         run: |
           set -euo pipefail
           : "${CURSEFORGE_TOKEN:?Add the CURSEFORGE_TOKEN secret to the repository}"
           : "${CURSEFORGE_PROJECT_ID:?Add the CURSEFORGE_PROJECT_ID variable to the repository}"
+
+          case "$LOADER" in
+            fabric)   LOADER_NAME=Fabric ;;
+            neoforge) LOADER_NAME=NeoForge ;;
+            *) echo "Unknown loader $LOADER"; exit 1 ;;
+          esac
 
           RELEASE_TYPE=release
           if [[ "$COMMIT_MESSAGE" =~ \[curseforge\ (alpha|beta|release)\] ]]; then RELEASE_TYPE="${BASH_REMATCH[1]}"; fi
@@ -110,17 +155,20 @@ jobs:
           if [ -z "$CHANGELOG" ]; then
             CHANGELOG=$(printf '%s\n' "$COMMIT_MESSAGE" | tail -n +2 | sed -E 's/\[curseforge[^]]*\]//g' | sed '/./,$!d')
           fi
-          [ -n "$CHANGELOG" ] || CHANGELOG="Borderless Window $MOD_VERSION for Minecraft $MC."
+          [ -n "$CHANGELOG" ] || CHANGELOG="Borderless Window $MOD_VERSION for $LOADER_NAME $MC."
 
-          # A version that is already on CurseForge (marked with a tag once it was uploaded) is not uploaded again
-          tag="curseforge-neoforge-$MC-$MOD_VERSION"
+          # A version that is already on CurseForge (marked with a tag once it was uploaded) is not uploaded again.
+          # The loader is part of the tag, so each loader's file is tracked on its own.
+          tag="curseforge-$LOADER-$MC-$MOD_VERSION"
           if git ls-remote --exit-code --tags origin "refs/tags/$tag" > /dev/null 2>&1; then
-            echo "$MC $MOD_VERSION is already on CurseForge (tag $tag), not uploading it again"
+            echo "$LOADER_NAME $MC $MOD_VERSION is already on CurseForge (tag $tag), not uploading it again"
             exit 0
           fi
 
-          jar="build/libs/borderlesswindow-$MOD_VERSION.jar"
-          name="Borderless Window $MOD_VERSION"
+          jar="dist/borderlesswindow-$LOADER-$MOD_VERSION+mc$MC.jar"
+          # "Borderless Window NeoForge 1.21.1 1.9.0": loader and Minecraft version up front, so every file is unique
+          # across releases and branches -- each branch uploads the same mod version for its own Minecraft version.
+          name="Borderless Window $LOADER_NAME $MC-$MOD_VERSION"
 
           # Client only: the mod has no server side, so "Server" is deliberately not listed
           metadata=$(jq -nc \
@@ -128,10 +176,11 @@ jobs:
             --arg type "$RELEASE_TYPE" \
             --arg name "$name" \
             --arg mc "$MC" \
+            --arg loader "$LOADER_NAME" \
             '{changelog: $changelog, changelogType: "markdown", releaseType: $type, displayName: $name,
-              gameVersionNames: [$mc, "NeoForge", "Client"]}')
+              gameVersionNames: [$mc, $loader, "Client"]}')
 
-          echo "Uploading $jar to CurseForge as a $RELEASE_TYPE for NeoForge $MC"
+          echo "Uploading $jar to CurseForge as a $RELEASE_TYPE for $LOADER_NAME $MC"
           curl -sS --fail-with-body -X POST \
             "https://minecraft.curseforge.com/api/projects/$CURSEFORGE_PROJECT_ID/upload-file" \
             -H "X-Api-Token: $CURSEFORGE_TOKEN" \

@@ -1,0 +1,39 @@
+{
+  "schemaVersion": 1,
+  "id": "${mod_id}",
+  "version": "${mod_version}",
+  "name": "${mod_name}",
+  "description": "${mod_description}",
+  "authors": [
+    "${mod_authors}"
+  ],
+  "contact": {
+    "sources": "https://github.com/ArrivedBog593/Borderless-Window",
+    "issues": "https://github.com/ArrivedBog593/Borderless-Window/issues"
+  },
+  "license": "${mod_license}",
+  "icon": "assets/${mod_id}/icon.png",
+  "environment": "client",
+  "entrypoints": {
+    "modmenu": [
+      "com.github.arrivedbog593.borderlesswindow.fabric.ModMenuIntegration"
+    ],
+    "sodium:config_api_user": [
+      "com.github.arrivedbog593.borderlesswindow.sodium.ScreenModeConfigEntryPoint"
+    ]
+  },
+  "mixins": [
+    "${mod_id}.mixins.json",
+    "${mod_id}.fabric.mixins.json"
+  ],
+  "depends": {
+    "fabricloader": "${fabric_loader_requirement}",
+    "fabric-resource-loader-v0": "*",
+    "minecraft": "${minecraft_version}",
+    "java": ">=${java_version}"
+  },
+  "suggests": {
+    "sodium": ">=0.8.0",
+    "modmenu": "*"
+  }
+}

@@ -5,7 +5,7 @@
 
 *[English](README.md)*
 
-Un mod ligero client-side para **NeoForge 1.21.1** que agrega **pantalla completa sin bordes** a Minecraft, reemplazando el fullscreen exclusivo con un sistema de 3 modos — más un conjunto de opciones de video y de calidad de vida que Minecraft no ofrece.
+Un mod ligero client-side para **NeoForge y Fabric 1.21.1** que agrega **pantalla completa sin bordes** a Minecraft, reemplazando el fullscreen exclusivo con un sistema de 3 modos — más un conjunto de opciones de video y de calidad de vida que Minecraft no ofrece.
 
 ## Características
 
@@ -38,9 +38,10 @@ Un mod ligero client-side para **NeoForge 1.21.1** que agrega **pantalla complet
 
 ### Configuración y compatibilidad
 
-- **Pantalla de configuración incluida**: cambia todo desde el menú de Mods (selecciona el mod → botón Config). No requiere ningún otro mod.
+- **NeoForge y Fabric**: el mismo mod, con todas sus funciones, en los dos loaders. Incluso comparten el mismo archivo de configuración.
+- **Integrado en los menús del propio Minecraft**: sin Sodium, el interruptor de "Pantalla completa" de los Ajustes de video se convierte en un selector de "Modo de pantalla", y un botón "Borderless Window..." ahí mismo abre la pantalla de configuración completa. No requiere ningún otro mod en ninguno de los dos loaders.
 - **Integración con Sodium** (opcional): con [Sodium](https://www.curseforge.com/minecraft/mc-mods/sodium) 0.8.x instalado, el checkbox de "Pantalla completa" de su menú de video se reemplaza por un selector de "Modo de pantalla", y el mod obtiene su propia sección con seis páginas. Construido completamente sobre la Config API oficial de Sodium — sin mixins frágiles a sus clases internas. También funciona bien con Reese's Sodium Options.
-- **Cero dependencias obligatorias**: funciona con o sin Sodium.
+- **Nada más que instalar**: funciona con o sin Sodium. En Fabric no requiere Fabric API — la única pieza pequeña que usa, para cargar sus traducciones, viene dentro del jar, igual que hace Sodium. Mod Menu es opcional.
 - **Persistente**: todos los ajustes se recuerdan entre sesiones (`config/borderlesswindow.json`).
 - **Traducible**: todos los textos viven en lang files estándar (`en_us`, `es_mx`, `es_es` incluidos — se aceptan contribuciones).
 
@@ -50,7 +51,7 @@ El fullscreen exclusivo cambia el modo de video real del monitor, lo que causa a
 
 ## Configuración
 
-- **En juego (sin Sodium):** menú de Mods → Borderless Window → Config. Todas las opciones viven en una sola lista con scroll agrupada por feature, en el mismo orden que las páginas de Sodium. Los cambios aplican al instante.
+- **En juego (sin Sodium):** Opciones → Ajustes de video → el selector de "Modo de pantalla" (en lugar de "Pantalla completa") y el botón "Borderless Window..." al final. La misma pantalla de configuración también se abre desde el menú de Mods de NeoForge (botón Config) y, en Fabric, desde Mod Menu si lo tienes instalado. Todas las opciones viven en una sola lista con scroll agrupada por feature, en el mismo orden que las páginas de Sodium. Los cambios aplican al instante.
 - **En juego (con Sodium):** Ajustes de video → la opción "Modo de pantalla" (reemplaza el checkbox de fullscreen de Sodium) y la sección "Borderless Window" con sus seis páginas: General, Encantamientos, FPS y segundo plano, Efectos visuales, Cámara y Distancias. Los sliders del propio Minecraft que Sodium deja fuera están en las páginas con las que se relacionan; se guardan con las opciones de Minecraft, igual que si los cambiaras desde su menú de Accesibilidad.
 - **Archivo de config:** `config/borderlesswindow.json`. Si el mod queda en un estado raro, borra este archivo y reinicia — los valores por defecto se regeneran sin problema.
 
@@ -61,8 +62,11 @@ Todos los ajustes vienen por defecto en el comportamiento normal del juego, así
 ## Requisitos
 
 - Minecraft **1.21.1**
-- **NeoForge** 21.1.x
+- **NeoForge** 21.1.x, o **Fabric Loader** 0.16.0+ (no requiere Fabric API)
 - (Opcional) **Sodium 0.8.0+** para la integración con el menú de video
+- (Opcional, Fabric) **Mod Menu**, para abrir también la configuración desde su lista de mods
+
+Descarga el jar de tu loader: `borderlesswindow-neoforge-…` o `borderlesswindow-fabric-…`.
 
 ## Licencia
 

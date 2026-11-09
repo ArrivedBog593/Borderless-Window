@@ -1,0 +1,14 @@
+{
+  "required": true,
+  "package": "com.github.arrivedbog593.borderlesswindow.fabric.mixin",
+  "compatibilityLevel": "JAVA_21",
+  "mixins": [
+    "FogRendererMixin",
+    "GuiRenderMixin",
+    "MinecraftInitMixin",
+    "ScreenEffectRendererMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}

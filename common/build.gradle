@@ -1,0 +1,46 @@
+// The code every loader shares. Compiled against plain Minecraft (NeoForm),
+// with no loader API on the classpath: using one by mistake here fails to
+// compile instead of failing on the other loader at runtime.
+plugins {
+    id 'multiloader-common'
+    id 'net.neoforged.moddev'
+}
+
+neoForge {
+    neoFormVersion = neo_form_version
+
+    parchment {
+        mappingsVersion = parchment_mappings_version
+        minecraftVersion = parchment_minecraft_version
+    }
+}
+
+dependencies {
+    // Each loader brings its own Mixin and MixinExtras at runtime; common/
+    // only needs their annotations to compile.
+    compileOnly 'net.fabricmc:sponge-mixin:0.15.2+mixin.0.8.7'
+    compileOnly "io.github.llamalad7:mixinextras-common:${mixin_extras_version}"
+
+    // Not transitive: the jar's metadata points at NeoForge itself, which
+    // must stay off common/'s classpath.
+    compileOnly("net.caffeinemc:sodium-neoforge-api:${sodium_api_version}") {
+        transitive = false
+    }
+}
+
+// What the loader modules pull in (see multiloader-loader.gradle).
+configurations {
+    commonJava {
+        canBeResolved = false
+        canBeConsumed = true
+    }
+    commonResources {
+        canBeResolved = false
+        canBeConsumed = true
+    }
+}
+
+artifacts {
+    commonJava sourceSets.main.java.sourceDirectories.singleFile
+    commonResources sourceSets.main.resources.sourceDirectories.singleFile
+}

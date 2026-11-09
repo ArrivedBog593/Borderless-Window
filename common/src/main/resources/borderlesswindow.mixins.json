@@ -1,0 +1,26 @@
+{
+  "required": true,
+  "package": "com.github.arrivedbog593.borderlesswindow.mixin",
+  "compatibilityLevel": "JAVA_21",
+  "mixins": [
+    "AbstractClientPlayerMixin",
+    "CloudHeightMixin",
+    "EnchantmentMixin",
+    "EntityMixin",
+    "EntityRenderDispatcherMixin",
+    "GameRendererMixin",
+    "GuiMixin",
+    "KeyboardHandlerMixin",
+    "LevelRendererMixin",
+    "ListenerMixin",
+    "LocalPlayerMixin",
+    "MinecraftMixin",
+    "MouseHandlerMixin",
+    "SoundManagerAccessor",
+    "VideoSettingsScreenMixin",
+    "WindowMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}

@@ -1,0 +1,80 @@
+// Shared by every module: common/ and each loader.
+plugins {
+    id 'java-library'
+    id 'idea'
+}
+
+// The Minecraft version rides in the version, Sodium-style
+// (borderlesswindow-neoforge-1.8.0+mc1.21.1.jar): every branch builds for a
+// different one, and jars from two branches must never share a name.
+version = "${mod_version}+mc${minecraft_version}"
+group = mod_group_id
+
+base {
+    archivesName = "${mod_id}-${project.name}"
+}
+
+java.toolchain.languageVersion = JavaLanguageVersion.of(java_version)
+
+repositories {
+    mavenCentral()
+    exclusiveContent {
+        forRepository {
+            maven {
+                name = 'CaffeineMC'
+                url = 'https://maven.caffeinemc.net/releases'
+            }
+        }
+        filter { includeGroup('net.caffeinemc') }
+    }
+    exclusiveContent {
+        forRepository {
+            maven {
+                name = 'Fabric'
+                url = 'https://maven.fabricmc.net'
+            }
+        }
+        // Subgroups too: Fabric API lives in net.fabricmc.fabric-api.
+        filter { includeGroupAndSubgroups('net.fabricmc') }
+    }
+    // ModDevGradle adds this one by itself; Loom (fabric/) needs it declared.
+    exclusiveContent {
+        forRepository {
+            maven {
+                name = 'ParchmentMC'
+                url = 'https://maven.parchmentmc.org'
+            }
+        }
+        filter { includeGroup('org.parchmentmc.data') }
+    }
+    exclusiveContent {
+        forRepository {
+            maven {
+                name = 'TerraformersMC'
+                url = 'https://maven.terraformersmc.com/releases'
+            }
+        }
+        filter { includeGroup('com.terraformersmc') }
+    }
+}
+
+tasks.withType(JavaCompile).configureEach {
+    options.encoding = 'UTF-8'
+}
+
+// Captured now: with the configuration cache on, the rename closure runs
+// with no project to look mod_id up in.
+def licenseSuffix = "_${mod_id}"
+jar {
+    from(rootProject.file('LICENSE')) {
+        rename { "${it}${licenseSuffix}" }
+    }
+}
+
+// IDEA no longer downloads sources/javadoc jars for dependencies on its own.
+idea {
+    module {
+        downloadSources = true
+        downloadJavadoc = true
+    }
+}

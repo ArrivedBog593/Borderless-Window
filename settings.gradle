@@ -1,11 +1,33 @@
 pluginManagement {
     repositories {
-        mavenLocal()
         gradlePluginPortal()
+        mavenCentral()
         maven { url = 'https://maven.neoforged.net/releases' }
+        exclusiveContent {
+            forRepository {
+                maven {
+                    name = 'Fabric'
+                    url = 'https://maven.fabricmc.net'
+                }
+            }
+            filter {
+                // Loom pulls subgroups too (net.fabricmc.unpick...).
+                includeGroupAndSubgroups('net.fabricmc')
+                includeGroup('fabric-loom')
+            }
+        }
     }
 }
 
 plugins {
     id 'org.gradle.toolchains.foojay-resolver-convention' version '0.8.0'
 }
+
+rootProject.name = 'Borderless Window'
+
+// One module per loader, plus the code they share. common/ holds nearly
+// everything: state, mixins, config, both UIs. Each loader module adds only
+// its entry point and the glue to that loader's events.
+include('common')
+include('fabric')
+include('neoforge')
