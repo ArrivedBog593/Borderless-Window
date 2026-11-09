@@ -26,6 +26,7 @@ jobs:
     outputs:
       mod_version: ${{ steps.gradle_props.outputs.mod_version }}
       minecraft_version: ${{ steps.gradle_props.outputs.minecraft_version }}
+      java_version: ${{ steps.gradle_props.outputs.java_version }}
       loaders: ${{ steps.loaders.outputs.loaders }}
     steps:
       - name: Checkout
@@ -50,7 +51,7 @@ jobs:
         id: gradle_props
         run: |
           set -euo pipefail
-          for key in mod_version minecraft_version; do
+          for key in mod_version minecraft_version java_version; do
             value=$(grep -E "^$key=" gradle.properties | head -n1 | cut -d= -f2- | tr -d '[:space:]')
             [ -n "$value" ] || { echo "$key not found in gradle.properties"; exit 1; }
             echo "$key=$value" >> "$GITHUB_OUTPUT"
@@ -129,6 +130,7 @@ jobs:
           COMMIT_MESSAGE: ${{ github.event.head_commit.message }}
           MOD_VERSION: ${{ needs.build.outputs.mod_version }}
           MC: ${{ needs.build.outputs.minecraft_version }}
+          JAVA: ${{ needs.build.outputs.java_version }}
           LOADER: ${{ matrix.loader }}
         run: |
           set -euo pipefail
@@ -166,19 +168,21 @@ jobs:
           fi
 
           jar="dist/borderlesswindow-$LOADER-$MOD_VERSION+mc$MC.jar"
-          # "Borderless Window NeoForge 1.21.1 1.9.0": loader and Minecraft version up front, so every file is unique
+          # "Borderless Window NeoForge 1.21.1-1.9.0": loader and Minecraft version up front, so every file is unique
           # across releases and branches -- each branch uploads the same mod version for its own Minecraft version.
           name="Borderless Window $LOADER_NAME $MC-$MOD_VERSION"
 
-          # Client only: the mod has no server side, so "Server" is deliberately not listed
+          # Client only: the mod has no server side, so "Server" is deliberately not listed. The Java tag comes from
+          # java_version, so a branch on a newer Java (26.x needs 25) is tagged right without editing this file.
           metadata=$(jq -nc \
             --arg changelog "$CHANGELOG" \
             --arg type "$RELEASE_TYPE" \
             --arg name "$name" \
             --arg mc "$MC" \
             --arg loader "$LOADER_NAME" \
+            --arg java "Java $JAVA" \
             '{changelog: $changelog, changelogType: "markdown", releaseType: $type, displayName: $name,
-              gameVersionNames: [$mc, $loader, "Client"]}')
+              gameVersionNames: [$mc, $java, $loader, "Client"]}')
 
           echo "Uploading $jar to CurseForge as a $RELEASE_TYPE for $LOADER_NAME $MC"
           curl -sS --fail-with-body -X POST \
