@@ -137,9 +137,15 @@ jobs:
           : "${CURSEFORGE_TOKEN:?Add the CURSEFORGE_TOKEN secret to the repository}"
           : "${CURSEFORGE_PROJECT_ID:?Add the CURSEFORGE_PROJECT_ID variable to the repository}"
 
+          # Each file states its own optional integrations, so a loader never lists a mod that does not exist for it:
+          # Sodium is on both, Mod Menu is Fabric-only. Slug plus project ID, which the Upload API takes for an exact
+          # match. Keep the project's Default Relations to what fits every loader (Sodium): the API docs do not say
+          # whether defaults get merged into files uploaded with their own relations.
+          SODIUM='{"slug": "sodium", "projectID": "394468", "type": "optionalDependency"}'
+          MODMENU='{"slug": "modmenu", "projectID": "308702", "type": "optionalDependency"}'
           case "$LOADER" in
-            fabric)   LOADER_NAME=Fabric ;;
-            neoforge) LOADER_NAME=NeoForge ;;
+            fabric)   LOADER_NAME=Fabric;   RELATIONS="[$SODIUM, $MODMENU]" ;;
+            neoforge) LOADER_NAME=NeoForge; RELATIONS="[$SODIUM]" ;;
             *) echo "Unknown loader $LOADER"; exit 1 ;;
           esac
 
@@ -181,8 +187,10 @@ jobs:
             --arg mc "$MC" \
             --arg loader "$LOADER_NAME" \
             --arg java "Java $JAVA" \
+            --argjson relations "$RELATIONS" \
             '{changelog: $changelog, changelogType: "markdown", releaseType: $type, displayName: $name,
-              gameVersionNames: [$mc, $java, $loader, "Client"]}')
+              gameVersionNames: [$mc, $java, $loader, "Client"],
+              relations: {projects: $relations}}')
 
           echo "Uploading $jar to CurseForge as a $RELEASE_TYPE for $LOADER_NAME $MC"
           curl -sS --fail-with-body -X POST \
