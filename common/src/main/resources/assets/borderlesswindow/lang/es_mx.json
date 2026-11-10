@@ -137,7 +137,7 @@
   "borderlesswindow.options.distortion.percent": "%s%%",
   "borderlesswindow.options.distortion.off": "Desactivado",
 
-  "key.categories.borderlesswindow": "Borderless Window",
+  "key.category.borderlesswindow.main": "Borderless Window",
   "key.borderlesswindow.zoom": "Zoom",
   "borderlesswindow.options.zoom_mode.name": "Tecla de zoom",
   "borderlesswindow.options.zoom_mode.tooltip": "Cómo funciona la tecla de Zoom. Por defecto es la C y se puede cambiar en los Controles de Minecraft. Mantener hace zoom solo mientras tienes la tecla presionada; Alternar acerca con una pulsación y regresa con la siguiente. Mientras miras por un catalejo, el zoom se hace a un lado: el catalejo conserva el suyo.",

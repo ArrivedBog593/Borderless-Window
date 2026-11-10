@@ -137,7 +137,7 @@
   "borderlesswindow.options.distortion.percent": "%s%%",
   "borderlesswindow.options.distortion.off": "Off",
 
-  "key.categories.borderlesswindow": "Borderless Window",
+  "key.category.borderlesswindow.main": "Borderless Window",
   "key.borderlesswindow.zoom": "Zoom",
   "borderlesswindow.options.zoom_mode.name": "Zoom Key",
   "borderlesswindow.options.zoom_mode.tooltip": "How the Zoom key works. It is C by default and can be changed in Minecraft's Controls. Hold zooms only while the key is held down; Toggle zooms in with one press and out with the next. While you look through a spyglass the zoom steps aside: the spyglass keeps its own.",

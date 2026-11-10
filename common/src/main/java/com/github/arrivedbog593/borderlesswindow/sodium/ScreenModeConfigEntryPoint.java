@@ -19,7 +19,7 @@ import com.github.arrivedbog593.borderlesswindow.visual.FogState;
 import net.caffeinemc.mods.sodium.api.config.ConfigEntryPoint;
 import net.caffeinemc.mods.sodium.api.config.structure.ConfigBuilder;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
 /**
  * Sodium Config API entry point. Sodium instantiates this class and calls
@@ -83,7 +83,7 @@ public class ScreenModeConfigEntryPoint implements ConfigEntryPoint {
                         .setName(Component.translatable("borderlesswindow.options.sodium.pages.general"))
                         .addOptionGroup(builder.createOptionGroup()
                                 .addOption(builder.createEnumOption(
-                                                ResourceLocation.parse("borderlesswindow:f11_mode"),
+                                                Identifier.parse("borderlesswindow:f11_mode"),
                                                 F11Mode.class)
                                         .setName(Component.translatable("borderlesswindow.options.f11_mode.name"))
                                         .setTooltip(Component.translatable("borderlesswindow.options.f11_mode.tooltip"))
@@ -96,7 +96,7 @@ public class ScreenModeConfigEntryPoint implements ConfigEntryPoint {
                         // HUD: the held item's name over the hotbar.
                         .addOptionGroup(builder.createOptionGroup()
                                 .addOption(builder.createBooleanOption(
-                                                ResourceLocation.parse("borderlesswindow:held_item_name"))
+                                                Identifier.parse("borderlesswindow:held_item_name"))
                                         .setName(Component.translatable("borderlesswindow.options.held_item_name.name"))
                                         .setTooltip(Component.translatable("borderlesswindow.options.held_item_name.tooltip"))
                                         .setStorageHandler(this.storage::flush)
@@ -109,7 +109,7 @@ public class ScreenModeConfigEntryPoint implements ConfigEntryPoint {
                         // Minecraft's accessibility menu.
                         .addOptionGroup(builder.createOptionGroup()
                                 .addOption(builder.createIntegerOption(
-                                                ResourceLocation.parse("borderlesswindow:vanilla_menu_blur"))
+                                                Identifier.parse("borderlesswindow:vanilla_menu_blur"))
                                         .setName(Component.translatable("borderlesswindow.options.vanilla_menu_blur.name"))
                                         .setTooltip(Component.translatable("borderlesswindow.options.vanilla_menu_blur.tooltip"))
                                         .setRange(0, 10, 1)
@@ -128,7 +128,7 @@ public class ScreenModeConfigEntryPoint implements ConfigEntryPoint {
                         .setName(Component.translatable("borderlesswindow.options.sodium.pages.enchantments"))
                         .addOptionGroup(builder.createOptionGroup()
                                 .addOption(builder.createEnumOption(
-                                                ResourceLocation.parse("borderlesswindow:enchantment_level_style"),
+                                                Identifier.parse("borderlesswindow:enchantment_level_style"),
                                                 EnchantmentLevelStyle.class)
                                         .setName(Component.translatable("borderlesswindow.options.enchantment_level_style.name"))
                                         .setTooltip(Component.translatable("borderlesswindow.options.enchantment_level_style.tooltip"))
@@ -145,7 +145,7 @@ public class ScreenModeConfigEntryPoint implements ConfigEntryPoint {
                         // so the change shows without a restart.
                         .addOptionGroup(builder.createOptionGroup()
                                 .addOption(builder.createIntegerOption(
-                                                ResourceLocation.parse("borderlesswindow:vanilla_glint_speed"))
+                                                Identifier.parse("borderlesswindow:vanilla_glint_speed"))
                                         .setName(Component.translatable("borderlesswindow.options.vanilla_glint_speed.name"))
                                         .setTooltip(Component.translatable("borderlesswindow.options.vanilla_glint_speed.tooltip"))
                                         .setRange(0, 100, 1)
@@ -157,7 +157,7 @@ public class ScreenModeConfigEntryPoint implements ConfigEntryPoint {
                                         .setDefaultValue(50)
                                 )
                                 .addOption(builder.createIntegerOption(
-                                                ResourceLocation.parse("borderlesswindow:vanilla_glint_strength"))
+                                                Identifier.parse("borderlesswindow:vanilla_glint_strength"))
                                         .setName(Component.translatable("borderlesswindow.options.vanilla_glint_strength.name"))
                                         .setTooltip(Component.translatable("borderlesswindow.options.vanilla_glint_strength.tooltip"))
                                         .setRange(0, 100, 1)
@@ -176,7 +176,7 @@ public class ScreenModeConfigEntryPoint implements ConfigEntryPoint {
                         .setName(Component.translatable("borderlesswindow.options.sodium.pages.fps"))
                         .addOptionGroup(builder.createOptionGroup()
                                 .addOption(builder.createEnumOption(
-                                                ResourceLocation.parse("borderlesswindow:fps_overlay_mode"),
+                                                Identifier.parse("borderlesswindow:fps_overlay_mode"),
                                                 FpsOverlayMode.class)
                                         .setName(Component.translatable("borderlesswindow.options.fps_overlay_mode.name"))
                                         .setTooltip(Component.translatable("borderlesswindow.options.fps_overlay_mode.tooltip"))
@@ -186,7 +186,7 @@ public class ScreenModeConfigEntryPoint implements ConfigEntryPoint {
                                         .setDefaultValue(FpsOverlayMode.OFF)
                                 )
                                 .addOption(builder.createEnumOption(
-                                                ResourceLocation.parse("borderlesswindow:fps_overlay_position"),
+                                                Identifier.parse("borderlesswindow:fps_overlay_position"),
                                                 FpsOverlayPosition.class)
                                         .setName(Component.translatable("borderlesswindow.options.fps_overlay_position.name"))
                                         .setTooltip(Component.translatable("borderlesswindow.options.fps_overlay_position.tooltip"))
@@ -196,9 +196,9 @@ public class ScreenModeConfigEntryPoint implements ConfigEntryPoint {
                                         .setDefaultValue(FpsOverlayPosition.TOP_LEFT)
                                         .setEnabledProvider(
                                                 state -> state.readEnumOption(
-                                                        ResourceLocation.parse("borderlesswindow:fps_overlay_mode"),
+                                                        Identifier.parse("borderlesswindow:fps_overlay_mode"),
                                                         FpsOverlayMode.class) != FpsOverlayMode.OFF,
-                                                ResourceLocation.parse("borderlesswindow:fps_overlay_mode"))
+                                                Identifier.parse("borderlesswindow:fps_overlay_mode"))
                                 )
                         )
                         // Background. Vanilla 1.21.2+ covers the caps and
@@ -207,7 +207,7 @@ public class ScreenModeConfigEntryPoint implements ConfigEntryPoint {
                         // two stack, and the lower cap wins.
                         .addOptionGroup(builder.createOptionGroup()
                                 .addOption(builder.createIntegerOption(
-                                                ResourceLocation.parse("borderlesswindow:unfocused_fps_limit"))
+                                                Identifier.parse("borderlesswindow:unfocused_fps_limit"))
                                         .setName(Component.translatable("borderlesswindow.options.unfocused_fps_limit.name"))
                                         .setTooltip(Component.translatable("borderlesswindow.options.unfocused_fps_limit.tooltip"))
                                         .setRange(UnfocusedFpsState.OFF_SLOT, UnfocusedFpsState.MAX_LIMIT, UnfocusedFpsState.STEP)
@@ -219,7 +219,7 @@ public class ScreenModeConfigEntryPoint implements ConfigEntryPoint {
                                         .setDefaultValue(UnfocusedFpsState.OFF_SLOT)
                                 )
                                 .addOption(builder.createIntegerOption(
-                                                ResourceLocation.parse("borderlesswindow:idle_fps_delay"))
+                                                Identifier.parse("borderlesswindow:idle_fps_delay"))
                                         .setName(Component.translatable("borderlesswindow.options.idle_fps_delay.name"))
                                         .setTooltip(Component.translatable("borderlesswindow.options.idle_fps_delay.tooltip"))
                                         .setRange(IdleFpsState.OFF, IdleFpsState.MAX_DELAY_MINUTES, 1)
@@ -232,13 +232,13 @@ public class ScreenModeConfigEntryPoint implements ConfigEntryPoint {
                                 )
                                 // Only meaningful once a delay is set.
                                 .addOption(builder.createIntegerOption(
-                                                ResourceLocation.parse("borderlesswindow:idle_fps_limit"))
+                                                Identifier.parse("borderlesswindow:idle_fps_limit"))
                                         .setName(Component.translatable("borderlesswindow.options.idle_fps_limit.name"))
                                         .setTooltip(Component.translatable("borderlesswindow.options.idle_fps_limit.tooltip"))
                                         .setEnabledProvider(
                                                 state -> state.readIntOption(
-                                                        ResourceLocation.parse("borderlesswindow:idle_fps_delay")) != IdleFpsState.OFF,
-                                                ResourceLocation.parse("borderlesswindow:idle_fps_delay"))
+                                                        Identifier.parse("borderlesswindow:idle_fps_delay")) != IdleFpsState.OFF,
+                                                Identifier.parse("borderlesswindow:idle_fps_delay"))
                                         .setRange(UnfocusedFpsState.MIN_LIMIT, UnfocusedFpsState.MAX_LIMIT, 1)
                                         .setValueFormatter(value -> Component.translatable("borderlesswindow.fps_overlay.fps", value))
                                         .setStorageHandler(this.storage::flush)
@@ -246,7 +246,7 @@ public class ScreenModeConfigEntryPoint implements ConfigEntryPoint {
                                         .setDefaultValue(IdleFpsState.DEFAULT_LIMIT)
                                 )
                                 .addOption(builder.createBooleanOption(
-                                                ResourceLocation.parse("borderlesswindow:minimized_skip_render"))
+                                                Identifier.parse("borderlesswindow:minimized_skip_render"))
                                         .setName(Component.translatable("borderlesswindow.options.minimized_skip_render.name"))
                                         .setTooltip(Component.translatable("borderlesswindow.options.minimized_skip_render.tooltip"))
                                         .setStorageHandler(this.storage::flush)
@@ -254,7 +254,7 @@ public class ScreenModeConfigEntryPoint implements ConfigEntryPoint {
                                         .setDefaultValue(false)
                                 )
                                 .addOption(builder.createIntegerOption(
-                                                ResourceLocation.parse("borderlesswindow:unfocused_volume"))
+                                                Identifier.parse("borderlesswindow:unfocused_volume"))
                                         .setName(Component.translatable("borderlesswindow.options.unfocused_volume.name"))
                                         .setTooltip(Component.translatable("borderlesswindow.options.unfocused_volume.tooltip"))
                                         .setRange(UnfocusedVolumeState.MIN_PERCENT, UnfocusedVolumeState.MAX_PERCENT, UnfocusedVolumeState.STEP)
@@ -274,7 +274,7 @@ public class ScreenModeConfigEntryPoint implements ConfigEntryPoint {
                         // Fog: the four per-type toggles.
                         .addOptionGroup(builder.createOptionGroup()
                                 .addOption(builder.createBooleanOption(
-                                                ResourceLocation.parse("borderlesswindow:fog_terrain"))
+                                                Identifier.parse("borderlesswindow:fog_terrain"))
                                         .setName(Component.translatable("borderlesswindow.options.fog_terrain.name"))
                                         .setTooltip(Component.translatable("borderlesswindow.options.fog_terrain.tooltip"))
                                         .setStorageHandler(this.storage::flush)
@@ -282,7 +282,7 @@ public class ScreenModeConfigEntryPoint implements ConfigEntryPoint {
                                         .setDefaultValue(true)
                                 )
                                 .addOption(builder.createBooleanOption(
-                                                ResourceLocation.parse("borderlesswindow:fog_water"))
+                                                Identifier.parse("borderlesswindow:fog_water"))
                                         .setName(Component.translatable("borderlesswindow.options.fog_water.name"))
                                         .setTooltip(Component.translatable("borderlesswindow.options.fog_water.tooltip"))
                                         .setStorageHandler(this.storage::flush)
@@ -290,7 +290,7 @@ public class ScreenModeConfigEntryPoint implements ConfigEntryPoint {
                                         .setDefaultValue(true)
                                 )
                                 .addOption(builder.createBooleanOption(
-                                                ResourceLocation.parse("borderlesswindow:fog_lava"))
+                                                Identifier.parse("borderlesswindow:fog_lava"))
                                         .setName(Component.translatable("borderlesswindow.options.fog_lava.name"))
                                         .setTooltip(Component.translatable("borderlesswindow.options.fog_lava.tooltip"))
                                         .setStorageHandler(this.storage::flush)
@@ -298,7 +298,7 @@ public class ScreenModeConfigEntryPoint implements ConfigEntryPoint {
                                         .setDefaultValue(true)
                                 )
                                 .addOption(builder.createBooleanOption(
-                                                ResourceLocation.parse("borderlesswindow:fog_powder_snow"))
+                                                Identifier.parse("borderlesswindow:fog_powder_snow"))
                                         .setName(Component.translatable("borderlesswindow.options.fog_powder_snow.name"))
                                         .setTooltip(Component.translatable("borderlesswindow.options.fog_powder_snow.tooltip"))
                                         .setStorageHandler(this.storage::flush)
@@ -309,7 +309,7 @@ public class ScreenModeConfigEntryPoint implements ConfigEntryPoint {
                                 // while the terrain fog is removed: there is
                                 // nothing left to move. See FogState.
                                 .addOption(builder.createIntegerOption(
-                                                ResourceLocation.parse("borderlesswindow:fog_terrain_start"))
+                                                Identifier.parse("borderlesswindow:fog_terrain_start"))
                                         .setName(Component.translatable("borderlesswindow.options.fog_terrain_start.name"))
                                         .setTooltip(Component.translatable("borderlesswindow.options.fog_terrain_start.tooltip"))
                                         .setRange(FogState.DEFAULT_START, FogState.MAX_START, FogState.START_STEP)
@@ -319,8 +319,8 @@ public class ScreenModeConfigEntryPoint implements ConfigEntryPoint {
                                         .setDefaultValue(FogState.DEFAULT_START)
                                         .setEnabledProvider(
                                                 state -> state.readBooleanOption(
-                                                        ResourceLocation.parse("borderlesswindow:fog_terrain")),
-                                                ResourceLocation.parse("borderlesswindow:fog_terrain"))
+                                                        Identifier.parse("borderlesswindow:fog_terrain")),
+                                                Identifier.parse("borderlesswindow:fog_terrain"))
                                 )
                         )
                         // Cloud height.
@@ -329,7 +329,7 @@ public class ScreenModeConfigEntryPoint implements ConfigEntryPoint {
                         // override. See CloudState for the encoding.
                         .addOptionGroup(builder.createOptionGroup()
                                 .addOption(builder.createIntegerOption(
-                                                ResourceLocation.parse("borderlesswindow:cloud_height"))
+                                                Identifier.parse("borderlesswindow:cloud_height"))
                                         .setName(Component.translatable("borderlesswindow.options.cloud_height.name"))
                                         .setTooltip(Component.translatable("borderlesswindow.options.cloud_height.tooltip"))
                                         .setRange(CloudState.DEFAULT_SLOT, CloudState.MAX_HEIGHT, 1)
@@ -344,7 +344,7 @@ public class ScreenModeConfigEntryPoint implements ConfigEntryPoint {
                         // the weather go on. See SkyState.
                         .addOptionGroup(builder.createOptionGroup()
                                 .addOption(builder.createBooleanOption(
-                                                ResourceLocation.parse("borderlesswindow:sky_sun_moon"))
+                                                Identifier.parse("borderlesswindow:sky_sun_moon"))
                                         .setName(Component.translatable("borderlesswindow.options.sky_sun_moon.name"))
                                         .setTooltip(Component.translatable("borderlesswindow.options.sky_sun_moon.tooltip"))
                                         .setStorageHandler(this.storage::flush)
@@ -352,7 +352,7 @@ public class ScreenModeConfigEntryPoint implements ConfigEntryPoint {
                                         .setDefaultValue(true)
                                 )
                                 .addOption(builder.createBooleanOption(
-                                                ResourceLocation.parse("borderlesswindow:sky_stars"))
+                                                Identifier.parse("borderlesswindow:sky_stars"))
                                         .setName(Component.translatable("borderlesswindow.options.sky_stars.name"))
                                         .setTooltip(Component.translatable("borderlesswindow.options.sky_stars.tooltip"))
                                         .setStorageHandler(this.storage::flush)
@@ -360,7 +360,7 @@ public class ScreenModeConfigEntryPoint implements ConfigEntryPoint {
                                         .setDefaultValue(true)
                                 )
                                 .addOption(builder.createBooleanOption(
-                                                ResourceLocation.parse("borderlesswindow:sky_weather"))
+                                                Identifier.parse("borderlesswindow:sky_weather"))
                                         .setName(Component.translatable("borderlesswindow.options.sky_weather.name"))
                                         .setTooltip(Component.translatable("borderlesswindow.options.sky_weather.tooltip"))
                                         .setStorageHandler(this.storage::flush)
@@ -373,7 +373,7 @@ public class ScreenModeConfigEntryPoint implements ConfigEntryPoint {
                         // see ScreenEffectHandler.
                         .addOptionGroup(builder.createOptionGroup()
                                 .addOption(builder.createBooleanOption(
-                                                ResourceLocation.parse("borderlesswindow:overlay_water"))
+                                                Identifier.parse("borderlesswindow:overlay_water"))
                                         .setName(Component.translatable("borderlesswindow.options.overlay_water.name"))
                                         .setTooltip(Component.translatable("borderlesswindow.options.overlay_water.tooltip"))
                                         .setStorageHandler(this.storage::flush)
@@ -381,7 +381,7 @@ public class ScreenModeConfigEntryPoint implements ConfigEntryPoint {
                                         .setDefaultValue(true)
                                 )
                                 .addOption(builder.createBooleanOption(
-                                                ResourceLocation.parse("borderlesswindow:overlay_fire"))
+                                                Identifier.parse("borderlesswindow:overlay_fire"))
                                         .setName(Component.translatable("borderlesswindow.options.overlay_fire.name"))
                                         .setTooltip(Component.translatable("borderlesswindow.options.overlay_fire.tooltip"))
                                         .setStorageHandler(this.storage::flush)
@@ -389,7 +389,7 @@ public class ScreenModeConfigEntryPoint implements ConfigEntryPoint {
                                         .setDefaultValue(true)
                                 )
                                 .addOption(builder.createBooleanOption(
-                                                ResourceLocation.parse("borderlesswindow:overlay_fire_smart"))
+                                                Identifier.parse("borderlesswindow:overlay_fire_smart"))
                                         .setName(Component.translatable("borderlesswindow.options.overlay_fire_smart.name"))
                                         .setTooltip(Component.translatable("borderlesswindow.options.overlay_fire_smart.tooltip"))
                                         .setStorageHandler(this.storage::flush)
@@ -400,15 +400,15 @@ public class ScreenModeConfigEntryPoint implements ConfigEntryPoint {
                                         // for it to hide conditionally.
                                         .setEnabledProvider(
                                                 state -> state.readBooleanOption(
-                                                        ResourceLocation.parse("borderlesswindow:overlay_fire")),
-                                                ResourceLocation.parse("borderlesswindow:overlay_fire"))
+                                                        Identifier.parse("borderlesswindow:overlay_fire")),
+                                                Identifier.parse("borderlesswindow:overlay_fire"))
                                 )
                                 // From Gui rather than ScreenEffectRenderer
                                 // (see GuiMixin), same section regardless:
                                 // the player does not care which vanilla
                                 // class draws what.
                                 .addOption(builder.createBooleanOption(
-                                                ResourceLocation.parse("borderlesswindow:overlay_pumpkin"))
+                                                Identifier.parse("borderlesswindow:overlay_pumpkin"))
                                         .setName(Component.translatable("borderlesswindow.options.overlay_pumpkin.name"))
                                         .setTooltip(Component.translatable("borderlesswindow.options.overlay_pumpkin.tooltip"))
                                         .setStorageHandler(this.storage::flush)
@@ -416,7 +416,7 @@ public class ScreenModeConfigEntryPoint implements ConfigEntryPoint {
                                         .setDefaultValue(true)
                                 )
                                 .addOption(builder.createBooleanOption(
-                                                ResourceLocation.parse("borderlesswindow:overlay_freeze"))
+                                                Identifier.parse("borderlesswindow:overlay_freeze"))
                                         .setName(Component.translatable("borderlesswindow.options.overlay_freeze.name"))
                                         .setTooltip(Component.translatable("borderlesswindow.options.overlay_freeze.tooltip"))
                                         .setStorageHandler(this.storage::flush)
@@ -424,7 +424,7 @@ public class ScreenModeConfigEntryPoint implements ConfigEntryPoint {
                                         .setDefaultValue(true)
                                 )
                                 .addOption(builder.createBooleanOption(
-                                                ResourceLocation.parse("borderlesswindow:overlay_portal"))
+                                                Identifier.parse("borderlesswindow:overlay_portal"))
                                         .setName(Component.translatable("borderlesswindow.options.overlay_portal.name"))
                                         .setTooltip(Component.translatable("borderlesswindow.options.overlay_portal.tooltip"))
                                         .setStorageHandler(this.storage::flush)
@@ -432,7 +432,7 @@ public class ScreenModeConfigEntryPoint implements ConfigEntryPoint {
                                         .setDefaultValue(true)
                                 )
                                 .addOption(builder.createBooleanOption(
-                                                ResourceLocation.parse("borderlesswindow:overlay_spyglass"))
+                                                Identifier.parse("borderlesswindow:overlay_spyglass"))
                                         .setName(Component.translatable("borderlesswindow.options.overlay_spyglass.name"))
                                         .setTooltip(Component.translatable("borderlesswindow.options.overlay_spyglass.tooltip"))
                                         .setStorageHandler(this.storage::flush)
@@ -454,7 +454,7 @@ public class ScreenModeConfigEntryPoint implements ConfigEntryPoint {
                         // stated in the tooltips instead of greying them out.
                         .addOptionGroup(builder.createOptionGroup()
                                 .addOption(builder.createEnumOption(
-                                                ResourceLocation.parse("borderlesswindow:camera_bob"),
+                                                Identifier.parse("borderlesswindow:camera_bob"),
                                                 CameraBobMode.class)
                                         .setName(Component.translatable("borderlesswindow.options.camera_bob.name"))
                                         .setTooltip(Component.translatable("borderlesswindow.options.camera_bob.tooltip"))
@@ -464,7 +464,7 @@ public class ScreenModeConfigEntryPoint implements ConfigEntryPoint {
                                         .setDefaultValue(CameraBobMode.FULL)
                                 )
                                 .addOption(builder.createBooleanOption(
-                                                ResourceLocation.parse("borderlesswindow:hand_bob"))
+                                                Identifier.parse("borderlesswindow:hand_bob"))
                                         .setName(Component.translatable("borderlesswindow.options.hand_bob.name"))
                                         .setTooltip(Component.translatable("borderlesswindow.options.hand_bob.tooltip"))
                                         .setStorageHandler(this.storage::flush)
@@ -487,7 +487,7 @@ public class ScreenModeConfigEntryPoint implements ConfigEntryPoint {
                                 // it only lives in Minecraft's
                                 // accessibility menu otherwise.
                                 .addOption(builder.createIntegerOption(
-                                                ResourceLocation.parse("borderlesswindow:vanilla_fov"))
+                                                Identifier.parse("borderlesswindow:vanilla_fov"))
                                         .setName(Component.translatable("borderlesswindow.options.vanilla_fov.name"))
                                         .setTooltip(Component.translatable("borderlesswindow.options.vanilla_fov.tooltip"))
                                         .setRange(0, 100, 1)
@@ -499,7 +499,7 @@ public class ScreenModeConfigEntryPoint implements ConfigEntryPoint {
                                         .setDefaultValue(100)
                                 )
                                 .addOption(builder.createIntegerOption(
-                                                ResourceLocation.parse("borderlesswindow:fov_speed"))
+                                                Identifier.parse("borderlesswindow:fov_speed"))
                                         .setName(Component.translatable("borderlesswindow.options.fov_speed.name"))
                                         .setTooltip(Component.translatable("borderlesswindow.options.fov_speed.tooltip"))
                                         .setRange(FovState.MIN_PERCENT, FovState.MAX_PERCENT, 1)
@@ -511,7 +511,7 @@ public class ScreenModeConfigEntryPoint implements ConfigEntryPoint {
                                         .setDefaultValue(FovState.DEFAULT_PERCENT)
                                 )
                                 .addOption(builder.createIntegerOption(
-                                                ResourceLocation.parse("borderlesswindow:fov_flying"))
+                                                Identifier.parse("borderlesswindow:fov_flying"))
                                         .setName(Component.translatable("borderlesswindow.options.fov_flying.name"))
                                         .setTooltip(Component.translatable("borderlesswindow.options.fov_flying.tooltip"))
                                         .setRange(FovState.MIN_PERCENT, FovState.MAX_PERCENT, 1)
@@ -523,7 +523,7 @@ public class ScreenModeConfigEntryPoint implements ConfigEntryPoint {
                                         .setDefaultValue(FovState.DEFAULT_PERCENT)
                                 )
                                 .addOption(builder.createIntegerOption(
-                                                ResourceLocation.parse("borderlesswindow:fov_bow"))
+                                                Identifier.parse("borderlesswindow:fov_bow"))
                                         .setName(Component.translatable("borderlesswindow.options.fov_bow.name"))
                                         .setTooltip(Component.translatable("borderlesswindow.options.fov_bow.tooltip"))
                                         .setRange(FovState.MIN_PERCENT, FovState.MAX_PERCENT, 1)
@@ -535,7 +535,7 @@ public class ScreenModeConfigEntryPoint implements ConfigEntryPoint {
                                         .setDefaultValue(FovState.DEFAULT_PERCENT)
                                 )
                                 .addOption(builder.createIntegerOption(
-                                                ResourceLocation.parse("borderlesswindow:fov_fluid"))
+                                                Identifier.parse("borderlesswindow:fov_fluid"))
                                         .setName(Component.translatable("borderlesswindow.options.fov_fluid.name"))
                                         .setTooltip(Component.translatable("borderlesswindow.options.fov_fluid.tooltip"))
                                         .setRange(FovState.MIN_PERCENT, FovState.MAX_PERCENT, 1)
@@ -560,7 +560,7 @@ public class ScreenModeConfigEntryPoint implements ConfigEntryPoint {
                                 // it only lives in Minecraft's
                                 // accessibility menu otherwise.
                                 .addOption(builder.createIntegerOption(
-                                                ResourceLocation.parse("borderlesswindow:vanilla_distortion"))
+                                                Identifier.parse("borderlesswindow:vanilla_distortion"))
                                         .setName(Component.translatable("borderlesswindow.options.vanilla_distortion.name"))
                                         .setTooltip(Component.translatable("borderlesswindow.options.vanilla_distortion.tooltip"))
                                         .setRange(0, 100, 1)
@@ -572,7 +572,7 @@ public class ScreenModeConfigEntryPoint implements ConfigEntryPoint {
                                         .setDefaultValue(100)
                                 )
                                 .addOption(builder.createIntegerOption(
-                                                ResourceLocation.parse("borderlesswindow:distortion_portal"))
+                                                Identifier.parse("borderlesswindow:distortion_portal"))
                                         .setName(Component.translatable("borderlesswindow.options.distortion_portal.name"))
                                         .setTooltip(Component.translatable("borderlesswindow.options.distortion_portal.tooltip"))
                                         .setRange(DistortionState.MIN_PERCENT, DistortionState.MAX_PERCENT, 1)
@@ -584,7 +584,7 @@ public class ScreenModeConfigEntryPoint implements ConfigEntryPoint {
                                         .setDefaultValue(DistortionState.DEFAULT_PERCENT)
                                 )
                                 .addOption(builder.createIntegerOption(
-                                                ResourceLocation.parse("borderlesswindow:distortion_nausea"))
+                                                Identifier.parse("borderlesswindow:distortion_nausea"))
                                         .setName(Component.translatable("borderlesswindow.options.distortion_nausea.name"))
                                         .setTooltip(Component.translatable("borderlesswindow.options.distortion_nausea.tooltip"))
                                         .setRange(DistortionState.MIN_PERCENT, DistortionState.MAX_PERCENT, 1)
@@ -601,7 +601,7 @@ public class ScreenModeConfigEntryPoint implements ConfigEntryPoint {
                         // it is pressed. See ZoomState.
                         .addOptionGroup(builder.createOptionGroup()
                                 .addOption(builder.createEnumOption(
-                                                ResourceLocation.parse("borderlesswindow:zoom_mode"),
+                                                Identifier.parse("borderlesswindow:zoom_mode"),
                                                 ZoomMode.class)
                                         .setName(Component.translatable("borderlesswindow.options.zoom_mode.name"))
                                         .setTooltip(Component.translatable("borderlesswindow.options.zoom_mode.tooltip"))
@@ -611,7 +611,7 @@ public class ScreenModeConfigEntryPoint implements ConfigEntryPoint {
                                         .setDefaultValue(ZoomMode.HOLD)
                                 )
                                 .addOption(builder.createIntegerOption(
-                                                ResourceLocation.parse("borderlesswindow:zoom_level"))
+                                                Identifier.parse("borderlesswindow:zoom_level"))
                                         .setName(Component.translatable("borderlesswindow.options.zoom_level.name"))
                                         .setTooltip(Component.translatable("borderlesswindow.options.zoom_level.tooltip"))
                                         .setRange(ZoomState.MIN_LEVEL, ZoomState.MAX_LEVEL, 1)
@@ -622,7 +622,7 @@ public class ScreenModeConfigEntryPoint implements ConfigEntryPoint {
                                         .setDefaultValue(ZoomState.DEFAULT_LEVEL)
                                 )
                                 .addOption(builder.createBooleanOption(
-                                                ResourceLocation.parse("borderlesswindow:zoom_scroll"))
+                                                Identifier.parse("borderlesswindow:zoom_scroll"))
                                         .setName(Component.translatable("borderlesswindow.options.zoom_scroll.name"))
                                         .setTooltip(Component.translatable("borderlesswindow.options.zoom_scroll.tooltip"))
                                         .setStorageHandler(this.storage::flush)
@@ -630,7 +630,7 @@ public class ScreenModeConfigEntryPoint implements ConfigEntryPoint {
                                         .setDefaultValue(true)
                                 )
                                 .addOption(builder.createBooleanOption(
-                                                ResourceLocation.parse("borderlesswindow:zoom_smooth"))
+                                                Identifier.parse("borderlesswindow:zoom_smooth"))
                                         .setName(Component.translatable("borderlesswindow.options.zoom_smooth.name"))
                                         .setTooltip(Component.translatable("borderlesswindow.options.zoom_smooth.tooltip"))
                                         .setStorageHandler(this.storage::flush)
@@ -638,7 +638,7 @@ public class ScreenModeConfigEntryPoint implements ConfigEntryPoint {
                                         .setDefaultValue(true)
                                 )
                                 .addOption(builder.createBooleanOption(
-                                                ResourceLocation.parse("borderlesswindow:zoom_hide_hand"))
+                                                Identifier.parse("borderlesswindow:zoom_hide_hand"))
                                         .setName(Component.translatable("borderlesswindow.options.zoom_hide_hand.name"))
                                         .setTooltip(Component.translatable("borderlesswindow.options.zoom_hide_hand.tooltip"))
                                         .setStorageHandler(this.storage::flush)
@@ -646,7 +646,7 @@ public class ScreenModeConfigEntryPoint implements ConfigEntryPoint {
                                         .setDefaultValue(true)
                                 )
                                 .addOption(builder.createBooleanOption(
-                                                ResourceLocation.parse("borderlesswindow:zoom_hide_hud"))
+                                                Identifier.parse("borderlesswindow:zoom_hide_hud"))
                                         .setName(Component.translatable("borderlesswindow.options.zoom_hide_hud.name"))
                                         .setTooltip(Component.translatable("borderlesswindow.options.zoom_hide_hud.tooltip"))
                                         .setStorageHandler(this.storage::flush)
@@ -665,7 +665,7 @@ public class ScreenModeConfigEntryPoint implements ConfigEntryPoint {
                         // Entities: drawing only, see EntityRenderDispatcherMixin.
                         .addOptionGroup(builder.createOptionGroup()
                                 .addOption(builder.createIntegerOption(
-                                                ResourceLocation.parse("borderlesswindow:distance_items"))
+                                                Identifier.parse("borderlesswindow:distance_items"))
                                         .setName(Component.translatable("borderlesswindow.options.distance_items.name"))
                                         .setTooltip(Component.translatable("borderlesswindow.options.distance_items.tooltip"))
                                         .setRange(DistanceState.DEFAULT, DistanceState.ITEM_MAX, DistanceState.ITEM_STEP)
@@ -675,7 +675,7 @@ public class ScreenModeConfigEntryPoint implements ConfigEntryPoint {
                                         .setDefaultValue(DistanceState.DEFAULT)
                                 )
                                 .addOption(builder.createIntegerOption(
-                                                ResourceLocation.parse("borderlesswindow:distance_xp_orbs"))
+                                                Identifier.parse("borderlesswindow:distance_xp_orbs"))
                                         .setName(Component.translatable("borderlesswindow.options.distance_xp_orbs.name"))
                                         .setTooltip(Component.translatable("borderlesswindow.options.distance_xp_orbs.tooltip"))
                                         .setRange(DistanceState.DEFAULT, DistanceState.ORB_MAX, DistanceState.ORB_STEP)
@@ -685,7 +685,7 @@ public class ScreenModeConfigEntryPoint implements ConfigEntryPoint {
                                         .setDefaultValue(DistanceState.DEFAULT)
                                 )
                                 .addOption(builder.createIntegerOption(
-                                                ResourceLocation.parse("borderlesswindow:distance_armor_stands"))
+                                                Identifier.parse("borderlesswindow:distance_armor_stands"))
                                         .setName(Component.translatable("borderlesswindow.options.distance_armor_stands.name"))
                                         .setTooltip(Component.translatable("borderlesswindow.options.distance_armor_stands.tooltip"))
                                         .setRange(DistanceState.DEFAULT, DistanceState.ARMOR_STAND_MAX, DistanceState.ARMOR_STAND_STEP)
@@ -695,10 +695,10 @@ public class ScreenModeConfigEntryPoint implements ConfigEntryPoint {
                                         .setDefaultValue(DistanceState.DEFAULT)
                                 )
                         )
-                        // Particles: refused at spawn, see LevelRendererMixin.
+                        // Particles: refused at spawn, see ClientLevelMixin.
                         .addOptionGroup(builder.createOptionGroup()
                                 .addOption(builder.createIntegerOption(
-                                                ResourceLocation.parse("borderlesswindow:distance_particles"))
+                                                Identifier.parse("borderlesswindow:distance_particles"))
                                         .setName(Component.translatable("borderlesswindow.options.distance_particles.name"))
                                         .setTooltip(Component.translatable("borderlesswindow.options.distance_particles.tooltip"))
                                         .setRange(DistanceState.DEFAULT, DistanceState.PARTICLE_MAX, DistanceState.PARTICLE_STEP)
@@ -710,9 +710,9 @@ public class ScreenModeConfigEntryPoint implements ConfigEntryPoint {
                         )
                 )
                 .registerOptionReplacement(
-                        ResourceLocation.parse("sodium:general.fullscreen"),
+                        Identifier.parse("sodium:general.fullscreen"),
                         builder.createEnumOption(
-                                        ResourceLocation.parse("borderlesswindow:screen_mode"),
+                                        Identifier.parse("borderlesswindow:screen_mode"),
                                         ScreenMode.class)
                                 .setName(Component.translatable("borderlesswindow.options.screen_mode.name"))
                                 .setTooltip(Component.translatable("borderlesswindow.options.screen_mode.tooltip"))
@@ -730,14 +730,14 @@ public class ScreenModeConfigEntryPoint implements ConfigEntryPoint {
                 // applies). Name, binding, formatter, etc. are inherited from
                 // the original option.
                 .registerOptionOverlay(
-                        ResourceLocation.parse("sodium:general.fullscreen_resolution"),
+                        Identifier.parse("sodium:general.fullscreen_resolution"),
                         builder.createIntegerOption(
-                                        ResourceLocation.parse("sodium:general.fullscreen_resolution"))
+                                        Identifier.parse("sodium:general.fullscreen_resolution"))
                                 .setEnabledProvider(
                                         state -> state.readEnumOption(
-                                                ResourceLocation.parse("borderlesswindow:screen_mode"),
+                                                Identifier.parse("borderlesswindow:screen_mode"),
                                                 ScreenMode.class) == ScreenMode.FULLSCREEN,
-                                        ResourceLocation.parse("borderlesswindow:screen_mode"))
+                                        Identifier.parse("borderlesswindow:screen_mode"))
                 );
     }
 }

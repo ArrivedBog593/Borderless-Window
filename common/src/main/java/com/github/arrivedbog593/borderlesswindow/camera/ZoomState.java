@@ -5,6 +5,7 @@ import com.mojang.blaze3d.platform.InputConstants;
 import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.LocalPlayer;
+import net.minecraft.resources.Identifier;
 import org.lwjgl.glfw.GLFW;
 
 /**
@@ -60,13 +61,21 @@ public final class ZoomState {
     private static final double SNAP_EPSILON = 1.0E-4D;
 
     /**
+     * The Controls section the key sits in. Not registered here: each
+     * loader does it its own way (RegisterKeyMappingsEvent on NeoForge,
+     * vanilla's Category.register on Fabric, which Fabric API sorts).
+     */
+    public static final KeyMapping.Category CATEGORY = new KeyMapping.Category(
+            Identifier.fromNamespaceAndPath("borderlesswindow", "main"));
+
+    /**
      * C by default, like OptiFine. Shares it with vanilla's "Save Hotbar
      * Activator", which only acts in creative and combined with a number
      * key -- rebindable in Controls either way. Registered by each loader
      * (RegisterKeyMappingsEvent on NeoForge, Fabric's key binding module).
      */
     public static final KeyMapping KEY = new KeyMapping("key.borderlesswindow.zoom",
-            InputConstants.Type.KEYSYM, GLFW.GLFW_KEY_C, "key.categories.borderlesswindow");
+            InputConstants.Type.KEYSYM, GLFW.GLFW_KEY_C, CATEGORY);
 
     // --- Settings -------------------------------------------------------
     private static ZoomMode mode = ZoomMode.HOLD;

@@ -1,8 +1,10 @@
 package com.github.arrivedbog593.borderlesswindow.config;
 
 import net.minecraft.client.gui.components.AbstractSliderButton;
+import net.minecraft.client.input.KeyEvent;
+import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.network.chat.Component;
-import org.lwjgl.glfw.GLFW;
+import org.jspecify.annotations.NonNull;
 
 import java.util.function.IntConsumer;
 import java.util.function.IntFunction;
@@ -76,8 +78,8 @@ public final class IntOptionSlider extends AbstractSliderButton {
 
     /** End of the drag: the value has settled, write it once. */
     @Override
-    public void onRelease(double mouseX, double mouseY) {
-        super.onRelease(mouseX, mouseY);
+    public void onRelease(@NonNull MouseButtonEvent event) {
+        super.onRelease(event);
         this.persister.run();
     }
 
@@ -87,11 +89,11 @@ public final class IntOptionSlider extends AbstractSliderButton {
      * one-pixel nudge with a full step.
      */
     @Override
-    public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
+    public boolean keyPressed(@NonNull KeyEvent event) {
         int before = this.toOptionValue();
-        boolean handled = super.keyPressed(keyCode, scanCode, modifiers);
-        if (handled && (keyCode == GLFW.GLFW_KEY_LEFT || keyCode == GLFW.GLFW_KEY_RIGHT)) {
-            int target = before + (keyCode == GLFW.GLFW_KEY_LEFT ? -this.step : this.step);
+        boolean handled = super.keyPressed(event);
+        if (handled && (event.isLeft() || event.isRight())) {
+            int target = before + (event.isLeft() ? -this.step : this.step);
             this.value = this.toSliderValue(target);
             this.applyValue();
             this.updateMessage();

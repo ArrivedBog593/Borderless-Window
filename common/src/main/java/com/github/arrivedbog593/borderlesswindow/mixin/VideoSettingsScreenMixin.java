@@ -63,10 +63,13 @@ public abstract class VideoSettingsScreenMixin extends OptionsSubScreen {
      * not rebuild this screen's widgets: OptionsSubScreen overrides
      * repositionElements to only re-lay them out, unlike a plain Screen.
      * Checked every tick, so any outside change shows within 1/20 s.
+     * <p>
+     * An injection and not an override: in 1.21.11 vanilla's screen has a
+     * tick() of its own (it greys out the anisotropy slider), and a plain
+     * method here would replace it.
      */
-    @Override
-    public void tick() {
-        super.tick();
+    @Inject(method = "tick", at = @At("TAIL"))
+    private void borderlesswindow$syncScreenMode(CallbackInfo ci) {
         if (this.list != null && this.borderlesswindow$screenMode != null
                 && this.list.findOption(this.borderlesswindow$screenMode) instanceof CycleButton<?> button
                 && button.getValue() != BorderlessHandler.getCurrentMode()) {

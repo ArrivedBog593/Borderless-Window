@@ -1,12 +1,14 @@
 package com.github.arrivedbog593.borderlesswindow.mixin;
 
+import com.github.arrivedbog593.borderlesswindow.camera.DistortionState;
 import com.github.arrivedbog593.borderlesswindow.general.HudState;
 import com.github.arrivedbog593.borderlesswindow.visual.CameraOverlayFilter;
 import com.github.arrivedbog593.borderlesswindow.visual.ScreenEffectState;
+import com.llamalad7.mixinextras.injector.ModifyExpressionValue;
 import com.llamalad7.mixinextras.injector.v2.WrapWithCondition;
 import net.minecraft.client.gui.Gui;
 import net.minecraft.client.gui.GuiGraphics;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
@@ -24,8 +26,11 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
  * VanillaGuiLayers.CAMERA_OVERLAYS, and cancelling RenderGuiLayerEvent
  * for it would remove ALL of them at once -- including the vignette --
  * which is useless for per-overlay control. Verified against
- * VanillaGuiLayers in NeoForge 1.21.1: there is one constant for the
+ * VanillaGuiLayers in NeoForge 1.21.11: there is one constant for the
  * group, not one per overlay.
+ * <p>
+ * The same method draws the green Nausea texture; this class also
+ * scales it to the Nausea slider (see DistortionState).
  * <p>
  * The three overlay injections sit on the call sites inside renderCameraOverlays
  * rather than inside the render methods themselves, so the methods stay
@@ -56,29 +61,30 @@ public abstract class GuiMixin {
      * invocation in the target method. CameraOverlayFilter tells them
      * apart by texture.
      * <p>
-     * Only the vanilla pumpkin is affected. NeoForge added an else
-     * branch calling IClientItemExtensions.renderHelmetOverlay for
-     * modded helmets, which is a different call and stays untouched:
-     * another mod's helmet overlay is not ours to remove.
+     * Only the vanilla pumpkin is affected: it reaches renderTextureOverlay
+     * through the carved pumpkin's camera overlay texture. NeoForge adds a
+     * call to IClientItemExtensions.renderFirstPersonOverlay for modded
+     * worn items, which is a different call and stays untouched: another
+     * mod's overlay is not ours to remove.
      */
     @WrapWithCondition(
             method = "renderCameraOverlays",
             at = @At(value = "INVOKE",
                     target = "Lnet/minecraft/client/gui/Gui;renderTextureOverlay("
                             + "Lnet/minecraft/client/gui/GuiGraphics;"
-                            + "Lnet/minecraft/resources/ResourceLocation;F)V"))
+                            + "Lnet/minecraft/resources/Identifier;F)V"))
     private boolean borderlesswindow$shouldRenderTextureOverlay(Gui instance,
                                                                 GuiGraphics guiGraphics,
-                                                                ResourceLocation texture,
+                                                                Identifier texture,
                                                                 float alpha) {
         return CameraOverlayFilter.shouldRenderTextureOverlay(texture);
     }
 
     /**
      * The purple warp drawn while standing in a Nether portal. Vanilla
-     * fades it in with the spin intensity and skips it entirely under
-     * Nausea, both of which are decided before this call, so skipping
-     * here changes nothing else.
+     * fades it in with the portal's own intensity and, while it shows,
+     * draws no Nausea texture -- both decided before this call, so
+     * skipping here changes nothing else.
      */
     @WrapWithCondition(
             method = "renderCameraOverlays",
@@ -113,6 +119,37 @@ public abstract class GuiMixin {
                                                                  GuiGraphics guiGraphics,
                                                                  float scopeScale) {
         return ScreenEffectState.isSpyglassOverlayEnabled();
+    }
+
+    /**
+     * Mirrors our Nausea slider onto vanilla's nausea texture.
+     * <p>
+     * The green overlay is Mojang's accessibility trade: it appears when
+     * Distortion Effects is below 100%, at intensity (1 - scale), so
+     * removing the spin substitutes a static cue. Folding our factor into
+     * the scale it reads makes our slider behave exactly like vanilla's --
+     * 50% here draws the same overlay 50% there would.
+     * <p>
+     * Linear, not squared: vanilla uses this value linearly here while
+     * squaring it in GameRenderer.renderLevel, so matching each site keeps
+     * our slider in the same relationship to the texture that Minecraft's
+     * own has.
+     * <p>
+     * The only floatValue() in the method, and only reached on the Nausea
+     * branch: vanilla draws this texture only while no portal warp shows.
+     * The portal guard covers the rest: standing in the destination
+     * portal on cooldown, the warp has faded but the player is still in
+     * the portal, where the Nausea slider does not speak (see
+     * DistortionState), so vanilla's scale passes through untouched.
+     */
+    @ModifyExpressionValue(
+            method = "renderCameraOverlays",
+            at = @At(value = "INVOKE", target = "Ljava/lang/Double;floatValue()F"))
+    private float borderlesswindow$scaleNauseaOverlayCue(float original) {
+        if (DistortionState.isInPortal()) {
+            return original;
+        }
+        return original * DistortionState.getNauseaFactor();
     }
 
     /**

@@ -6,7 +6,8 @@ import com.github.arrivedbog593.borderlesswindow.config.BorderlessConfigFile;
  * Holds the sky and weather toggles: the sun and moon, the stars, and
  * the falling rain and snow. Minecraft offers none of these as options;
  * they come from OptiFine's Details menu (Sun &amp; Moon, Stars, Rain &amp;
- * Snow), reimplemented here (see LevelRendererMixin).
+ * Snow), reimplemented here (see SkyRendererMixin and
+ * WeatherEffectRendererMixin).
  * <p>
  * ALL THREE ARE DRAWING ONLY. The time of day, the moon phase, the
  * weather itself, the rain sounds and the splashes on the ground are

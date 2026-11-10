@@ -106,9 +106,9 @@ public class BorderlessConfigScreen extends Screen {
         // with the current value, so it always stays consistent.
         list.addOption(
                 CycleButton.builder((ScreenMode mode) ->
-                                Component.translatable(mode.getTranslationKey()))
+                                Component.translatable(mode.getTranslationKey()),
+                                BorderlessHandler.getCurrentMode())
                         .withValues(ScreenMode.values())
-                        .withInitialValue(BorderlessHandler.getCurrentMode())
                         .withTooltip(mode -> Tooltip.create(
                                 Component.translatable("borderlesswindow.options.screen_mode.tooltip")))
                         .create(0, 0, OPTION_WIDTH, OPTION_HEIGHT,
@@ -119,9 +119,9 @@ public class BorderlessConfigScreen extends Screen {
         // F11 behavior selector. No window change involved, applies silently.
         list.addOption(
                 CycleButton.builder((F11Mode mode) ->
-                                Component.translatable(mode.getTranslationKey()))
+                                Component.translatable(mode.getTranslationKey()),
+                                BorderlessHandler.getF11Target())
                         .withValues(F11Mode.values())
-                        .withInitialValue(BorderlessHandler.getF11Target())
                         .withTooltip(mode -> Tooltip.create(
                                 Component.translatable("borderlesswindow.options.f11_mode.tooltip")))
                         .create(0, 0, OPTION_WIDTH, OPTION_HEIGHT,
@@ -152,9 +152,9 @@ public class BorderlessConfigScreen extends Screen {
         // enough to see the change.
         list.addOption(
                 CycleButton.builder((EnchantmentLevelStyle style) ->
-                                Component.translatable(style.getTranslationKey()))
+                                Component.translatable(style.getTranslationKey()),
+                                EnchantmentLevelState.getStyle())
                         .withValues(EnchantmentLevelStyle.values())
-                        .withInitialValue(EnchantmentLevelState.getStyle())
                         .withTooltip(style -> Tooltip.create(
                                 Component.translatable("borderlesswindow.options.enchantment_level_style.tooltip")))
                         .create(0, 0, OPTION_WIDTH, OPTION_HEIGHT,
@@ -168,9 +168,9 @@ public class BorderlessConfigScreen extends Screen {
         // overlay reads FpsOverlayState every frame.
         list.addOption(
                 CycleButton.builder((FpsOverlayMode mode) ->
-                                Component.translatable(mode.getTranslationKey()))
+                                Component.translatable(mode.getTranslationKey()),
+                                FpsOverlayState.getMode())
                         .withValues(FpsOverlayMode.values())
-                        .withInitialValue(FpsOverlayState.getMode())
                         .withTooltip(mode -> Tooltip.create(
                                 Component.translatable("borderlesswindow.options.fps_overlay_mode.tooltip")))
                         .create(0, 0, OPTION_WIDTH, OPTION_HEIGHT,
@@ -180,9 +180,9 @@ public class BorderlessConfigScreen extends Screen {
         // Overlay position (screen corner).
         list.addOption(
                 CycleButton.builder((FpsOverlayPosition position) ->
-                                Component.translatable(position.getTranslationKey()))
+                                Component.translatable(position.getTranslationKey()),
+                                FpsOverlayState.getPosition())
                         .withValues(FpsOverlayPosition.values())
-                        .withInitialValue(FpsOverlayState.getPosition())
                         .withTooltip(position -> Tooltip.create(
                                 Component.translatable("borderlesswindow.options.fps_overlay_position.tooltip")))
                         .create(0, 0, OPTION_WIDTH, OPTION_HEIGHT,
@@ -316,7 +316,7 @@ public class BorderlessConfigScreen extends Screen {
         list.addHeader(Component.translatable("config.borderlesswindow.section.clouds"));
 
         // "Default" (leftmost) leaves each dimension's own height untouched;
-        // any other value overrides it via CloudHeightMixin.
+        // any other value overrides it via CloudRendererMixin.
         IntOptionSlider cloudSlider = new IntOptionSlider(0, 0, OPTION_WIDTH, OPTION_HEIGHT,
                 "borderlesswindow.options.cloud_height.name",
                 CloudState.DEFAULT_SLOT, CloudState.MAX_HEIGHT, 1,
@@ -438,9 +438,9 @@ public class BorderlessConfigScreen extends Screen {
         // these does anything. The tooltips say so.
         list.addOption(
                 CycleButton.builder((CameraBobMode mode) ->
-                                Component.translatable(mode.getTranslationKey()))
+                                Component.translatable(mode.getTranslationKey()),
+                                BobbingState.getCameraBobMode())
                         .withValues(CameraBobMode.values())
-                        .withInitialValue(BobbingState.getCameraBobMode())
                         .withTooltip(mode -> Tooltip.create(
                                 Component.translatable("borderlesswindow.options.camera_bob.tooltip")))
                         .create(0, 0, OPTION_WIDTH, OPTION_HEIGHT,
@@ -532,9 +532,9 @@ public class BorderlessConfigScreen extends Screen {
 
         list.addOption(
                 CycleButton.builder((ZoomMode mode) ->
-                                Component.translatable(mode.getTranslationKey()))
+                                Component.translatable(mode.getTranslationKey()),
+                                ZoomState.getMode())
                         .withValues(ZoomMode.values())
-                        .withInitialValue(ZoomState.getMode())
                         .withTooltip(mode -> Tooltip.create(
                                 Component.translatable("borderlesswindow.options.zoom_mode.tooltip")))
                         .create(0, 0, OPTION_WIDTH, OPTION_HEIGHT,
@@ -656,7 +656,6 @@ public class BorderlessConfigScreen extends Screen {
         DistanceState.persist();
         ZoomState.persist();
 
-        assert this.minecraft != null;
         this.minecraft.setScreen(this.parent);
     }
 

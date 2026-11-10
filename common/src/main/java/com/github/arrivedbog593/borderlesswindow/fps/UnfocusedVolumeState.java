@@ -1,7 +1,6 @@
 package com.github.arrivedbog593.borderlesswindow.fps;
 
 import com.github.arrivedbog593.borderlesswindow.config.BorderlessConfigFile;
-import com.github.arrivedbog593.borderlesswindow.mixin.SoundManagerAccessor;
 import net.minecraft.client.Minecraft;
 import net.minecraft.sounds.SoundSource;
 
@@ -10,18 +9,17 @@ import net.minecraft.sounds.SoundSource;
  * minimized, or another window in front), as a percentage of the regular
  * Master Volume.
  * <p>
- * HOW IT APPLIES. Vanilla's Master Volume is not multiplied into each
- * sound: it is the OpenAL listener gain, set through Listener.setGain().
- * ListenerMixin scales only the value handed to OpenAL there, so the
- * listener's own gain field keeps vanilla's number. That matters because
- * SoundEngine skips starting any sound while that field is 0 -- scaling
- * the field would drop sounds that begin while muted (ambient loops,
- * music), and they would stay missing after clicking back in. Scaling
- * only the OpenAL call silences them instead, and they are audible the
- * moment focus returns.
+ * HOW IT APPLIES. Vanilla multiplies Master into each sound's volume and
+ * hands the result to OpenAL through Channel.setVolume(). ChannelMixin
+ * scales only that hand-over, never the volume SoundEngine computes. That
+ * matters because SoundEngine refuses to start most sounds whose volume
+ * is 0 -- scaling its number would drop sounds that begin while muted
+ * (ambient loops), and they would stay missing after clicking back in.
+ * Scaling only the OpenAL call silences them instead, and they are
+ * audible the moment focus returns.
  * <p>
  * MinecraftMixin calls {@link #refresh()} whenever the focus changes, which
- * re-sends the Master Volume through the same path.
+ * re-sends every playing sound's volume through the same path.
  * <p>
  * SCALE: percentages, 0..100, default 100 (vanilla: no change in the
  * background). 0 mutes. Split apply/persist like UnfocusedFpsState: it is
@@ -50,8 +48,8 @@ public final class UnfocusedVolumeState {
     }
 
     /**
-     * What ListenerMixin multiplies the listener gain by: the setting while
-     * unfocused, 1 otherwise. The percentage is checked first so the
+     * What ChannelMixin multiplies every sound's volume by: the setting
+     * while unfocused, 1 otherwise. The percentage is checked first so the
      * default never queries the Minecraft instance.
      * <p>
      * If Dynamic FPS also lowers the background volume, the two reductions
@@ -68,11 +66,10 @@ public final class UnfocusedVolumeState {
     }
 
     /**
-     * Re-applies the Master Volume so the listener gain picks up the
-     * current factor. Goes straight to SoundEngine.updateCategoryVolume
-     * rather than SoundManager.updateSourceVolume: the latter stops every
-     * playing sound when Master is 0, which a focus change has no business
-     * doing. updateCategoryVolume is a no-op until the engine has loaded.
+     * Re-sends every playing sound's volume so it picks up the current
+     * factor: refreshing MASTER is how vanilla's own Master slider reaches
+     * all of them. Recomputes volumes only -- nothing is stopped or
+     * restarted -- and is a no-op until the engine has loaded.
      */
     public static void refresh() {
         Minecraft minecraft = Minecraft.getInstance();
@@ -84,9 +81,7 @@ public final class UnfocusedVolumeState {
         if (minecraft.getSoundManager() == null) {
             return;
         }
-        ((SoundManagerAccessor) minecraft.getSoundManager()).borderlesswindow$getSoundEngine()
-                .updateCategoryVolume(SoundSource.MASTER,
-                        minecraft.options.getSoundSourceVolume(SoundSource.MASTER));
+        minecraft.getSoundManager().refreshCategoryVolume(SoundSource.MASTER);
     }
 
     /** Memory only -- takes effect the next time the window loses focus. */

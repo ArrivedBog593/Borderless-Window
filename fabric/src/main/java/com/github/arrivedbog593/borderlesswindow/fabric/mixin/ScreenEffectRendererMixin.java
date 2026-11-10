@@ -4,8 +4,12 @@ import com.github.arrivedbog593.borderlesswindow.visual.ScreenEffectHandler;
 import com.llamalad7.mixinextras.injector.v2.WrapWithCondition;
 import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.ScreenEffectRenderer;
+import net.minecraft.client.renderer.texture.TextureAtlasSprite;
+import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 
 /**
@@ -19,17 +23,27 @@ import org.spongepowered.asm.mixin.injection.At;
 @Mixin(ScreenEffectRenderer.class)
 public abstract class ScreenEffectRendererMixin {
 
+    @Shadow
+    @Final
+    private Minecraft minecraft;
+
     @WrapWithCondition(method = "renderScreenEffect",
             at = @At(value = "INVOKE",
-                    target = "Lnet/minecraft/client/renderer/ScreenEffectRenderer;renderWater(Lnet/minecraft/client/Minecraft;Lcom/mojang/blaze3d/vertex/PoseStack;)V"))
-    private static boolean borderlesswindow$drawWater(Minecraft minecraft, PoseStack poseStack) {
+                    target = "Lnet/minecraft/client/renderer/ScreenEffectRenderer;renderWater("
+                            + "Lnet/minecraft/client/Minecraft;Lcom/mojang/blaze3d/vertex/PoseStack;"
+                            + "Lnet/minecraft/client/renderer/MultiBufferSource;)V"))
+    private boolean borderlesswindow$drawWater(Minecraft minecraft, PoseStack poseStack,
+                                               MultiBufferSource bufferSource) {
         return !ScreenEffectHandler.shouldHideWater();
     }
 
     @WrapWithCondition(method = "renderScreenEffect",
             at = @At(value = "INVOKE",
-                    target = "Lnet/minecraft/client/renderer/ScreenEffectRenderer;renderFire(Lnet/minecraft/client/Minecraft;Lcom/mojang/blaze3d/vertex/PoseStack;)V"))
-    private static boolean borderlesswindow$drawFire(Minecraft minecraft, PoseStack poseStack) {
-        return !ScreenEffectHandler.shouldHideFire(minecraft.player);
+                    target = "Lnet/minecraft/client/renderer/ScreenEffectRenderer;renderFire("
+                            + "Lcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/MultiBufferSource;"
+                            + "Lnet/minecraft/client/renderer/texture/TextureAtlasSprite;)V"))
+    private boolean borderlesswindow$drawFire(PoseStack poseStack, MultiBufferSource bufferSource,
+                                              TextureAtlasSprite sprite) {
+        return !ScreenEffectHandler.shouldHideFire(this.minecraft.player);
     }
 }

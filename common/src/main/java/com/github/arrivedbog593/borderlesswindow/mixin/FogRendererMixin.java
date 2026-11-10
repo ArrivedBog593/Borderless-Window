@@ -1,44 +1,47 @@
 package com.github.arrivedbog593.borderlesswindow.mixin;
 
-import com.github.arrivedbog593.borderlesswindow.visual.FogState;
-import com.llamalad7.mixinextras.injector.ModifyExpressionValue;
+import com.github.arrivedbog593.borderlesswindow.visual.FogHandler;
 import com.llamalad7.mixinextras.sugar.Local;
-import net.minecraft.client.renderer.FogRenderer;
+import net.minecraft.client.Camera;
+import net.minecraft.client.renderer.fog.FogData;
+import net.minecraft.client.renderer.fog.FogRenderer;
+import net.minecraft.world.level.material.FogType;
+import org.joml.Vector4f;
+import org.objectweb.asm.Opcodes;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
+import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 /**
- * Moves where the terrain fog starts (see FogState).
+ * The fog toggles and the fog start (see FogHandler).
  * <p>
- * WHY THE CLAMP. setupFog picks one branch per situation -- lava, powder
- * snow, Blindness/Darkness, water, the thick Nether fog, the sky -- and
- * only the last one, ordinary terrain fog, computes
- * {@code Mth.clamp(farPlaneDistance / 10, 4, 64)}: the depth of the fog
- * band, with start = far - depth. Changing that one value changes the
- * start and nothing else, and every other branch is left alone by
- * construction instead of by a list of conditions: the effect fogs, the
- * fluids, the Nether and the sky simply never reach this call. Verified
- * against setupFog in 1.21.1 on both loaders: it is the only clamp in
- * the method.
+ * WHERE. setupFog lets the camera's environment fill a FogData, then sets
+ * the render distance fog last ({@code renderDistanceEnd = far}) and
+ * uploads the whole FogData to the GPU. Right after that assignment every
+ * value is final and none has been read yet. The FogData fields are read
+ * as the upload's arguments, so injecting at the upload itself would be
+ * too late. Verified against setupFog in 1.21.11 on both loaders: one
+ * assignment to renderDistanceEnd, one FogData and one FogType local.
  * <p>
- * In common/ rather than per loader: the method is the same on NeoForge,
- * whose RenderFog event fires afterwards and so sees the moved start --
- * and the terrain fog toggle (FogHandler) still pushes the whole fog out
- * when it is off. Not to be confused with the Fabric module's own
- * FogRendererMixin, which is that toggle's hook on Fabric.
+ * In common/ for both loaders: NeoForge's own fog event fires right after
+ * this point and sees our values, so a mod listening to it still gets the
+ * last word.
  */
 @Mixin(FogRenderer.class)
 public abstract class FogRendererMixin {
 
-    @ModifyExpressionValue(
+    @Inject(
             method = "setupFog",
-            at = @At(value = "INVOKE", target = "Lnet/minecraft/util/Mth;clamp(FFF)F"))
-    private static float borderlesswindow$moveTerrainFogStart(float original,
-                                                              @Local(argsOnly = true, ordinal = 0) float farPlaneDistance) {
-        int start = FogState.getTerrainStart();
-        if (start == FogState.DEFAULT_START) {
-            return original;
-        }
-        return farPlaneDistance * (1.0F - start / 100.0F);
+            at = @At(value = "FIELD",
+                    target = "Lnet/minecraft/client/renderer/fog/FogData;renderDistanceEnd:F",
+                    opcode = Opcodes.PUTFIELD,
+                    shift = At.Shift.AFTER))
+    private void borderlesswindow$applyFogSettings(CallbackInfoReturnable<Vector4f> cir,
+                                                   @Local(argsOnly = true) Camera camera,
+                                                   @Local(argsOnly = true) int renderDistance,
+                                                   @Local FogData fogData,
+                                                   @Local FogType fogType) {
+        FogHandler.apply(fogData, fogType, camera, renderDistance * 16.0F);
     }
 }

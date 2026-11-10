@@ -65,14 +65,13 @@ public class BorderlessOptionsList extends ContainerObjectSelectionList<Borderle
         }
 
         @Override
-        public void render(@NotNull GuiGraphics guiGraphics, int index, int top, int left,
-                           int width, int height, int mouseX, int mouseY,
-                           boolean hovering, float partialTick) {
+        public void renderContent(@NotNull GuiGraphics guiGraphics, int mouseX, int mouseY,
+                                  boolean hovering, float partialTick) {
             Minecraft minecraft = Minecraft.getInstance();
             // Sits low in its row so it reads as a title for what follows.
-            int y = top + height - minecraft.font.lineHeight - 1;
+            int y = this.getContentY() + this.getContentHeight() - minecraft.font.lineHeight - 1;
             guiGraphics.drawCenteredString(minecraft.font, this.title,
-                    left + width / 2, y, 0xFFA0A0A0);
+                    this.getContentX() + this.getContentWidth() / 2, y, 0xFFA0A0A0);
         }
 
         @Override
@@ -96,12 +95,11 @@ public class BorderlessOptionsList extends ContainerObjectSelectionList<Borderle
         }
 
         @Override
-        public void render(@NotNull GuiGraphics guiGraphics, int index, int top, int left,
-                           int width, int height, int mouseX, int mouseY,
-                           boolean hovering, float partialTick) {
+        public void renderContent(@NotNull GuiGraphics guiGraphics, int mouseX, int mouseY,
+                                  boolean hovering, float partialTick) {
             // The list scrolls, so the widget is repositioned every frame.
-            this.widget.setX(left + (width - this.widget.getWidth()) / 2);
-            this.widget.setY(top + (height - this.widget.getHeight()) / 2);
+            this.widget.setX(this.getContentX() + (this.getContentWidth() - this.widget.getWidth()) / 2);
+            this.widget.setY(this.getContentY() + (this.getContentHeight() - this.widget.getHeight()) / 2);
             this.widget.render(guiGraphics, mouseX, mouseY, partialTick);
         }
 

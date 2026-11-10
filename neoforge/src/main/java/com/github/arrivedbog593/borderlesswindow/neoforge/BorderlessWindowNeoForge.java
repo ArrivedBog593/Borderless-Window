@@ -5,7 +5,6 @@ import com.github.arrivedbog593.borderlesswindow.config.BorderlessConfigScreen;
 import com.github.arrivedbog593.borderlesswindow.fps.FpsOverlay;
 import com.github.arrivedbog593.borderlesswindow.general.BorderlessHandler;
 import com.github.arrivedbog593.borderlesswindow.general.HudState;
-import com.github.arrivedbog593.borderlesswindow.visual.FogHandler;
 import com.github.arrivedbog593.borderlesswindow.visual.ScreenEffectHandler;
 import net.minecraft.client.Minecraft;
 import net.neoforged.bus.api.IEventBus;
@@ -16,7 +15,6 @@ import net.neoforged.neoforge.client.event.RegisterKeyMappingsEvent;
 import net.neoforged.neoforge.client.event.RenderBlockScreenEffectEvent;
 import net.neoforged.neoforge.client.event.RenderGuiEvent;
 import net.neoforged.neoforge.client.event.RenderGuiLayerEvent;
-import net.neoforged.neoforge.client.event.ViewportEvent;
 import net.neoforged.neoforge.client.gui.IConfigScreenFactory;
 import net.neoforged.neoforge.client.gui.VanillaGuiLayers;
 import net.neoforged.neoforge.common.NeoForge;
@@ -30,9 +28,9 @@ import net.neoforged.neoforge.common.NeoForge;
  * <p>
  * Everything else lives in common/; this class only connects it to
  * NeoForge: the client setup that restores the saved settings, the zoom
- * key, the four events common/ needs (HUD, fog, block screen overlays,
- * the held item name's HUD layer), and the Config button. Each event handler just translates the event for the
- * loader-neutral class that decides.
+ * key, the three events common/ needs (HUD, block screen overlays, the
+ * held item name's HUD layer), and the Config button. Each event handler
+ * just translates the event for the loader-neutral class that decides.
  */
 @Mod(BorderlessWindowNeoForge.MOD_ID)
 @SuppressWarnings("unused")
@@ -46,7 +44,6 @@ public class BorderlessWindowNeoForge {
 
         // Game event bus (not the mod bus) for the per-frame events.
         NeoForge.EVENT_BUS.addListener(BorderlessWindowNeoForge::onRenderGui);
-        NeoForge.EVENT_BUS.addListener(BorderlessWindowNeoForge::onRenderFog);
         NeoForge.EVENT_BUS.addListener(BorderlessWindowNeoForge::onRenderBlockScreenEffect);
         NeoForge.EVENT_BUS.addListener(BorderlessWindowNeoForge::onRenderGuiLayer);
 
@@ -65,24 +62,13 @@ public class BorderlessWindowNeoForge {
 
     /** Adds the zoom key to Controls; NeoForge also saves it in options.txt. */
     private static void onRegisterKeyMappings(RegisterKeyMappingsEvent event) {
+        event.registerCategory(ZoomState.CATEGORY);
         event.register(ZoomState.KEY);
     }
 
     /** Fires once per rendered frame, after the HUD. */
     private static void onRenderGui(RenderGuiEvent.Post event) {
         FpsOverlay.render(event.getGuiGraphics());
-    }
-
-    /**
-     * Fires every time vanilla sets up fog. NeoForge requires cancelling
-     * the event for the new plane distances to take effect.
-     */
-    private static void onRenderFog(ViewportEvent.RenderFog event) {
-        if (FogHandler.shouldRemove(event.getType(), event.getCamera())) {
-            event.setNearPlaneDistance(FogHandler.NO_FOG_NEAR);
-            event.setFarPlaneDistance(FogHandler.NO_FOG_FAR);
-            event.setCanceled(true);
-        }
     }
 
     /** Fires right before each view overlay is drawn; cancelling skips the draw. */

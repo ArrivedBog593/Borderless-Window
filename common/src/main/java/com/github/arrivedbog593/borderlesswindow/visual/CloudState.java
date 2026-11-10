@@ -7,14 +7,13 @@ import net.minecraft.network.chat.Component;
  * Holds the custom cloud height, mirroring the role FogState/FpsOverlayState
  * play for their features. Both UIs (the vanilla config screen and the
  * Sodium video settings integration) read and write through this class,
- * and CloudHeightMixin consults it every time the game asks a dimension
- * for its cloud height.
+ * and CloudRendererMixin consults it every time the clouds are drawn.
  * <p>
  * SENTINEL: {@link #DEFAULT_HEIGHT} means "don't override" -- the mixin
  * leaves the dimension's own cloud height untouched. Only an explicit
  * value in [MIN_HEIGHT, MAX_HEIGHT] overrides it. This keeps custom
- * dimensions from other mods (and vanilla's NaN "no clouds" signal for
- * the Nether/End) working normally until the user actually picks a height.
+ * dimensions and biomes from other mods working normally until the user
+ * actually picks a height.
  * <p>
  * The slider is presented so its leftmost position is DEFAULT_HEIGHT
  * (shown as "Default"), and 64..320 above that are real heights.

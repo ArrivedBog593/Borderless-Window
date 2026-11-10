@@ -5,7 +5,7 @@
 
 *[Español](README_ES.md)*
 
-A lightweight client-side mod for **NeoForge and Fabric 1.21.1** that adds **borderless fullscreen** to Minecraft, replacing the exclusive fullscreen toggle with a proper 3-mode system — plus a set of video and quality-of-life options Minecraft doesn't expose.
+A lightweight client-side mod for **NeoForge and Fabric 1.21.11** that adds **borderless fullscreen** to Minecraft, replacing the exclusive fullscreen toggle with a proper 3-mode system — plus a set of video and quality-of-life options Minecraft doesn't expose.
 
 ## Features
 
@@ -19,12 +19,12 @@ A lightweight client-side mod for **NeoForge and Fabric 1.21.1** that adds **bor
 ### Video and quality of life
 
 - **FPS overlay**: the current FPS, or a single line with the Min / Avg / Max over the last 15 seconds. Any screen corner. It samples the game's own counter, so it always matches F3 and respects VSync and FPS caps, and it hides itself while F3 is open.
-- **Background options**: Minecraft 1.21.1 keeps running at full speed and full volume when nobody is looking. Four independent options fix that:
+- **Background options**: Minecraft only slows down while minimized or after a minute with no input (its Inactivity FPS Limit), and never lowers the volume. Four independent options go further:
   - **Unfocused FPS limit**: cap the frame rate while the game is in the background (alt-tabbed, minimized, or behind another window), from 5 to 60 FPS.
   - **Idle FPS limit**: cap the frame rate after a few minutes with no keyboard or mouse input, even while the window is focused. Any input lifts it at once.
-  - **Pause rendering when minimized**: stop drawing frames entirely while minimized. The game itself keeps running — only the picture stops.
+  - **Pause rendering when minimized**: stop drawing frames entirely while minimized — Minecraft only caps them at 10 FPS and keeps drawing them. The game itself keeps running — only the picture stops.
   - **Unfocused volume**: lower or mute the game while it is in the background, as a share of your Master Volume.
-  - All four work alongside Dynamic FPS: the lower frame rate cap wins.
+  - All four work alongside Minecraft's own Inactivity FPS Limit and Dynamic FPS: the lowest frame rate cap wins. To use only the mod's idle limit, set Minecraft's to "Minimized".
 - **Draw distances**: stop drawing dropped items, experience orbs, and armor stands past a distance you choose, and stop particles from spawning past one. Purely visual — items can still be picked up and orbs still reach you. Glowing entities and named armor stands (holograms, floating text) are always drawn.
 - **Fog toggles**: Terrain (the distance haze, including the Nether's thick fog), Water, Lava, and Powder Snow, each independent. Fog from Blindness and Darkness is never affected, so those effects still work as intended. **Fog Start** chooses where the terrain fog begins, as OptiFine's does, for a softer haze or one pushed to the very edge.
 - **Cloud height**: raise or lower the cloud layer between y=64 and y=320. On Default every dimension keeps its own height, and dimensions with no clouds at all — the Nether, the End, cloudless dimensions from other mods — stay that way at any setting.
@@ -64,9 +64,9 @@ Every setting defaults to vanilla behavior, so installing or updating the mod ne
 
 ## Requirements
 
-- Minecraft **1.21.1**
-- **NeoForge** 21.1.x, or **Fabric Loader** 0.16.0+ (Fabric API not required)
-- (Optional) **Sodium 0.8.0+** for the video settings integration
+- Minecraft **1.21.11**
+- **NeoForge** 21.11.x, or **Fabric Loader** 0.17.3+ (Fabric API not required)
+- (Optional) **Sodium 0.8.x** for the video settings integration
 - (Optional, Fabric) **Mod Menu**, to also open the config from its mod list
 
 Download the jar for your loader: `borderlesswindow-neoforge-…` or `borderlesswindow-fabric-…`.

@@ -19,7 +19,7 @@ dependencies {
     // as Sodium does, so players still install nothing; with Fabric API
     // present, the loader picks the newer copy of each module.
     include(modImplementation(fabricApi.module('fabric-api-base', fabric_api_version)))
-    include(modImplementation(fabricApi.module('fabric-resource-loader-v0', fabric_api_version)))
+    include(modImplementation(fabricApi.module('fabric-resource-loader-v1', fabric_api_version)))
     // Same deal for the zoom key: Fabric Loader has no way to add a key to
     // Controls (nor to give it a category of its own), the key binding
     // module does.
@@ -31,13 +31,10 @@ dependencies {
     modCompileOnly "net.caffeinemc:sodium-fabric-api:${sodium_api_version}"
     modCompileOnly "com.terraformersmc:modmenu:${modmenu_version}"
 
-    // No Iris in this dev run, from mods/ or from here: on 1.21.1 Fabric
-    // Loader's development-only mixin remapper crashes on one of Iris's
-    // selectors (a method name with no descriptor that it cannot find),
-    // and it cannot be turned off. Test shaders in the NeoForge dev run --
-    // the frame rate and render code is the same common/ code -- or with
-    // the built jar in a real Fabric profile. Gone from 26.1 on, where
-    // Fabric runs on Mojang's names and remaps nothing.
+    // Iris works in this dev run from mods/ (tested with Iris 1.10.8 and
+    // Fabric Loader 0.20.1). On 1.21.1 it did not: Fabric Loader's
+    // development-only mixin remapper crashed on one of Iris's selectors
+    // (a method name with no descriptor that it could not find).
 }
 
 // No refmap: Fabric runs on intermediary names outside the dev environment,
@@ -51,6 +48,10 @@ loom {
             ideConfigGenerated(true)
             // run/<minecraft>/<loader>/<side>; see neoforge/build.gradle.
             runDir("../run/${minecraft_version}/fabric/client")
+            // A fixed name, as NeoForge's run has. Without it vanilla makes
+            // one up on every launch ("Player" + 3 digits of the clock), so
+            // each run is a different player in the same world.
+            programArgs('--username', 'Dev')
         }
         // The mod is client-only: no IDE entry for a server run.
         server {

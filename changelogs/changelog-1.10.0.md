@@ -1,61 +1,37 @@
 # Borderless Window 1.10.0
 
-*NeoForge · Fabric 1.21.1 · 2026-11-09*
+*NeoForge · Fabric 1.21.11 · 2026-11-10*
 
-> **Zoom, and a few details from OptiFine.** Press C to get a closer look, with the mouse wheel to go further. Plus: hide the sun, moon, stars, rain and snow, choose where the fog starts, and turn off the item name over the hotbar. On both loaders, with nothing else to install.
+> **Now on Minecraft 1.21.11.** Every feature of 1.10.0, on both loaders, with nothing else to install.
 
 ## ⚠️ Important Notes
 
-- **The zoom key is C by default**, like OptiFine. Minecraft also uses C for "Save Hotbar Activator", which only works in creative and combined with a number key. If that gets in the way, change either one in Options → Controls → Key Binds, under "Borderless Window"
-- Every other setting stays as it was, and every new option starts at Minecraft's own behavior. The zoom does nothing until you press its key
-- When updating, delete the 1.9.0 jar from your mods folder
+- **The first version for Minecraft 1.21.11.** Download the file for 1.21.11 and your loader; the 1.21.1 jars do not work here
+- **Minecraft 1.21.11 has its own "Inactivity FPS Limit"** (in Video Settings, or on Sodium's Performance page): 10 FPS while minimized and, in its default "AFK" mode, 30 FPS after a minute without input and 10 after ten. It stacks with the mod's background options and the lowest limit wins. To use only the mod's Idle FPS Limit, set Minecraft's to "Minimized". Pause Rendering When Minimized still goes further than Minecraft: it stops drawing frames instead of drawing them at 10 FPS
+- **The fog toggles are independent.** Minecraft 1.21.11 draws two fogs at once: the one from where you are (water, lava, the Nether, rain) and the one that hides the edge of the loaded terrain. Water Fog off clears the water and keeps that edge hidden; Terrain Fog off clears it everywhere
+- Same config file and option IDs as on 1.21.1: copying `config/borderlesswindow.json` from a 1.21.1 instance carries your settings over
 
 ## ✨ New Features
 
-### Zoom
-
-- **Press C to zoom in**, 4× by default. The key is in Minecraft's Controls, in its own "Borderless Window" category
-- **Hold or Toggle**: zoom only while the key is held down, or press once to zoom in and again to zoom out
-- **Scroll to Zoom**: while zooming, the mouse wheel zooms further in or back out, from 1× to 50×, instead of changing the hotbar slot. It follows Minecraft's Discrete Scrolling and Scroll Sensitivity. Every new zoom starts again at the Zoom Level
-- **Zoom Level**: from 2× to 16×
-- **Smooth Zoom**: eases in and out of the zoom, at any frame rate. Turn it off to jump straight in
-- **Hide Hand** while zooming (on by default) and **Hide HUD** while zooming (off by default), the latter just like pressing F1
-- **The mouse turns slower in proportion to the zoom**, so the crosshair moves across the world at the same speed as without zoom
-- It only narrows the field of view: nothing is drawn any farther away, and it stacks with your FOV and the mod's FOV sliders
-- **The spyglass is left alone**: while you look through one, the zoom steps aside and the mouse wheel goes back to the hotbar
-- The options are a new **Zoom** group on the Camera page in Sodium, and a new section in the mod's config screen
-
-### Sky and weather
-
-Options Minecraft does not have, from OptiFine's Details menu. All three are on by default and only change what is drawn:
-
-- **Sun and Moon**: hide them. Day still turns into night, and sunrises and sunsets keep their colors
-- **Stars**: hide them for a plain night sky
-- With shaders, packs that draw their own sun, moon and stars keep them; those are set in the pack. Rain and snow are hidden with shaders too
-- **Rain and Snow**: hide the falling rain and snow. It still rains for mobs, crops and fishing, and the rain sounds and splashes stay
-- A new **Sky and Weather** group on the Visual Effects page, after the clouds
-
-### Fog start
-
-- **Fog Start**, like OptiFine's: choose where the distance fog begins, from 1% to 95% of your render distance. **Default (~90%)** keeps Minecraft's own. Lower values give a softer, deeper haze
-- Only the ordinary terrain fog moves. The Nether's thick fog, water, lava, Blindness and Darkness are left alone. It is greyed out while Terrain Fog is off
-
-### Held item name
-
-- **Held Item Name**: turn off the item name that appears above the hotbar when you switch slots (OptiFine's "Held Item Tooltips"). On the General page, in a new **HUD** group
+- **Everything from 1.10.0, on Minecraft 1.21.11**: the three screen modes and configurable F11, the FPS counter, the background options, the fog toggles and Fog Start, cloud height, sky and weather, the held item name, screen and camera overlays, split FOV, distortion and view bobbing, zoom, enchantment numerals, draw distances, and Minecraft's own sliders that Sodium leaves out
+- With Sodium, the mod's six pages and the Screen Mode selector work as on 1.21.1. Iris shaders work too: the rain is hidden, and packs that draw their own sky keep their sun, moon and stars
 
 ## 🔧 Technical Changes
 
-- The zoom multiplies the value `GameRenderer.getFov` returns, after NeoForge's ComputeFov event. The held item's own FOV is left out, so the hand never gets magnified
-- The key and the animation are read once per frame, so a press shows on the very next frame
-- On Fabric, the key is registered through `fabric-key-binding-api-v1`, bundled inside the jar like the resource loader. Fabric API is still not required
-- Fog start changes the depth of the fog band in the one branch of `FogRenderer.setupFog` that computes it, so no other fog can be touched. It is a single mixin for both loaders, and NeoForge's RenderFog event sees the moved start
-- The sun, moon and stars are skipped at their draw calls in `LevelRenderer.renderSky`, and the sun and moon meshes are still released. Dimensions that draw their own sky are not affected
-- The code in `common/` is reorganized into one package per page of the mod's settings (`general`, `enchantment`, `fps`, `visual`, `camera`, `distance`) instead of one per feature, so new options fit into an existing one. Every slider in the config screen now uses the same widget. Nothing changes for players: the config file, the option IDs and the translations are the same
+- Ported to Minecraft 1.21.11, whose rendering changed throughout since 1.21.1. Every hook was checked against the 1.21.11 code on both loaders:
+  - **Fog**: one mixin for both loaders, on the fog data `FogRenderer.setupFog` builds before uploading it. NeoForge's RenderFog event and the Fabric-only fog mixin are gone. Sodium reads the same data, so the toggles work the same with it
+  - **Clouds**: the cloud height is now an environment attribute; the mod moves only the drawing, in `CloudRenderer`. Dimensions without clouds never reach it
+  - **Sky and weather**: the sun, moon and stars in `SkyRenderer`, the rain and snow in `WeatherEffectRenderer`
+  - **Particles**: `ClientLevel.doAddParticle`, where Minecraft applies its own 32-block limit
+  - **Frame rate caps**: `FramerateLimitTracker`, where Minecraft's own Inactivity FPS Limit lives
+  - **Unfocused volume**: scales each sound's volume as it reaches OpenAL (`Channel.setVolume`). Minecraft 1.21.11 no longer has a listener gain
+- **Distortion**: Minecraft now tracks the portal and Nausea apart. Inside a Nether portal the Portal slider still rules the whole spin, Nausea included, as on 1.21.1 — also when arriving inside the destination portal
+- **The zoom key's Controls category** is now registered by each loader, as Minecraft 1.21.11 requires
+- **On Fabric**, the bundled resource loader is now `fabric-resource-loader-v1`. Fabric API is still not required
 
 ## 📦 Dependencies
 
-- Minecraft 1.21.1 with NeoForge 21.1.x, or with Fabric Loader 0.16.0 or newer
+- Minecraft 1.21.11 with NeoForge 21.11.x, or with Fabric Loader 0.17.3 or newer
 - Optional: Sodium 0.8.x on either loader, and Mod Menu on Fabric
 
 ---
@@ -63,60 +39,36 @@ Options Minecraft does not have, from OptiFine's Details menu. All three are on 
 <details>
 <summary><b>🇪🇸 Leer en español</b></summary>
 
-> **Zoom, y algunos detalles de OptiFine.** Presiona C para ver de cerca, con la rueda del mouse para acercar más. Además: ocultar el sol, la luna, las estrellas, la lluvia y la nieve, elegir dónde empieza la niebla, y quitar el nombre del objeto sobre la barra. En los dos loaders y sin instalar nada más.
+> **Ahora en Minecraft 1.21.11.** Todas las funciones de la 1.10.0, en los dos loaders y sin instalar nada más.
 
 ## ⚠️ Notas Importantes
 
-- **La tecla de zoom es la C por defecto**, como en OptiFine. Minecraft también usa la C para "Activador de guardar barra", que solo funciona en creativo y combinado con una tecla de número. Si estorba, cambia cualquiera de las dos en Opciones → Controles → Asignación de teclas, en "Borderless Window"
-- Los demás ajustes se quedan como estaban, y cada opción nueva empieza en el comportamiento normal de Minecraft. El zoom no hace nada hasta que presionas su tecla
-- Al actualizar, borra el jar de la 1.9.0 de tu carpeta de mods
+- **La primera versión para Minecraft 1.21.11.** Descarga el archivo para 1.21.11 y tu loader; los jars de la 1.21.1 no funcionan aquí
+- **Minecraft 1.21.11 tiene su propio "Reducir FPS"** (en Opciones de gráficos, o en la página Rendimiento de Sodium): 10 FPS con el juego minimizado y, en su modo por defecto "Al ausentarse", 30 FPS tras un minuto sin actividad y 10 tras diez. Se suma a las opciones de segundo plano del mod y gana el límite más bajo. Para usar solo el Límite por inactividad del mod, pon el de Minecraft en "Al minimizar". Pausar render al minimizar sigue yendo más allá que Minecraft: deja de dibujar frames en vez de dibujarlos a 10 FPS
+- **Los toggles de niebla son independientes.** Minecraft 1.21.11 dibuja dos nieblas a la vez: la de donde estás (agua, lava, el Nether, la lluvia) y la que oculta el borde del terreno cargado. La Niebla de agua desactivada despeja el agua y deja oculto ese borde; la Niebla de terreno desactivada lo despeja en todas partes
+- El mismo archivo de configuración e IDs de opciones que en la 1.21.1: copiar `config/borderlesswindow.json` desde una instancia de 1.21.1 conserva tus ajustes
 
 ## ✨ Nuevas Características
 
-### Zoom
-
-- **Presiona C para acercar la vista**, 4× por defecto. La tecla está en los Controles de Minecraft, en su propia categoría "Borderless Window"
-- **Mantener o Alternar**: zoom solo mientras tienes la tecla presionada, o una pulsación para acercar y otra para regresar
-- **Zoom con la rueda**: mientras haces zoom, la rueda del mouse acerca o aleja más, de 1× a 50×, en vez de cambiar de casilla en la barra. Respeta el Desplazamiento discreto y la Sensibilidad de la rueda de Minecraft. Cada zoom nuevo vuelve a empezar en el Nivel de zoom
-- **Nivel de zoom**: de 2× a 16×
-- **Zoom suave**: entra y sale del zoom de forma gradual, a cualquier cantidad de FPS. Desactívalo para que sea instantáneo
-- **Ocultar mano** al hacer zoom (activado por defecto) y **Ocultar HUD** al hacer zoom (desactivado por defecto), este último igual que presionar F1
-- **El mouse gira más lento en proporción al zoom**, así que la mira recorre el mundo a la misma velocidad que sin zoom
-- Solo cierra el campo de visión: nada se dibuja más lejos, y se suma a tu FOV y a los sliders de FOV del mod
-- **El catalejo no se toca**: mientras miras por uno, el zoom se hace a un lado y la rueda del mouse vuelve a la barra
-- Las opciones son un grupo nuevo **Zoom** en la página Cámara de Sodium, y una sección nueva en la pantalla de configuración del mod
-
-### Cielo y clima
-
-Opciones que Minecraft no tiene, del menú Detalles de OptiFine. Las tres vienen activadas por defecto y solo cambian lo que se dibuja:
-
-- **Sol y luna**: ocultarlos. El día se sigue haciendo noche, y los amaneceres y atardeceres conservan sus colores
-- **Estrellas**: ocultarlas para un cielo nocturno liso
-- Con shaders, los packs que dibujan su propio sol, luna y estrellas los conservan; eso se ajusta en el pack. La lluvia y la nieve se ocultan también con shaders
-- **Lluvia y nieve**: ocultar la lluvia y la nieve que caen. Sigue lloviendo para los mobs, los cultivos y la pesca, y se quedan el sonido de la lluvia y las salpicaduras
-- Un grupo nuevo **Cielo y clima** en la página Efectos visuales, después de las nubes
-
-### Inicio de la niebla
-
-- **Inicio de la niebla**, como el de OptiFine: elige dónde empieza la niebla de distancia, del 1% al 95% de tu distancia de renderizado. **Por defecto (~90%)** conserva el de Minecraft. Los valores más bajos dan una neblina más suave y profunda
-- Solo se mueve la niebla normal del terreno. La niebla densa del Nether, el agua, la lava, la Ceguera y la Oscuridad no se tocan. Sale en gris mientras la Niebla de terreno está desactivada
-
-### Nombre del objeto en mano
-
-- **Nombre del objeto en mano**: quita el nombre del objeto que aparece sobre la barra al cambiar de casilla (los "Held Item Tooltips" de OptiFine). En la página General, en un grupo nuevo **HUD**
+- **Todo lo de la 1.10.0, en Minecraft 1.21.11**: los tres modos de pantalla y F11 configurable, el contador de FPS, las opciones de segundo plano, los toggles de niebla y el Inicio de la niebla, la altura de las nubes, cielo y clima, el nombre del objeto en mano, los overlays de pantalla y de cámara, el FOV, la distorsión y el balanceo separados, el zoom, los números de encantamientos, las distancias de dibujado, y los sliders de Minecraft que Sodium deja fuera
+- Con Sodium, las seis páginas del mod y el selector de Modo de pantalla funcionan como en la 1.21.1. Los shaders de Iris también: la lluvia se oculta, y los packs que dibujan su propio cielo conservan su sol, luna y estrellas
 
 ## 🔧 Cambios Técnicos
 
-- El zoom multiplica el valor que devuelve `GameRenderer.getFov`, después del evento ComputeFov de NeoForge. El FOV propio del objeto en la mano queda fuera, así que la mano nunca se agranda
-- La tecla y la animación se leen una vez por frame, así que una pulsación se nota desde el siguiente frame
-- En Fabric, la tecla se registra con `fabric-key-binding-api-v1`, incluido dentro del jar igual que el cargador de recursos. Sigue sin requerir Fabric API
-- El inicio de la niebla cambia la profundidad de la franja de niebla en la única rama de `FogRenderer.setupFog` que la calcula, así que ninguna otra niebla se puede tocar. Es un solo mixin para los dos loaders, y el evento RenderFog de NeoForge ve el inicio ya movido
-- El sol, la luna y las estrellas se saltan en sus llamadas de dibujo de `LevelRenderer.renderSky`, y los meshes del sol y la luna se siguen liberando. Las dimensiones que dibujan su propio cielo no se ven afectadas
-- El código de `common/` se reorganiza en un paquete por página de los ajustes del mod (`general`, `enchantment`, `fps`, `visual`, `camera`, `distance`) en lugar de uno por función, así las opciones nuevas entran en uno que ya existe. Todos los sliders de la pantalla de configuración usan ahora el mismo widget. Para los jugadores no cambia nada: el archivo de configuración, los IDs de las opciones y las traducciones son los mismos
+- Portado a Minecraft 1.21.11, cuyo render cambió por completo desde la 1.21.1. Cada hook se revisó contra el código de 1.21.11 en los dos loaders:
+  - **Niebla**: un solo mixin para los dos loaders, sobre los datos de niebla que arma `FogRenderer.setupFog` antes de subirlos. Ya no se usan el evento RenderFog de NeoForge ni el mixin de niebla propio de Fabric. Sodium lee los mismos datos, así que los toggles funcionan igual con él
+  - **Nubes**: la altura de las nubes ahora es un atributo de entorno; el mod solo mueve el dibujo, en `CloudRenderer`. Las dimensiones sin nubes nunca llegan ahí
+  - **Cielo y clima**: el sol, la luna y las estrellas en `SkyRenderer`, la lluvia y la nieve en `WeatherEffectRenderer`
+  - **Partículas**: `ClientLevel.doAddParticle`, donde Minecraft aplica su propio límite de 32 bloques
+  - **Límites de FPS**: `FramerateLimitTracker`, donde vive el Reducir FPS de Minecraft
+  - **Volumen sin foco**: escala el volumen de cada sonido al llegar a OpenAL (`Channel.setVolume`). Minecraft 1.21.11 ya no tiene ganancia del listener
+- **Distorsión**: Minecraft ahora lleva el portal y la Náusea por separado. Dentro de un portal del Nether el slider de Portal sigue mandando sobre todo el giro, Náusea incluida, como en la 1.21.1 — también al aparecer dentro del portal de llegada
+- **La categoría de la tecla de zoom en Controles** ahora la registra cada loader, como lo pide Minecraft 1.21.11
+- **En Fabric**, el cargador de recursos incluido ahora es `fabric-resource-loader-v1`. Sigue sin requerir Fabric API
 
 ## 📦 Dependencias
 
-- Minecraft 1.21.1 con NeoForge 21.1.x, o con Fabric Loader 0.16.0 o más nuevo
+- Minecraft 1.21.11 con NeoForge 21.11.x, o con Fabric Loader 0.17.3 o más nuevo
 - Opcional: Sodium 0.8.x en cualquiera de los dos loaders, y Mod Menu en Fabric
 
 </details>

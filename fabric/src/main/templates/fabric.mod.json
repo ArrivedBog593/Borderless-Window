@@ -31,7 +31,7 @@
   ],
   "depends": {
     "fabricloader": "${fabric_loader_requirement}",
-    "fabric-resource-loader-v0": "*",
+    "fabric-resource-loader-v1": "*",
     "fabric-key-binding-api-v1": "*",
     "minecraft": "${minecraft_version}",
     "java": ">=${java_version}"

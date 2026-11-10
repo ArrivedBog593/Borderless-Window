@@ -6,7 +6,7 @@ import net.minecraft.network.chat.Component;
 /**
  * Holds the maximum draw distances for dropped items, experience orbs,
  * armor stands and particles. EntityRenderDispatcherMixin and
- * LevelRendererMixin consult it.
+ * ClientLevelMixin consult it.
  * <p>
  * DRAW, NOT EXIST. Every one of these only stops something from being
  * drawn (or, for particles, from being spawned on this client). The

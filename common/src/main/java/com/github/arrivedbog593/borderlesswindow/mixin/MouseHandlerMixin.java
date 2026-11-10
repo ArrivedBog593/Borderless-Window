@@ -16,14 +16,14 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
  * Records mouse activity for the idle FPS cap (see IdleFpsState), and
  * adapts the mouse to the zoom (see ZoomState).
  * <p>
- * onMove, onPress and onScroll are where vanilla's GLFW mouse callbacks
+ * onMove, onButton and onScroll are where vanilla's GLFW mouse callbacks
  * land (queued onto the render thread through Minecraft.execute), so
  * every move, click and scroll passes through one of them.
  */
 @Mixin(MouseHandler.class)
 public abstract class MouseHandlerMixin {
 
-    @Inject(method = {"onMove", "onPress", "onScroll"}, at = @At("HEAD"))
+    @Inject(method = {"onMove", "onButton", "onScroll"}, at = @At("HEAD"))
     private void borderlesswindow$markInput(CallbackInfo ci) {
         IdleFpsState.markInput();
     }
@@ -42,7 +42,7 @@ public abstract class MouseHandlerMixin {
     private void borderlesswindow$scrollZoom(long windowPointer, double xOffset, double yOffset,
                                              CallbackInfo ci) {
         Minecraft minecraft = Minecraft.getInstance();
-        if (windowPointer != minecraft.getWindow().getWindow() || minecraft.getOverlay() != null) {
+        if (windowPointer != minecraft.getWindow().handle() || minecraft.getOverlay() != null) {
             return;
         }
         double amount = minecraft.options.discreteMouseScroll().get() ? Math.signum(yOffset) : yOffset;

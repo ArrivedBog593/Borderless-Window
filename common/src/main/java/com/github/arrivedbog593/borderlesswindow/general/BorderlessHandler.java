@@ -136,7 +136,7 @@ public final class BorderlessHandler {
                 config.zoomScroll(), config.zoomSmooth(),
                 config.zoomHideHand(), config.zoomHideHud());
 
-        if (glfwGetWindowMonitor(window.getWindow()) != 0L) {
+        if (glfwGetWindowMonitor(window.handle()) != 0L) {
             // The game booted in exclusive fullscreen via options.txt.
             currentMode = ScreenMode.FULLSCREEN;
         }
@@ -150,7 +150,7 @@ public final class BorderlessHandler {
             return;
         }
 
-        long handle = window.getWindow();
+        long handle = window.handle();
 
         // If we are leaving WINDOWED, remember its size/position so we can
         // restore it later, regardless of which mode we switch to now.

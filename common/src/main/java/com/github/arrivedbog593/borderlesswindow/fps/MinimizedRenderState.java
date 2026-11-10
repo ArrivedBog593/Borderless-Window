@@ -5,9 +5,15 @@ import net.minecraft.client.Minecraft;
 import org.lwjgl.glfw.GLFW;
 
 /**
- * Holds the "skip rendering while minimized" toggle. MinecraftMixin
- * consults it every frame: while the window is minimized it skips
- * GameRenderer.render() and caps the loop at {@link #MINIMIZED_FPS}.
+ * Holds the "skip rendering while minimized" toggle. MinecraftMixin and
+ * FramerateLimitTrackerMixin consult it every frame: while the window is
+ * minimized the first skips GameRenderer.render() and the second caps the
+ * loop at {@link #MINIMIZED_FPS}.
+ * <p>
+ * WHAT VANILLA ALREADY DOES (1.21.2+): a minimized window is capped at 10
+ * FPS and the finished frame is not copied to the screen, but the whole
+ * frame is still drawn first. Skipping the draw is the part only this
+ * option adds; the cap is the same as vanilla's and simply stacks.
  * <p>
  * WHY BOTH. Skipping the draw alone would leave runTick spinning as fast
  * as the CPU allows -- a minimized window has nothing to vsync against --
@@ -19,8 +25,7 @@ import org.lwjgl.glfw.GLFW;
  * WHY 10 FPS. runTick runs at most 10 client ticks per frame and drops the
  * rest, so the loop needs at least 2 frames per second to keep the 20
  * ticks per second the game expects; 10 leaves ample headroom. It is also
- * what vanilla 1.21.2+ uses for a minimized window -- drop this feature
- * along with UnfocusedFpsState when porting.
+ * what vanilla uses for a minimized window.
  * <p>
  * Minimized is read straight from GLFW (GLFW_ICONIFIED) each frame rather
  * than tracked through an iconify callback: vanilla installs none, and
@@ -54,7 +59,7 @@ public final class MinimizedRenderState {
         if (!enabled) {
             return false;
         }
-        long handle = Minecraft.getInstance().getWindow().getWindow();
+        long handle = Minecraft.getInstance().getWindow().handle();
         return GLFW.glfwGetWindowAttrib(handle, GLFW.GLFW_ICONIFIED) == GLFW.GLFW_TRUE;
     }
 }

@@ -4,13 +4,14 @@ import com.github.arrivedbog593.borderlesswindow.config.BorderlessConfigFile;
 
 /**
  * Holds the FPS cap applied while the game window is not focused (alt-tabbed,
- * minimized, or another window in front). MinecraftMixin consults it every
- * frame through getFramerateLimit().
+ * minimized, or another window in front). FramerateLimitTrackerMixin
+ * consults it every frame through getFramerateLimit().
  * <p>
- * WHY 1.21.1 NEEDS THIS. Minecraft 1.21.2 added its own Inactivity FPS Limit;
- * 1.21.1 renders at full speed in the background, burning GPU and power for
- * frames nobody sees. Drop this feature when porting to 1.21.2 or later --
- * vanilla's option covers it.
+ * WHY VANILLA'S OPTION IS NOT ENOUGH. Minecraft's Inactivity FPS Limit
+ * (1.21.2+) only throttles a minimized window and, in its AFK mode, a
+ * minute without input. A window that is merely out of focus -- alt-tabbed
+ * behind a browser, on a second monitor -- still renders at full speed,
+ * burning GPU and power for frames nobody looks at.
  * <p>
  * SCALE: {@link #OFF} (0, the default) means no cap -- vanilla behavior.
  * Any other value is a cap in [MIN_LIMIT, MAX_LIMIT], moved in steps of
@@ -18,7 +19,7 @@ import com.github.arrivedbog593.borderlesswindow.config.BorderlessConfigFile;
  * Framerate is already below it, the regular limit wins.
  * <p>
  * DYNAMIC FPS hooks the same method (verified against 3.11.4 for NeoForge
- * 1.21.1). With both installed the caps simply stack -- whichever is
+ * 1.21.1; on 1.21.2+ the method moved to FramerateLimitTracker). With both installed the caps simply stack -- whichever is
  * lower wins -- and this option stays available on purpose: it keeps the
  * setting in Sodium's video menu, where Dynamic FPS's own needs Cloth
  * Config and the mod list. The same goes for every background option.

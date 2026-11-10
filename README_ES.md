@@ -5,7 +5,7 @@
 
 *[English](README.md)*
 
-Un mod ligero client-side para **NeoForge y Fabric 1.21.1** que agrega **pantalla completa sin bordes** a Minecraft, reemplazando el fullscreen exclusivo con un sistema de 3 modos — más un conjunto de opciones de video y de calidad de vida que Minecraft no ofrece.
+Un mod ligero client-side para **NeoForge y Fabric 1.21.11** que agrega **pantalla completa sin bordes** a Minecraft, reemplazando el fullscreen exclusivo con un sistema de 3 modos — más un conjunto de opciones de video y de calidad de vida que Minecraft no ofrece.
 
 ## Características
 
@@ -19,12 +19,12 @@ Un mod ligero client-side para **NeoForge y Fabric 1.21.1** que agrega **pantall
 ### Video y calidad de vida
 
 - **Contador de FPS**: los FPS actuales, o una sola línea con el Mín. / Prom. / Máx. de los últimos 15 segundos. En cualquier esquina de la pantalla. Muestrea el contador del propio juego, así que siempre coincide con F3 y respeta el VSync y el límite de FPS, y se oculta solo mientras F3 está abierto.
-- **Opciones de segundo plano**: Minecraft 1.21.1 sigue corriendo a toda velocidad y a todo volumen cuando nadie lo está viendo. Cuatro opciones independientes lo arreglan:
+- **Opciones de segundo plano**: Minecraft solo baja la velocidad al minimizarlo o tras un minuto sin actividad (su opción Reducir FPS), y nunca baja el volumen. Cuatro opciones independientes van más allá:
   - **Límite de FPS sin foco**: limita los FPS mientras el juego está en segundo plano (con Alt+Tab, minimizado o detrás de otra ventana), de 5 a 60 FPS.
   - **Límite por inactividad**: limita los FPS tras unos minutos sin usar el teclado ni el mouse, aunque la ventana esté enfocada. Cualquier input lo quita al instante.
-  - **Pausar render al minimizar**: deja de dibujar por completo mientras está minimizado. El juego sigue corriendo — solo se detiene la imagen.
+  - **Pausar render al minimizar**: deja de dibujar por completo mientras está minimizado — Minecraft solo los limita a 10 FPS y los sigue dibujando. El juego sigue corriendo — solo se detiene la imagen.
   - **Volumen sin foco**: baja o silencia el juego mientras está en segundo plano, como proporción de tu Volumen general.
-  - Las cuatro funcionan junto con Dynamic FPS: gana el límite de FPS más bajo.
+  - Las cuatro funcionan junto con el Reducir FPS de Minecraft y con Dynamic FPS: gana el límite de FPS más bajo. Para usar solo el límite por inactividad del mod, pon el de Minecraft en "Al minimizar".
 - **Distancias de dibujado**: deja de dibujar objetos tirados, orbes de experiencia y soportes para armadura más allá de la distancia que elijas, y evita que aparezcan partículas más lejos de otra. Es puramente visual — los objetos se pueden seguir recogiendo y los orbes te siguen llegando. Las entidades brillantes y los soportes con nombre (hologramas, texto flotante) siempre se dibujan.
 - **Opciones de niebla**: Terreno (la neblina de distancia, incluida la niebla densa del Nether), Agua, Lava y Nieve polvo, cada una por separado. La niebla de Ceguera y Oscuridad nunca se ve afectada, así que esos efectos siguen funcionando como deben. **Inicio de la niebla** elige dónde empieza la niebla de terreno, como el de OptiFine, para una neblina más suave o una mandada hasta el borde.
 - **Altura de las nubes**: sube o baja la capa de nubes entre y=64 y y=320. En Por defecto cada dimensión conserva su propia altura, y las dimensiones sin nubes — el Nether, el End, las dimensiones sin nubes de otros mods — siguen sin ellas con cualquier valor.
@@ -64,9 +64,9 @@ Todos los ajustes vienen por defecto en el comportamiento normal del juego, así
 
 ## Requisitos
 
-- Minecraft **1.21.1**
-- **NeoForge** 21.1.x, o **Fabric Loader** 0.16.0+ (no requiere Fabric API)
-- (Opcional) **Sodium 0.8.0+** para la integración con el menú de video
+- Minecraft **1.21.11**
+- **NeoForge** 21.11.x, o **Fabric Loader** 0.17.3+ (no requiere Fabric API)
+- (Opcional) **Sodium 0.8.x** para la integración con el menú de video
 - (Opcional, Fabric) **Mod Menu**, para abrir también la configuración desde su lista de mods
 
 Descarga el jar de tu loader: `borderlesswindow-neoforge-…` o `borderlesswindow-fabric-…`.

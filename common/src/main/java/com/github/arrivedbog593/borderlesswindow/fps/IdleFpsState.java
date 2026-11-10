@@ -1,13 +1,19 @@
 package com.github.arrivedbog593.borderlesswindow.fps;
 
 import com.github.arrivedbog593.borderlesswindow.config.BorderlessConfigFile;
-import net.minecraft.Util;
+import net.minecraft.util.Util;
 
 /**
  * Holds the idle (AFK) FPS cap: after {@link #getDelayMinutes()} minutes
- * with no keyboard or mouse input, MinecraftMixin caps the frame rate at
- * {@link #getLimit()} -- even while the window is focused, which is what
- * sets it apart from UnfocusedFpsState. The next input lifts it at once.
+ * with no keyboard or mouse input, FramerateLimitTrackerMixin caps the
+ * frame rate at {@link #getLimit()} -- even while the window is focused,
+ * which is what sets it apart from UnfocusedFpsState. The next input lifts
+ * it at once.
+ * <p>
+ * VANILLA'S AFK MODE (1.21.2+, Inactivity FPS Limit = AFK, the default)
+ * does the same with fixed values: 30 FPS after one minute, 10 after ten.
+ * The caps stack and the lowest wins; this one only adds a delay and a
+ * limit of the player's choosing.
  * <p>
  * INPUT is anything that reaches MouseHandler (move, button, scroll) or
  * KeyboardHandler.keyPress, recorded by InputActivityMixin, plus the

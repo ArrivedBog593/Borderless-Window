@@ -12,7 +12,6 @@ import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import com.llamalad7.mixinextras.sugar.Local;
 import com.mojang.blaze3d.vertex.PoseStack;
-import net.minecraft.client.Camera;
 import net.minecraft.client.DeltaTracker;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.Options;
@@ -21,7 +20,8 @@ import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.util.Mth;
 import org.joml.Matrix4f;
-import org.joml.Quaternionf;
+import org.joml.Quaternionfc;
+import org.objectweb.asm.Opcodes;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
@@ -151,77 +151,72 @@ public abstract class GameRendererMixin {
     @WrapWithCondition(
             method = "bobView",
             at = @At(value = "INVOKE",
-                    target = "Lcom/mojang/blaze3d/vertex/PoseStack;mulPose(Lorg/joml/Quaternionf;)V"))
+                    target = "Lcom/mojang/blaze3d/vertex/PoseStack;mulPose(Lorg/joml/Quaternionfc;)V"))
     private boolean borderlesswindow$shouldApplyBobRotation(PoseStack instance,
-                                                            Quaternionf rotation) {
+                                                            Quaternionfc rotation) {
         return !this.borderlesswindow$strippingCameraBob;
     }
 
     /**
-     * Splits vanilla's single Distortion Effects slider by source.
+     * Splits vanilla's single Distortion Effects slider by source, portal
+     * half.
      * <p>
-     * renderLevel reads the spin intensity with one Mth.lerp over
-     * LocalPlayer's spinningEffectIntensity and multiplies it by the
-     * squared vanilla scale. That accumulator is fed by BOTH the portal
-     * and Nausea (see handleConfusionTransitionEffect), so the source has
-     * to be attributed here.
+     * renderLevel reads the two sources apart -- the portal's intensity
+     * with this Mth.lerp (the only one in the method), Nausea's with
+     * getEffectBlendFactor below -- takes the larger and multiplies it by
+     * the squared vanilla scale. Scaling each source before that max is
+     * all the split needs.
      * <p>
-     * THE PORTAL WINS TIES, on purpose. Asking hasEffect(CONFUSION) first
-     * looks natural but gets the overlap backwards: with a Nausea potion
-     * active, walking into a portal would apply the Nausea percentage even
-     * though the portal is what is driving the intensity.
-     * getActivePortalLocalTransition() answers "am I inside a portal right
-     * now", and checking it first mirrors the order of the if/else in
-     * handleConfusionTransitionEffect, where the portal branch also comes
-     * first.
-     * <p>
-     * Residual case: for the few ticks the intensity spends decaying after
-     * you leave the portal you are no longer "inside" it, so that tail is
-     * attributed to Nausea. Only visible if you had the effect anyway.
-     * </p>
      * Squaring our own factor matches vanilla's f2 * f2, so 50% here feels
      * like 50% on Minecraft's slider.
+     * <p>
+     * tick() reads the same two sources once more, to blend the spin SPEED
+     * (20 for the portal, 7 for Nausea, weighted by intensity). Scaled
+     * there too, or a muted portal would still speed up the Nausea spin
+     * while you stand in one.
      */
     @ModifyExpressionValue(
             method = "renderLevel",
             at = @At(value = "INVOKE", target = "Lnet/minecraft/util/Mth;lerp(FFF)F"))
-    private float borderlesswindow$scaleDistortion(float original) {
-        if (original <= 0.0F) {
-            return original;
-        }
-        float factor = DistortionState.getActiveFactor();
+    private float borderlesswindow$scalePortalDistortion(float original) {
+        float factor = DistortionState.getPortalFactor();
+        return original * factor * factor;
+    }
+
+    /** The portal's intensity as tick() reads it for the spin speed. */
+    @ModifyExpressionValue(
+            method = "tick",
+            at = @At(value = "FIELD",
+                    target = "Lnet/minecraft/client/player/LocalPlayer;portalEffectIntensity:F",
+                    opcode = Opcodes.GETFIELD))
+    private float borderlesswindow$scalePortalSpinSpeed(float original) {
+        return this.borderlesswindow$scalePortalDistortion(original);
+    }
+
+    /**
+     * Nausea half of the split above, in renderLevel and tick() alike.
+     * Inside a portal it takes the portal's percentage (see
+     * DistortionState).
+     */
+    @ModifyExpressionValue(
+            method = {"renderLevel", "tick"},
+            at = @At(value = "INVOKE",
+                    target = "Lnet/minecraft/client/player/LocalPlayer;"
+                            + "getEffectBlendFactor(Lnet/minecraft/core/Holder;F)F"))
+    private float borderlesswindow$scaleNauseaDistortion(float original) {
+        float factor = DistortionState.getNauseaSpinFactor();
         return original * factor * factor;
     }
 
     /**
-     * Mirrors our Nausea slider onto vanilla's nausea texture.
-     * <p>
-     * The green overlay is Mojang's accessibility trade: it appears when
-     * Distortion Effects is below 100%, at intensity (1 - scale), so
-     * removing the spin substitutes a static cue. Folding our factor into
-     * the scale it reads makes our slider behave exactly like vanilla's --
-     * 50% here draws the same overlay 50% there would.
-     * <p>
-     * Linear, not squared: vanilla uses this value linearly here while
-     * squaring it in renderLevel, so matching each site keeps our slider
-     * in the same relationship to the texture that Minecraft's own has.
-     * <p>
-     * The portal guard is the part vanilla cannot do: its condition is
-     * only hasEffect(CONFUSION), so with a potion active the overlay also
-     * fires while a PORTAL is driving the spin. Our Nausea slider must not
-     * speak for the portal, so the original scale passes through untouched
-     * whenever the portal is the active source.
+     * Start of every client tick, before the entities tick: settles
+     * whether the player is in a portal for this tick (see
+     * DistortionState.latchPortalContact).
      */
-    @ModifyExpressionValue(
-            method = "render",
-            at = @At(value = "INVOKE", target = "Ljava/lang/Double;floatValue()F"))
-    private float borderlesswindow$scaleNauseaOverlayCue(float original) {
-        if (DistortionState.isLastSourcePortal()) {
-            return original;
-        }
-        return original * DistortionState.getNauseaFactor();
+    @Inject(method = "tick", at = @At("HEAD"))
+    private void borderlesswindow$latchPortalContact(CallbackInfo ci) {
+        DistortionState.latchPortalContact();
     }
-
 
     /**
      * The water/lava squeeze, the only FOV effect vanilla's own slider
@@ -229,15 +224,14 @@ public abstract class GameRendererMixin {
      * lerp between 1.0 and 0.857), so ours multiplies on top -- with
      * FOV Effects at 0% in Minecraft there is nothing left to soften.
      * <p>
-     * Targets lerp(DDD)D rather than lerp(FFF)F: getFov also lerps the
-     * fov modifier, but that one takes floats, so the descriptor keeps
-     * the two apart without needing an ordinal.
+     * ordinal = 1: getFov lerps twice, the fov modifier first and this
+     * squeeze second, both on floats.
      */
     @ModifyExpressionValue(
             method = "getFov",
-            at = @At(value = "INVOKE", target = "Lnet/minecraft/util/Mth;lerp(DDD)D"))
-    private double borderlesswindow$scaleFluidFov(double original) {
-        return Mth.lerp(FovState.getFluidFactor(), 1.0D, original);
+            at = @At(value = "INVOKE", target = "Lnet/minecraft/util/Mth;lerp(FFF)F", ordinal = 1))
+    private float borderlesswindow$scaleFluidFov(float original) {
+        return Mth.lerp(FovState.getFluidFactor(), 1.0F, original);
     }
 
     /**
@@ -263,12 +257,12 @@ public abstract class GameRendererMixin {
      * zooming it would blow the hand up to fill the screen.
      */
     @ModifyReturnValue(method = "getFov", at = @At("RETURN"))
-    private double borderlesswindow$applyZoom(double original,
-                                              @Local(argsOnly = true) boolean useFovSetting) {
+    private float borderlesswindow$applyZoom(float original,
+                                             @Local(argsOnly = true) boolean useFovSetting) {
         if (!useFovSetting) {
             return original;
         }
-        return original * ZoomState.getFovMultiplier();
+        return (float) (original * ZoomState.getFovMultiplier());
     }
 
     /** "Hide Hand" while zooming: the held item is simply not drawn. */
@@ -276,9 +270,9 @@ public abstract class GameRendererMixin {
             method = "renderLevel",
             at = @At(value = "INVOKE",
                     target = "Lnet/minecraft/client/renderer/GameRenderer;renderItemInHand("
-                            + "Lnet/minecraft/client/Camera;FLorg/joml/Matrix4f;)V"))
-    private boolean borderlesswindow$shouldRenderHand(GameRenderer instance, Camera camera,
-                                                      float partialTick, Matrix4f projectionMatrix) {
+                            + "FZLorg/joml/Matrix4f;)V"))
+    private boolean borderlesswindow$shouldRenderHand(GameRenderer instance, float partialTick,
+                                                      boolean sleeping, Matrix4f projectionMatrix) {
         return !ZoomState.shouldHideHand();
     }
 

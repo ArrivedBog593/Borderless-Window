@@ -11,17 +11,18 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 /**
- * Tells LocalPlayerMixin when the player is standing in a Nether portal
- * that vanilla is ignoring because of the portal cooldown.
+ * Tells DistortionState when the player is standing in a Nether portal,
+ * including one vanilla is ignoring because of the portal cooldown.
  * <p>
- * WHY THIS IS NEEDED. After crossing, the player arrives inside the
- * destination portal with a cooldown set by the respawn packet. While it
- * lasts, setAsInsidePortal only refreshes the cooldown and never marks
- * the portal process as "inside this tick", so vanilla's portal branch in
- * handleConfusionTransitionEffect does not run. With Nausea active the
- * Nausea branch runs instead, and the per-tick rate LocalPlayerMixin
- * reads says Nausea even though the player never left the portal. Stepping
- * out and back in "fixes" it only because the cooldown has run out by then.
+ * WHY THIS IS NEEDED. Inside a portal the portal's percentage rules the
+ * whole distortion, Nausea included (see DistortionState). Vanilla's own
+ * portal intensity cannot say "inside a portal": after crossing, the
+ * player arrives inside the destination portal with a cooldown set by the
+ * respawn packet. While it lasts, setAsInsidePortal only refreshes the
+ * cooldown and never marks the portal process as "inside this tick", so
+ * the portal intensity fades out even though the player never left the
+ * portal. Stepping out and back in "fixes" it only because the cooldown
+ * has run out by then.
  * <p>
  * HEAD, before the cooldown check, is the point: this records that the
  * player touched a portal, whatever vanilla decides to do about it.

@@ -1,6 +1,6 @@
 package com.github.arrivedbog593.borderlesswindow.visual;
 
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
 /**
  * Decides which of Gui's camera overlays are drawn, mirroring the role
@@ -11,13 +11,13 @@ import net.minecraft.resources.ResourceLocation;
  * WHY THE TEXTURE IS THE DISCRIMINATOR. Vanilla draws BOTH the pumpkin
  * blur and the powder snow outline through the same private method,
  * Gui.renderTextureOverlay, changing only the texture and the alpha. A
- * single injection therefore covers both, and the ResourceLocation is
+ * single injection therefore covers both, and the Identifier is
  * the only thing telling them apart.
  * <p>
  * The constants are rebuilt here rather than read from Gui: they are
  * private static finals over there, so reaching them would need an
  * accessor mixin for two strings that have not changed since the
- * features were added. Equality on ResourceLocation is by value, so a
+ * features were added. Equality on Identifier is by value, so a
  * plain equals() is enough.
  * <p>
  * UNKNOWN TEXTURES PASS THROUGH. Anything that is not one of our two
@@ -28,11 +28,11 @@ import net.minecraft.resources.ResourceLocation;
  */
 public final class CameraOverlayFilter {
 
-    private static final ResourceLocation PUMPKIN_BLUR =
-            ResourceLocation.withDefaultNamespace("textures/misc/pumpkinblur.png");
+    private static final Identifier PUMPKIN_BLUR =
+            Identifier.withDefaultNamespace("textures/misc/pumpkinblur.png");
 
-    private static final ResourceLocation POWDER_SNOW_OUTLINE =
-            ResourceLocation.withDefaultNamespace("textures/misc/powder_snow_outline.png");
+    private static final Identifier POWDER_SNOW_OUTLINE =
+            Identifier.withDefaultNamespace("textures/misc/powder_snow_outline.png");
 
     private CameraOverlayFilter() {
     }
@@ -41,7 +41,7 @@ public final class CameraOverlayFilter {
      * @param texture the texture vanilla is about to draw full-screen
      * @return true to let the draw happen (vanilla behavior)
      */
-    public static boolean shouldRenderTextureOverlay(ResourceLocation texture) {
+    public static boolean shouldRenderTextureOverlay(Identifier texture) {
         if (PUMPKIN_BLUR.equals(texture)) {
             return ScreenEffectState.isPumpkinOverlayEnabled();
         }
