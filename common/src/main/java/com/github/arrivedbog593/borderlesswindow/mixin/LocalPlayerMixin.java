@@ -1,6 +1,6 @@
 package com.github.arrivedbog593.borderlesswindow.mixin;
 
-import com.github.arrivedbog593.borderlesswindow.distortion.DistortionState;
+import com.github.arrivedbog593.borderlesswindow.camera.DistortionState;
 import com.llamalad7.mixinextras.sugar.Local;
 import net.minecraft.client.player.LocalPlayer;
 import org.spongepowered.asm.mixin.Mixin;

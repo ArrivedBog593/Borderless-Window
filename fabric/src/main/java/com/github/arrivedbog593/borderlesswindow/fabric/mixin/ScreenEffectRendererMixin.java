@@ -1,6 +1,6 @@
 package com.github.arrivedbog593.borderlesswindow.fabric.mixin;
 
-import com.github.arrivedbog593.borderlesswindow.screeneffect.ScreenEffectHandler;
+import com.github.arrivedbog593.borderlesswindow.visual.ScreenEffectHandler;
 import com.llamalad7.mixinextras.injector.v2.WrapWithCondition;
 import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.client.Minecraft;

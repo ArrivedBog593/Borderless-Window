@@ -1,6 +1,6 @@
 package com.github.arrivedbog593.borderlesswindow.fabric.mixin;
 
-import com.github.arrivedbog593.borderlesswindow.window.BorderlessHandler;
+import com.github.arrivedbog593.borderlesswindow.general.BorderlessHandler;
 import com.mojang.blaze3d.platform.Window;
 import net.minecraft.client.Minecraft;
 import org.spongepowered.asm.mixin.Final;

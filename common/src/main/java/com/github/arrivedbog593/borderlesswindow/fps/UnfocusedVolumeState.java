@@ -1,4 +1,4 @@
-package com.github.arrivedbog593.borderlesswindow.sound;
+package com.github.arrivedbog593.borderlesswindow.fps;
 
 import com.github.arrivedbog593.borderlesswindow.config.BorderlessConfigFile;
 import com.github.arrivedbog593.borderlesswindow.mixin.SoundManagerAccessor;

@@ -8,6 +8,7 @@
     "EnchantmentMixin",
     "EntityMixin",
     "EntityRenderDispatcherMixin",
+    "FogRendererMixin",
     "GameRendererMixin",
     "GuiMixin",
     "KeyboardHandlerMixin",

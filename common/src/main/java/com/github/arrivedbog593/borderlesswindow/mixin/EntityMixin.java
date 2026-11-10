@@ -1,6 +1,6 @@
 package com.github.arrivedbog593.borderlesswindow.mixin;
 
-import com.github.arrivedbog593.borderlesswindow.distortion.DistortionState;
+import com.github.arrivedbog593.borderlesswindow.camera.DistortionState;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.entity.Entity;

@@ -1,4 +1,4 @@
-package com.github.arrivedbog593.borderlesswindow.screeneffect;
+package com.github.arrivedbog593.borderlesswindow.visual;
 
 import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.player.Player;

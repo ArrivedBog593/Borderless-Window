@@ -11,15 +11,15 @@ import java.util.function.IntSupplier;
 /**
  * Generic stepped integer slider for the no-Sodium config screen: a
  * [min, max] range moved in fixed steps, with the label text supplied by
- * the caller. The Sodium side gets the same presentation from
+ * the caller. Every slider on that screen is one of these. The Sodium side gets the same presentation from
  * IntegerOptionBuilder.setRange(min, max, step) + setValueFormatter, so
  * both UIs can share one formatter.
  * <p>
  * A "Default"/"Off" slot is just the leftmost value of the range with its
  * own label in the formatter -- the holder decides what that value means.
  * <p>
- * SAVING follows the CloudHeightSlider rule: applyValue() fires on every
- * step of a drag, so the applier only touches memory and the persister
+ * SAVING: applyValue() fires on every step of a drag (vanilla's
+ * AbstractSliderButton), so the applier only touches memory and the persister
  * runs once in onRelease(). BorderlessConfigScreen.onClose() persists too,
  * for keyboard changes.
  * <p>

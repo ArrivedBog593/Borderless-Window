@@ -1,8 +1,8 @@
 package com.github.arrivedbog593.borderlesswindow.mixin;
 
 import com.github.arrivedbog593.borderlesswindow.config.BorderlessConfigScreen;
-import com.github.arrivedbog593.borderlesswindow.window.BorderlessHandler;
-import com.github.arrivedbog593.borderlesswindow.window.ScreenMode;
+import com.github.arrivedbog593.borderlesswindow.general.BorderlessHandler;
+import com.github.arrivedbog593.borderlesswindow.general.ScreenMode;
 import com.mojang.serialization.Codec;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.OptionInstance;

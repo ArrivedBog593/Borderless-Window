@@ -1,4 +1,4 @@
-package com.github.arrivedbog593.borderlesswindow.fog;
+package com.github.arrivedbog593.borderlesswindow.visual;
 
 import net.minecraft.client.Camera;
 import net.minecraft.world.effect.MobEffects;

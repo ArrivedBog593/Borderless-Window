@@ -1,6 +1,6 @@
 package com.github.arrivedbog593.borderlesswindow.mixin;
 
-import com.github.arrivedbog593.borderlesswindow.cloud.CloudState;
+import com.github.arrivedbog593.borderlesswindow.visual.CloudState;
 import net.minecraft.client.renderer.DimensionSpecialEffects;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;

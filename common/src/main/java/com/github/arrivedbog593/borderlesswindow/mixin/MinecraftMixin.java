@@ -3,7 +3,7 @@ package com.github.arrivedbog593.borderlesswindow.mixin;
 import com.github.arrivedbog593.borderlesswindow.fps.IdleFpsState;
 import com.github.arrivedbog593.borderlesswindow.fps.MinimizedRenderState;
 import com.github.arrivedbog593.borderlesswindow.fps.UnfocusedFpsState;
-import com.github.arrivedbog593.borderlesswindow.sound.UnfocusedVolumeState;
+import com.github.arrivedbog593.borderlesswindow.fps.UnfocusedVolumeState;
 import com.llamalad7.mixinextras.injector.v2.WrapWithCondition;
 import net.minecraft.client.DeltaTracker;
 import net.minecraft.client.Minecraft;

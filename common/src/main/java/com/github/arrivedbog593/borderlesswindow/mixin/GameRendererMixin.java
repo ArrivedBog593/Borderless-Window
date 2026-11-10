@@ -1,21 +1,33 @@
 package com.github.arrivedbog593.borderlesswindow.mixin;
 
-import com.github.arrivedbog593.borderlesswindow.bobbing.BobbingState;
-import com.github.arrivedbog593.borderlesswindow.bobbing.CameraBobMode;
-import com.github.arrivedbog593.borderlesswindow.distortion.DistortionState;
-import com.github.arrivedbog593.borderlesswindow.fov.FovState;
+import com.github.arrivedbog593.borderlesswindow.camera.BobbingState;
+import com.github.arrivedbog593.borderlesswindow.camera.CameraBobMode;
+import com.github.arrivedbog593.borderlesswindow.camera.DistortionState;
+import com.github.arrivedbog593.borderlesswindow.camera.FovState;
+import com.github.arrivedbog593.borderlesswindow.camera.ZoomState;
 import com.llamalad7.mixinextras.injector.ModifyExpressionValue;
+import com.llamalad7.mixinextras.injector.ModifyReturnValue;
 import com.llamalad7.mixinextras.injector.v2.WrapWithCondition;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
+import com.llamalad7.mixinextras.sugar.Local;
 import com.mojang.blaze3d.vertex.PoseStack;
+import net.minecraft.client.Camera;
+import net.minecraft.client.DeltaTracker;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.Options;
+import net.minecraft.client.gui.Gui;
+import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.util.Mth;
+import org.joml.Matrix4f;
 import org.joml.Quaternionf;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
+import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.ModifyArgs;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.invoke.arg.Args;
 
 /**
@@ -226,5 +238,76 @@ public abstract class GameRendererMixin {
             at = @At(value = "INVOKE", target = "Lnet/minecraft/util/Mth;lerp(DDD)D"))
     private double borderlesswindow$scaleFluidFov(double original) {
         return Mth.lerp(FovState.getFluidFactor(), 1.0D, original);
+    }
+
+    /**
+     * Start of every frame: reads the zoom key and advances the zoom
+     * animation before anything below reads the FOV. See ZoomState.
+     */
+    @Inject(method = "render", at = @At("HEAD"))
+    private void borderlesswindow$updateZoom(DeltaTracker deltaTracker, boolean renderLevel,
+                                             CallbackInfo ci) {
+        ZoomState.onFrame();
+    }
+
+    /**
+     * The zoom itself: the FOV of the view, divided by the zoom level.
+     * <p>
+     * At RETURN, so it is the last word on every path. On NeoForge that
+     * places it after ClientHooks.getFieldOfView (the ComputeFov event),
+     * and on both loaders after vanilla's FOV setting, the FOV effects and
+     * the per-source sliders above -- the zoom narrows whatever they left.
+     * <p>
+     * Only the useFOVSetting call is the view. The other one, from
+     * renderItemInHand, sizes the held item at a fixed 70 degrees, and
+     * zooming it would blow the hand up to fill the screen.
+     */
+    @ModifyReturnValue(method = "getFov", at = @At("RETURN"))
+    private double borderlesswindow$applyZoom(double original,
+                                              @Local(argsOnly = true) boolean useFovSetting) {
+        if (!useFovSetting) {
+            return original;
+        }
+        return original * ZoomState.getFovMultiplier();
+    }
+
+    /** "Hide Hand" while zooming: the held item is simply not drawn. */
+    @WrapWithCondition(
+            method = "renderLevel",
+            at = @At(value = "INVOKE",
+                    target = "Lnet/minecraft/client/renderer/GameRenderer;renderItemInHand("
+                            + "Lnet/minecraft/client/Camera;FLorg/joml/Matrix4f;)V"))
+    private boolean borderlesswindow$shouldRenderHand(GameRenderer instance, Camera camera,
+                                                      float partialTick, Matrix4f projectionMatrix) {
+        return !ZoomState.shouldHideHand();
+    }
+
+    /**
+     * "Hide HUD" while zooming, done the way F1 does it: hideGui is raised
+     * for the duration of this one call. Everything that already honors
+     * F1 -- every HUD layer on both loaders, other mods' HUD elements, the
+     * FPS counter -- hides with it, and the player's own F1 state is put
+     * back untouched afterwards.
+     */
+    @WrapOperation(
+            method = "render",
+            at = @At(value = "INVOKE",
+                    target = "Lnet/minecraft/client/gui/Gui;render("
+                            + "Lnet/minecraft/client/gui/GuiGraphics;Lnet/minecraft/client/DeltaTracker;)V"))
+    private void borderlesswindow$hideHudWhileZooming(Gui instance, GuiGraphics guiGraphics,
+                                                      DeltaTracker deltaTracker,
+                                                      Operation<Void> original) {
+        if (!ZoomState.shouldHideHud()) {
+            original.call(instance, guiGraphics, deltaTracker);
+            return;
+        }
+        Options options = Minecraft.getInstance().options;
+        boolean hideGui = options.hideGui;
+        options.hideGui = true;
+        try {
+            original.call(instance, guiGraphics, deltaTracker);
+        } finally {
+            options.hideGui = hideGui;
+        }
     }
 }

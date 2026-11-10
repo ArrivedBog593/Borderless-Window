@@ -1,25 +1,29 @@
 package com.github.arrivedbog593.borderlesswindow.config;
 
-import com.github.arrivedbog593.borderlesswindow.bobbing.BobbingState;
-import com.github.arrivedbog593.borderlesswindow.bobbing.CameraBobMode;
-import com.github.arrivedbog593.borderlesswindow.cloud.CloudState;
+import com.github.arrivedbog593.borderlesswindow.camera.BobbingState;
+import com.github.arrivedbog593.borderlesswindow.camera.CameraBobMode;
+import com.github.arrivedbog593.borderlesswindow.camera.DistortionState;
+import com.github.arrivedbog593.borderlesswindow.camera.FovState;
+import com.github.arrivedbog593.borderlesswindow.camera.ZoomMode;
+import com.github.arrivedbog593.borderlesswindow.camera.ZoomState;
 import com.github.arrivedbog593.borderlesswindow.distance.DistanceState;
-import com.github.arrivedbog593.borderlesswindow.distortion.DistortionState;
 import com.github.arrivedbog593.borderlesswindow.enchantment.EnchantmentLevelState;
 import com.github.arrivedbog593.borderlesswindow.enchantment.EnchantmentLevelStyle;
-import com.github.arrivedbog593.borderlesswindow.fog.FogState;
-import com.github.arrivedbog593.borderlesswindow.fov.FovState;
 import com.github.arrivedbog593.borderlesswindow.fps.FpsOverlayMode;
 import com.github.arrivedbog593.borderlesswindow.fps.FpsOverlayPosition;
 import com.github.arrivedbog593.borderlesswindow.fps.FpsOverlayState;
 import com.github.arrivedbog593.borderlesswindow.fps.IdleFpsState;
 import com.github.arrivedbog593.borderlesswindow.fps.MinimizedRenderState;
 import com.github.arrivedbog593.borderlesswindow.fps.UnfocusedFpsState;
-import com.github.arrivedbog593.borderlesswindow.screeneffect.ScreenEffectState;
-import com.github.arrivedbog593.borderlesswindow.sound.UnfocusedVolumeState;
-import com.github.arrivedbog593.borderlesswindow.window.BorderlessHandler;
-import com.github.arrivedbog593.borderlesswindow.window.F11Mode;
-import com.github.arrivedbog593.borderlesswindow.window.ScreenMode;
+import com.github.arrivedbog593.borderlesswindow.fps.UnfocusedVolumeState;
+import com.github.arrivedbog593.borderlesswindow.general.BorderlessHandler;
+import com.github.arrivedbog593.borderlesswindow.general.F11Mode;
+import com.github.arrivedbog593.borderlesswindow.general.HudState;
+import com.github.arrivedbog593.borderlesswindow.general.ScreenMode;
+import com.github.arrivedbog593.borderlesswindow.visual.CloudState;
+import com.github.arrivedbog593.borderlesswindow.visual.FogState;
+import com.github.arrivedbog593.borderlesswindow.visual.ScreenEffectState;
+import com.github.arrivedbog593.borderlesswindow.visual.SkyState;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
@@ -38,10 +42,10 @@ import org.jetbrains.annotations.NotNull;
  * <p>
  * Options live inside a scrollable BorderlessOptionsList grouped by
  * feature, in the order of the Sodium integration's pages and groups:
- * General ("Window"), Enchantments ("Interface"), FPS &amp; Background ("FPS Overlay",
+ * General ("Window", "HUD"), Enchantments ("Interface"), FPS &amp; Background ("FPS Overlay",
  * "Background"), Visual Effects ("Fog",
- * "Clouds", "Screen Overlays"), Camera ("Bobbing", "Field of View",
- * "Distortion") and Distances. Sodium separates groups with spacing alone; a
+ * "Clouds", "Sky and Weather", "Screen Overlays"), Camera ("Bobbing", "Field of View",
+ * "Distortion", "Zoom") and Distances. Sodium separates groups with spacing alone; a
  * single scrolling list needs the headers instead. The list scrolls, so
  * adding features never pushes options off-screen the way the previous
  * flat layout did; a new feature only needs addHeader() + addOption()
@@ -123,6 +127,18 @@ public class BorderlessConfigScreen extends Screen {
                         .create(0, 0, OPTION_WIDTH, OPTION_HEIGHT,
                                 Component.translatable("borderlesswindow.options.f11_mode.name"),
                                 (button, mode) -> BorderlessHandler.setF11Target(mode)));
+
+        // --- HUD ------------------------------------------------------
+        // Same page as the window options on the Sodium side (General).
+        list.addHeader(Component.translatable("config.borderlesswindow.section.hud"));
+
+        list.addOption(
+                CycleButton.onOffBuilder(HudState.isHeldItemNameEnabled())
+                        .withTooltip(value -> Tooltip.create(
+                                Component.translatable("borderlesswindow.options.held_item_name.tooltip")))
+                        .create(0, 0, OPTION_WIDTH, OPTION_HEIGHT,
+                                Component.translatable("borderlesswindow.options.held_item_name.name"),
+                                (button, value) -> HudState.setHeldItemNameEnabled(value)));
 
         // --- Interface ------------------------------------------------
         // First non-rendering section: this is text shown in tooltips, not
@@ -243,6 +259,20 @@ public class BorderlessConfigScreen extends Screen {
         // --- Fog -----------------------------------------------------
         list.addHeader(Component.translatable("config.borderlesswindow.section.fog"));
 
+        // Built first so the terrain toggle below can grey it out live,
+        // like the smart fire toggle. Added after the four toggles, the
+        // same place it has on the Sodium page. "Default" (leftmost) is
+        // vanilla's start. See FogState.
+        IntOptionSlider fogStartSlider = new IntOptionSlider(0, 0, OPTION_WIDTH, OPTION_HEIGHT,
+                "borderlesswindow.options.fog_terrain_start.name",
+                FogState.DEFAULT_START, FogState.MAX_START, FogState.START_STEP,
+                FogState::formatStart,
+                FogState::getTerrainStart, FogState::applyTerrainStart, FogState::persist);
+        fogStartSlider.setTooltip(Tooltip.create(
+                Component.translatable("borderlesswindow.options.fog_terrain_start.tooltip")));
+        // Nothing to move while the terrain fog is removed entirely.
+        fogStartSlider.active = FogState.isTerrainFogEnabled();
+
         // On = vanilla fog, Off = removed. Applied live: FogHandler
         // consults FogState every time fog is set up.
         list.addOption(
@@ -251,7 +281,10 @@ public class BorderlessConfigScreen extends Screen {
                                 Component.translatable("borderlesswindow.options.fog_terrain.tooltip")))
                         .create(0, 0, OPTION_WIDTH, OPTION_HEIGHT,
                                 Component.translatable("borderlesswindow.options.fog_terrain.name"),
-                                (button, value) -> FogState.setTerrainFogEnabled(value)));
+                                (button, value) -> {
+                                    FogState.setTerrainFogEnabled(value);
+                                    fogStartSlider.active = value;
+                                }));
 
         list.addOption(
                 CycleButton.onOffBuilder(FogState.isWaterFogEnabled())
@@ -277,16 +310,51 @@ public class BorderlessConfigScreen extends Screen {
                                 Component.translatable("borderlesswindow.options.fog_powder_snow.name"),
                                 (button, value) -> FogState.setPowderSnowFogEnabled(value)));
 
+        list.addOption(fogStartSlider);
+
         // --- Clouds ---------------------------------------------------
         list.addHeader(Component.translatable("config.borderlesswindow.section.clouds"));
 
         // "Default" (leftmost) leaves each dimension's own height untouched;
         // any other value overrides it via CloudHeightMixin.
-        CloudHeightSlider cloudSlider =
-                new CloudHeightSlider(0, 0, OPTION_WIDTH, OPTION_HEIGHT);
+        IntOptionSlider cloudSlider = new IntOptionSlider(0, 0, OPTION_WIDTH, OPTION_HEIGHT,
+                "borderlesswindow.options.cloud_height.name",
+                CloudState.DEFAULT_SLOT, CloudState.MAX_HEIGHT, 1,
+                CloudState::formatSlot,
+                () -> CloudState.toSlot(CloudState.getHeight()),
+                slot -> CloudState.applyHeight(CloudState.fromSlot(slot)),
+                CloudState::persist);
         cloudSlider.setTooltip(Tooltip.create(
                 Component.translatable("borderlesswindow.options.cloud_height.tooltip")));
         list.addOption(cloudSlider);
+
+        // --- Sky and weather ------------------------------------------
+        // Drawing only: the day cycle and the weather go on. See SkyState.
+        list.addHeader(Component.translatable("config.borderlesswindow.section.sky"));
+
+        list.addOption(
+                CycleButton.onOffBuilder(SkyState.isSunMoonEnabled())
+                        .withTooltip(value -> Tooltip.create(
+                                Component.translatable("borderlesswindow.options.sky_sun_moon.tooltip")))
+                        .create(0, 0, OPTION_WIDTH, OPTION_HEIGHT,
+                                Component.translatable("borderlesswindow.options.sky_sun_moon.name"),
+                                (button, value) -> SkyState.setSunMoonEnabled(value)));
+
+        list.addOption(
+                CycleButton.onOffBuilder(SkyState.isStarsEnabled())
+                        .withTooltip(value -> Tooltip.create(
+                                Component.translatable("borderlesswindow.options.sky_stars.tooltip")))
+                        .create(0, 0, OPTION_WIDTH, OPTION_HEIGHT,
+                                Component.translatable("borderlesswindow.options.sky_stars.name"),
+                                (button, value) -> SkyState.setStarsEnabled(value)));
+
+        list.addOption(
+                CycleButton.onOffBuilder(SkyState.isWeatherEnabled())
+                        .withTooltip(value -> Tooltip.create(
+                                Component.translatable("borderlesswindow.options.sky_weather.tooltip")))
+                        .create(0, 0, OPTION_WIDTH, OPTION_HEIGHT,
+                                Component.translatable("borderlesswindow.options.sky_weather.name"),
+                                (button, value) -> SkyState.setWeatherEnabled(value)));
 
         // --- Screen overlays ------------------------------------------
         list.addHeader(Component.translatable("config.borderlesswindow.section.overlays"));
@@ -391,36 +459,41 @@ public class BorderlessConfigScreen extends Screen {
         // Its own section: these change how WIDE the view is, while the
         // distortion sliders change how much it warps. All four sit under
         // Minecraft's own FOV Effects slider, which moves every source at
-        // once; these split it per source (see FovState). Reusing
-        // DistortionSlider: it is a plain 0-100 percentage widget and
-        // persist() writes the whole config either way. Worth renaming
-        // to PercentSlider now that a second feature uses it.
+        // once; these split it per source (see FovState).
         list.addHeader(Component.translatable("config.borderlesswindow.section.fov"));
 
-        DistortionSlider fovSpeedSlider = new DistortionSlider(0, 0, OPTION_WIDTH, OPTION_HEIGHT,
+        IntOptionSlider fovSpeedSlider = new IntOptionSlider(0, 0, OPTION_WIDTH, OPTION_HEIGHT,
                 "borderlesswindow.options.fov_speed.name",
-                FovState::getSpeedPercent, FovState::applySpeedPercent);
+                FovState.MIN_PERCENT, FovState.MAX_PERCENT, 1,
+                BorderlessConfigScreen::formatPercent,
+                FovState::getSpeedPercent, FovState::applySpeedPercent, FovState::persist);
         fovSpeedSlider.setTooltip(Tooltip.create(
                 Component.translatable("borderlesswindow.options.fov_speed.tooltip")));
         list.addOption(fovSpeedSlider);
 
-        DistortionSlider fovFlyingSlider = new DistortionSlider(0, 0, OPTION_WIDTH, OPTION_HEIGHT,
+        IntOptionSlider fovFlyingSlider = new IntOptionSlider(0, 0, OPTION_WIDTH, OPTION_HEIGHT,
                 "borderlesswindow.options.fov_flying.name",
-                FovState::getFlyingPercent, FovState::applyFlyingPercent);
+                FovState.MIN_PERCENT, FovState.MAX_PERCENT, 1,
+                BorderlessConfigScreen::formatPercent,
+                FovState::getFlyingPercent, FovState::applyFlyingPercent, FovState::persist);
         fovFlyingSlider.setTooltip(Tooltip.create(
                 Component.translatable("borderlesswindow.options.fov_flying.tooltip")));
         list.addOption(fovFlyingSlider);
 
-        DistortionSlider fovBowSlider = new DistortionSlider(0, 0, OPTION_WIDTH, OPTION_HEIGHT,
+        IntOptionSlider fovBowSlider = new IntOptionSlider(0, 0, OPTION_WIDTH, OPTION_HEIGHT,
                 "borderlesswindow.options.fov_bow.name",
-                FovState::getBowPercent, FovState::applyBowPercent);
+                FovState.MIN_PERCENT, FovState.MAX_PERCENT, 1,
+                BorderlessConfigScreen::formatPercent,
+                FovState::getBowPercent, FovState::applyBowPercent, FovState::persist);
         fovBowSlider.setTooltip(Tooltip.create(
                 Component.translatable("borderlesswindow.options.fov_bow.tooltip")));
         list.addOption(fovBowSlider);
 
-        DistortionSlider fovFluidSlider = new DistortionSlider(0, 0, OPTION_WIDTH, OPTION_HEIGHT,
+        IntOptionSlider fovFluidSlider = new IntOptionSlider(0, 0, OPTION_WIDTH, OPTION_HEIGHT,
                 "borderlesswindow.options.fov_fluid.name",
-                FovState::getFluidPercent, FovState::applyFluidPercent);
+                FovState.MIN_PERCENT, FovState.MAX_PERCENT, 1,
+                BorderlessConfigScreen::formatPercent,
+                FovState::getFluidPercent, FovState::applyFluidPercent, FovState::persist);
         fovFluidSlider.setTooltip(Tooltip.create(
                 Component.translatable("borderlesswindow.options.fov_fluid.tooltip")));
         list.addOption(fovFluidSlider);
@@ -432,19 +505,83 @@ public class BorderlessConfigScreen extends Screen {
         // bobbing options sit under View Bobbing.
         list.addHeader(Component.translatable("config.borderlesswindow.section.distortion"));
 
-        DistortionSlider portalSlider = new DistortionSlider(0, 0, OPTION_WIDTH, OPTION_HEIGHT,
+        IntOptionSlider portalSlider = new IntOptionSlider(0, 0, OPTION_WIDTH, OPTION_HEIGHT,
                 "borderlesswindow.options.distortion_portal.name",
-                DistortionState::getPortalPercent, DistortionState::applyPortalPercent);
+                DistortionState.MIN_PERCENT, DistortionState.MAX_PERCENT, 1,
+                BorderlessConfigScreen::formatPercent,
+                DistortionState::getPortalPercent, DistortionState::applyPortalPercent,
+                DistortionState::persist);
         portalSlider.setTooltip(Tooltip.create(
                 Component.translatable("borderlesswindow.options.distortion_portal.tooltip")));
         list.addOption(portalSlider);
 
-        DistortionSlider nauseaSlider = new DistortionSlider(0, 0, OPTION_WIDTH, OPTION_HEIGHT,
+        IntOptionSlider nauseaSlider = new IntOptionSlider(0, 0, OPTION_WIDTH, OPTION_HEIGHT,
                 "borderlesswindow.options.distortion_nausea.name",
-                DistortionState::getNauseaPercent, DistortionState::applyNauseaPercent);
+                DistortionState.MIN_PERCENT, DistortionState.MAX_PERCENT, 1,
+                BorderlessConfigScreen::formatPercent,
+                DistortionState::getNauseaPercent, DistortionState::applyNauseaPercent,
+                DistortionState::persist);
         nauseaSlider.setTooltip(Tooltip.create(
                 Component.translatable("borderlesswindow.options.distortion_nausea.tooltip")));
         list.addOption(nauseaSlider);
+
+        // --- Zoom -----------------------------------------------------
+        // The key itself is in Minecraft's Controls, like every other key.
+        // Nothing here does anything until it is pressed. See ZoomState.
+        list.addHeader(Component.translatable("config.borderlesswindow.section.zoom"));
+
+        list.addOption(
+                CycleButton.builder((ZoomMode mode) ->
+                                Component.translatable(mode.getTranslationKey()))
+                        .withValues(ZoomMode.values())
+                        .withInitialValue(ZoomState.getMode())
+                        .withTooltip(mode -> Tooltip.create(
+                                Component.translatable("borderlesswindow.options.zoom_mode.tooltip")))
+                        .create(0, 0, OPTION_WIDTH, OPTION_HEIGHT,
+                                Component.translatable("borderlesswindow.options.zoom_mode.name"),
+                                (button, mode) -> ZoomState.setMode(mode)));
+
+        IntOptionSlider zoomLevelSlider = new IntOptionSlider(0, 0, OPTION_WIDTH, OPTION_HEIGHT,
+                "borderlesswindow.options.zoom_level.name",
+                ZoomState.MIN_LEVEL, ZoomState.MAX_LEVEL, 1,
+                value -> Component.translatable("borderlesswindow.options.zoom_level.value", value),
+                ZoomState::getInitialLevel, ZoomState::applyInitialLevel,
+                ZoomState::persist);
+        zoomLevelSlider.setTooltip(Tooltip.create(
+                Component.translatable("borderlesswindow.options.zoom_level.tooltip")));
+        list.addOption(zoomLevelSlider);
+
+        list.addOption(
+                CycleButton.onOffBuilder(ZoomState.isScrollEnabled())
+                        .withTooltip(value -> Tooltip.create(
+                                Component.translatable("borderlesswindow.options.zoom_scroll.tooltip")))
+                        .create(0, 0, OPTION_WIDTH, OPTION_HEIGHT,
+                                Component.translatable("borderlesswindow.options.zoom_scroll.name"),
+                                (button, value) -> ZoomState.setScrollEnabled(value)));
+
+        list.addOption(
+                CycleButton.onOffBuilder(ZoomState.isSmoothEnabled())
+                        .withTooltip(value -> Tooltip.create(
+                                Component.translatable("borderlesswindow.options.zoom_smooth.tooltip")))
+                        .create(0, 0, OPTION_WIDTH, OPTION_HEIGHT,
+                                Component.translatable("borderlesswindow.options.zoom_smooth.name"),
+                                (button, value) -> ZoomState.setSmoothEnabled(value)));
+
+        list.addOption(
+                CycleButton.onOffBuilder(ZoomState.isHideHandEnabled())
+                        .withTooltip(value -> Tooltip.create(
+                                Component.translatable("borderlesswindow.options.zoom_hide_hand.tooltip")))
+                        .create(0, 0, OPTION_WIDTH, OPTION_HEIGHT,
+                                Component.translatable("borderlesswindow.options.zoom_hide_hand.name"),
+                                (button, value) -> ZoomState.setHideHandEnabled(value)));
+
+        list.addOption(
+                CycleButton.onOffBuilder(ZoomState.isHideHudEnabled())
+                        .withTooltip(value -> Tooltip.create(
+                                Component.translatable("borderlesswindow.options.zoom_hide_hud.tooltip")))
+                        .create(0, 0, OPTION_WIDTH, OPTION_HEIGHT,
+                                Component.translatable("borderlesswindow.options.zoom_hide_hud.name"),
+                                (button, value) -> ZoomState.setHideHudEnabled(value)));
 
         // --- Distances ------------------------------------------------
         // "Default" (leftmost) keeps vanilla's own distance; any other
@@ -510,14 +647,27 @@ public class BorderlessConfigScreen extends Screen {
         // Redundant when nothing changed -- saveCurrent() writes the whole
         // live state either way.
         CloudState.persist();
+        FogState.persist();
         DistortionState.persist();
         FovState.persist();
         UnfocusedFpsState.persist();
         UnfocusedVolumeState.persist();
         IdleFpsState.persist();
         DistanceState.persist();
+        ZoomState.persist();
 
         assert this.minecraft != null;
         this.minecraft.setScreen(this.parent);
+    }
+
+    /**
+     * The 0-100 FOV and distortion sliders. 0% reads "Off", matching how
+     * Minecraft labels the bottom of its own Distortion and FOV Effects
+     * sliders, and the Sodium side of the same options.
+     */
+    private static Component formatPercent(int percent) {
+        return percent <= 0
+                ? Component.translatable("borderlesswindow.options.distortion.off")
+                : Component.translatable("borderlesswindow.options.distortion.percent", percent);
     }
 }

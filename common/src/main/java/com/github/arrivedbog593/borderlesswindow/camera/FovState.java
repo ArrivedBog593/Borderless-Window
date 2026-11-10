@@ -1,4 +1,4 @@
-package com.github.arrivedbog593.borderlesswindow.fov;
+package com.github.arrivedbog593.borderlesswindow.camera;
 
 import com.github.arrivedbog593.borderlesswindow.config.BorderlessConfigFile;
 

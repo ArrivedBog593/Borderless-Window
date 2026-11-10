@@ -1,25 +1,29 @@
 package com.github.arrivedbog593.borderlesswindow.sodium;
 
-import com.github.arrivedbog593.borderlesswindow.bobbing.BobbingState;
-import com.github.arrivedbog593.borderlesswindow.bobbing.CameraBobMode;
-import com.github.arrivedbog593.borderlesswindow.cloud.CloudState;
+import com.github.arrivedbog593.borderlesswindow.camera.BobbingState;
+import com.github.arrivedbog593.borderlesswindow.camera.CameraBobMode;
+import com.github.arrivedbog593.borderlesswindow.camera.DistortionState;
+import com.github.arrivedbog593.borderlesswindow.camera.FovState;
+import com.github.arrivedbog593.borderlesswindow.camera.ZoomMode;
+import com.github.arrivedbog593.borderlesswindow.camera.ZoomState;
 import com.github.arrivedbog593.borderlesswindow.distance.DistanceState;
-import com.github.arrivedbog593.borderlesswindow.distortion.DistortionState;
 import com.github.arrivedbog593.borderlesswindow.enchantment.EnchantmentLevelState;
 import com.github.arrivedbog593.borderlesswindow.enchantment.EnchantmentLevelStyle;
-import com.github.arrivedbog593.borderlesswindow.fog.FogState;
-import com.github.arrivedbog593.borderlesswindow.fov.FovState;
 import com.github.arrivedbog593.borderlesswindow.fps.FpsOverlayMode;
 import com.github.arrivedbog593.borderlesswindow.fps.FpsOverlayPosition;
 import com.github.arrivedbog593.borderlesswindow.fps.FpsOverlayState;
 import com.github.arrivedbog593.borderlesswindow.fps.IdleFpsState;
 import com.github.arrivedbog593.borderlesswindow.fps.MinimizedRenderState;
 import com.github.arrivedbog593.borderlesswindow.fps.UnfocusedFpsState;
-import com.github.arrivedbog593.borderlesswindow.screeneffect.ScreenEffectState;
-import com.github.arrivedbog593.borderlesswindow.sound.UnfocusedVolumeState;
-import com.github.arrivedbog593.borderlesswindow.window.BorderlessHandler;
-import com.github.arrivedbog593.borderlesswindow.window.F11Mode;
-import com.github.arrivedbog593.borderlesswindow.window.ScreenMode;
+import com.github.arrivedbog593.borderlesswindow.fps.UnfocusedVolumeState;
+import com.github.arrivedbog593.borderlesswindow.general.BorderlessHandler;
+import com.github.arrivedbog593.borderlesswindow.general.F11Mode;
+import com.github.arrivedbog593.borderlesswindow.general.HudState;
+import com.github.arrivedbog593.borderlesswindow.general.ScreenMode;
+import com.github.arrivedbog593.borderlesswindow.visual.CloudState;
+import com.github.arrivedbog593.borderlesswindow.visual.FogState;
+import com.github.arrivedbog593.borderlesswindow.visual.ScreenEffectState;
+import com.github.arrivedbog593.borderlesswindow.visual.SkyState;
 import com.mojang.blaze3d.platform.Window;
 import net.minecraft.client.Options;
 import net.minecraft.client.Minecraft;
@@ -44,14 +48,12 @@ import net.minecraft.client.Minecraft;
  * a contiguous [min, max] range, but our real value has a "Default"
  * sentinel (CloudState.DEFAULT_HEIGHT = -1) that is disjoint from the
  * 64..320 height range. We bridge this by exposing the slider as
- * [SODIUM_CLOUD_DEFAULT_SLOT .. MAX_HEIGHT], where the single slot just
- * below MIN_HEIGHT means "Default". getCloudHeightSlider/setCloudHeight
- * translate between that slider integer and the real CloudState value.
+ * [CloudState.DEFAULT_SLOT .. MAX_HEIGHT], where the single slot just
+ * below MIN_HEIGHT means "Default". getCloudHeightSlider/setCloudHeightSlider
+ * translate with CloudState.toSlot/fromSlot, the same conversion the
+ * no-Sodium screen uses.
  */
 public final class ScreenModeStorage {
-
-    /** The slider slot (just below MIN_HEIGHT) that represents "Default". */
-    static final int SODIUM_CLOUD_DEFAULT_SLOT = CloudState.MIN_HEIGHT - 1;
 
     private ScreenMode pendingValue = BorderlessHandler.getCurrentMode();
     private boolean screenModeDirty = false;
@@ -151,6 +153,39 @@ public final class ScreenModeStorage {
 
     private int pendingDistanceParticles = DistanceState.getParticles();
     private boolean distanceParticlesDirty = false;
+
+    private ZoomMode pendingZoomMode = ZoomState.getMode();
+    private boolean zoomModeDirty = false;
+
+    private int pendingZoomLevel = ZoomState.getInitialLevel();
+    private boolean zoomLevelDirty = false;
+
+    private boolean pendingZoomScroll = ZoomState.isScrollEnabled();
+    private boolean zoomScrollDirty = false;
+
+    private boolean pendingZoomSmooth = ZoomState.isSmoothEnabled();
+    private boolean zoomSmoothDirty = false;
+
+    private boolean pendingZoomHideHand = ZoomState.isHideHandEnabled();
+    private boolean zoomHideHandDirty = false;
+
+    private boolean pendingZoomHideHud = ZoomState.isHideHudEnabled();
+    private boolean zoomHideHudDirty = false;
+
+    private int pendingFogTerrainStart = FogState.getTerrainStart();
+    private boolean fogTerrainStartDirty = false;
+
+    private boolean pendingSunMoon = SkyState.isSunMoonEnabled();
+    private boolean sunMoonDirty = false;
+
+    private boolean pendingStars = SkyState.isStarsEnabled();
+    private boolean starsDirty = false;
+
+    private boolean pendingWeather = SkyState.isWeatherEnabled();
+    private boolean weatherDirty = false;
+
+    private boolean pendingHeldItemName = HudState.isHeldItemNameEnabled();
+    private boolean heldItemNameDirty = false;
 
     // The two vanilla sliders these pages sit under. Mirrored here so a
     // Sodium user can reach them without leaving for the accessibility
@@ -295,15 +330,12 @@ public final class ScreenModeStorage {
 
     /** Sodium slider getter: real height -> slider integer. */
     public int getCloudHeightSlider() {
-        int h = CloudState.getHeight();
-        return h == CloudState.DEFAULT_HEIGHT ? SODIUM_CLOUD_DEFAULT_SLOT : h;
+        return CloudState.toSlot(CloudState.getHeight());
     }
 
     /** Sodium slider setter: slider integer -> real height (stored pending). */
     public void setCloudHeightSlider(int sliderValue) {
-        this.pendingCloudHeight = sliderValue <= SODIUM_CLOUD_DEFAULT_SLOT
-                ? CloudState.DEFAULT_HEIGHT
-                : sliderValue;
+        this.pendingCloudHeight = CloudState.fromSlot(sliderValue);
         this.cloudHeightDirty = true;
     }
 
@@ -440,6 +472,105 @@ public final class ScreenModeStorage {
     public void setFovFluid(int percent) {
         this.pendingFovFluid = percent;
         this.fovFluidDirty = true;
+    }
+
+    public ZoomMode getZoomMode() {
+        return ZoomState.getMode();
+    }
+
+    public void setZoomMode(ZoomMode mode) {
+        this.pendingZoomMode = mode;
+        this.zoomModeDirty = true;
+    }
+
+    public int getZoomLevel() {
+        return ZoomState.getInitialLevel();
+    }
+
+    public void setZoomLevel(int level) {
+        this.pendingZoomLevel = level;
+        this.zoomLevelDirty = true;
+    }
+
+    public boolean getZoomScroll() {
+        return ZoomState.isScrollEnabled();
+    }
+
+    public void setZoomScroll(boolean enabled) {
+        this.pendingZoomScroll = enabled;
+        this.zoomScrollDirty = true;
+    }
+
+    public boolean getZoomSmooth() {
+        return ZoomState.isSmoothEnabled();
+    }
+
+    public void setZoomSmooth(boolean enabled) {
+        this.pendingZoomSmooth = enabled;
+        this.zoomSmoothDirty = true;
+    }
+
+    public boolean getZoomHideHand() {
+        return ZoomState.isHideHandEnabled();
+    }
+
+    public void setZoomHideHand(boolean enabled) {
+        this.pendingZoomHideHand = enabled;
+        this.zoomHideHandDirty = true;
+    }
+
+    public boolean getZoomHideHud() {
+        return ZoomState.isHideHudEnabled();
+    }
+
+    public void setZoomHideHud(boolean enabled) {
+        this.pendingZoomHideHud = enabled;
+        this.zoomHideHudDirty = true;
+    }
+
+    public int getFogTerrainStart() {
+        return FogState.getTerrainStart();
+    }
+
+    public void setFogTerrainStart(int percent) {
+        this.pendingFogTerrainStart = percent;
+        this.fogTerrainStartDirty = true;
+    }
+
+    public boolean getSunMoon() {
+        return SkyState.isSunMoonEnabled();
+    }
+
+    public void setSunMoon(boolean enabled) {
+        this.pendingSunMoon = enabled;
+        this.sunMoonDirty = true;
+    }
+
+    public boolean getStars() {
+        return SkyState.isStarsEnabled();
+    }
+
+    public void setStars(boolean enabled) {
+        this.pendingStars = enabled;
+        this.starsDirty = true;
+    }
+
+    public boolean getWeather() {
+        return SkyState.isWeatherEnabled();
+    }
+
+    public void setWeather(boolean enabled) {
+        this.pendingWeather = enabled;
+        this.weatherDirty = true;
+    }
+
+    public boolean getHeldItemName() {
+        return HudState.isHeldItemNameEnabled();
+    }
+
+    public void setHeldItemName(boolean enabled) {
+        this.pendingHeldItemName = enabled;
+        this.heldItemNameDirty = true;
     }
 
     public int getDistanceItems() {
@@ -717,6 +848,61 @@ public final class ScreenModeStorage {
         if (this.distanceParticlesDirty) {
             DistanceState.setParticles(this.pendingDistanceParticles);
             this.distanceParticlesDirty = false;
+        }
+
+        if (this.zoomModeDirty) {
+            ZoomState.setMode(this.pendingZoomMode);
+            this.zoomModeDirty = false;
+        }
+
+        if (this.zoomLevelDirty) {
+            ZoomState.setInitialLevel(this.pendingZoomLevel);
+            this.zoomLevelDirty = false;
+        }
+
+        if (this.zoomScrollDirty) {
+            ZoomState.setScrollEnabled(this.pendingZoomScroll);
+            this.zoomScrollDirty = false;
+        }
+
+        if (this.zoomSmoothDirty) {
+            ZoomState.setSmoothEnabled(this.pendingZoomSmooth);
+            this.zoomSmoothDirty = false;
+        }
+
+        if (this.zoomHideHandDirty) {
+            ZoomState.setHideHandEnabled(this.pendingZoomHideHand);
+            this.zoomHideHandDirty = false;
+        }
+
+        if (this.zoomHideHudDirty) {
+            ZoomState.setHideHudEnabled(this.pendingZoomHideHud);
+            this.zoomHideHudDirty = false;
+        }
+
+        if (this.fogTerrainStartDirty) {
+            FogState.setTerrainStart(this.pendingFogTerrainStart);
+            this.fogTerrainStartDirty = false;
+        }
+
+        if (this.sunMoonDirty) {
+            SkyState.setSunMoonEnabled(this.pendingSunMoon);
+            this.sunMoonDirty = false;
+        }
+
+        if (this.starsDirty) {
+            SkyState.setStarsEnabled(this.pendingStars);
+            this.starsDirty = false;
+        }
+
+        if (this.weatherDirty) {
+            SkyState.setWeatherEnabled(this.pendingWeather);
+            this.weatherDirty = false;
+        }
+
+        if (this.heldItemNameDirty) {
+            HudState.setHeldItemNameEnabled(this.pendingHeldItemName);
+            this.heldItemNameDirty = false;
         }
 
         // Vanilla options: written straight to options.txt. save() is

@@ -1,6 +1,6 @@
 package com.github.arrivedbog593.borderlesswindow.mixin;
 
-import com.github.arrivedbog593.borderlesswindow.sound.UnfocusedVolumeState;
+import com.github.arrivedbog593.borderlesswindow.fps.UnfocusedVolumeState;
 import com.mojang.blaze3d.audio.Listener;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;

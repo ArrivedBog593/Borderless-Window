@@ -1,25 +1,29 @@
 package com.github.arrivedbog593.borderlesswindow.config;
 
-import com.github.arrivedbog593.borderlesswindow.bobbing.BobbingState;
-import com.github.arrivedbog593.borderlesswindow.bobbing.CameraBobMode;
-import com.github.arrivedbog593.borderlesswindow.cloud.CloudState;
+import com.github.arrivedbog593.borderlesswindow.camera.BobbingState;
+import com.github.arrivedbog593.borderlesswindow.camera.CameraBobMode;
+import com.github.arrivedbog593.borderlesswindow.camera.DistortionState;
+import com.github.arrivedbog593.borderlesswindow.camera.FovState;
+import com.github.arrivedbog593.borderlesswindow.camera.ZoomMode;
+import com.github.arrivedbog593.borderlesswindow.camera.ZoomState;
 import com.github.arrivedbog593.borderlesswindow.distance.DistanceState;
-import com.github.arrivedbog593.borderlesswindow.distortion.DistortionState;
 import com.github.arrivedbog593.borderlesswindow.enchantment.EnchantmentLevelState;
 import com.github.arrivedbog593.borderlesswindow.enchantment.EnchantmentLevelStyle;
-import com.github.arrivedbog593.borderlesswindow.fog.FogState;
-import com.github.arrivedbog593.borderlesswindow.fov.FovState;
 import com.github.arrivedbog593.borderlesswindow.fps.FpsOverlayMode;
 import com.github.arrivedbog593.borderlesswindow.fps.FpsOverlayPosition;
 import com.github.arrivedbog593.borderlesswindow.fps.FpsOverlayState;
 import com.github.arrivedbog593.borderlesswindow.fps.IdleFpsState;
 import com.github.arrivedbog593.borderlesswindow.fps.MinimizedRenderState;
 import com.github.arrivedbog593.borderlesswindow.fps.UnfocusedFpsState;
-import com.github.arrivedbog593.borderlesswindow.screeneffect.ScreenEffectState;
-import com.github.arrivedbog593.borderlesswindow.sound.UnfocusedVolumeState;
-import com.github.arrivedbog593.borderlesswindow.window.BorderlessHandler;
-import com.github.arrivedbog593.borderlesswindow.window.F11Mode;
-import com.github.arrivedbog593.borderlesswindow.window.ScreenMode;
+import com.github.arrivedbog593.borderlesswindow.fps.UnfocusedVolumeState;
+import com.github.arrivedbog593.borderlesswindow.general.BorderlessHandler;
+import com.github.arrivedbog593.borderlesswindow.general.F11Mode;
+import com.github.arrivedbog593.borderlesswindow.general.HudState;
+import com.github.arrivedbog593.borderlesswindow.general.ScreenMode;
+import com.github.arrivedbog593.borderlesswindow.visual.CloudState;
+import com.github.arrivedbog593.borderlesswindow.visual.FogState;
+import com.github.arrivedbog593.borderlesswindow.visual.ScreenEffectState;
+import com.github.arrivedbog593.borderlesswindow.visual.SkyState;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import net.minecraft.client.Minecraft;
@@ -94,6 +98,17 @@ public final class BorderlessConfigFile {
         int distance_xp_orbs = DistanceState.DEFAULT;
         int distance_armor_stands = DistanceState.DEFAULT;
         int distance_particles = DistanceState.DEFAULT;
+        String zoom_mode = ZoomMode.HOLD.name();
+        int zoom_level = ZoomState.DEFAULT_LEVEL;
+        boolean zoom_scroll = true;
+        boolean zoom_smooth = true;
+        boolean zoom_hide_hand = true;
+        boolean zoom_hide_hud = false;
+        int fog_terrain_start = FogState.DEFAULT_START;
+        boolean sky_sun_moon = true;
+        boolean sky_stars = true;
+        boolean sky_weather = true;
+        boolean hud_held_item_name = true;
     }
 
     public record LoadedConfig(ScreenMode screenMode, F11Mode f11Mode,
@@ -115,7 +130,13 @@ public final class BorderlessConfigFile {
                                int fovSpeed, int fovFlying,
                                int fovBow, int fovFluid,
                                int distanceItems, int distanceOrbs,
-                               int distanceArmorStands, int distanceParticles) {
+                               int distanceArmorStands, int distanceParticles,
+                               ZoomMode zoomMode, int zoomLevel,
+                               boolean zoomScroll, boolean zoomSmooth,
+                               boolean zoomHideHand, boolean zoomHideHud,
+                               int fogTerrainStart,
+                               boolean sunMoon, boolean stars, boolean weather,
+                               boolean heldItemName) {
     }
 
     private BorderlessConfigFile() {
@@ -154,7 +175,13 @@ public final class BorderlessConfigFile {
                 data.distortion_portal, data.distortion_nausea,
                 data.fov_speed, data.fov_flying, data.fov_bow, data.fov_fluid,
                 data.distance_items, data.distance_xp_orbs,
-                data.distance_armor_stands, data.distance_particles);
+                data.distance_armor_stands, data.distance_particles,
+                parseOrDefault(ZoomMode.class, data.zoom_mode, ZoomMode.HOLD),
+                data.zoom_level, data.zoom_scroll, data.zoom_smooth,
+                data.zoom_hide_hand, data.zoom_hide_hud,
+                data.fog_terrain_start,
+                data.sky_sun_moon, data.sky_stars, data.sky_weather,
+                data.hud_held_item_name);
     }
 
     /**
@@ -204,6 +231,17 @@ public final class BorderlessConfigFile {
         data.distance_xp_orbs = DistanceState.getOrbs();
         data.distance_armor_stands = DistanceState.getArmorStands();
         data.distance_particles = DistanceState.getParticles();
+        data.zoom_mode = ZoomState.getMode().name();
+        data.zoom_level = ZoomState.getInitialLevel();
+        data.zoom_scroll = ZoomState.isScrollEnabled();
+        data.zoom_smooth = ZoomState.isSmoothEnabled();
+        data.zoom_hide_hand = ZoomState.isHideHandEnabled();
+        data.zoom_hide_hud = ZoomState.isHideHudEnabled();
+        data.fog_terrain_start = FogState.getTerrainStart();
+        data.sky_sun_moon = SkyState.isSunMoonEnabled();
+        data.sky_stars = SkyState.isStarsEnabled();
+        data.sky_weather = SkyState.isWeatherEnabled();
+        data.hud_held_item_name = HudState.isHeldItemNameEnabled();
         try {
             Files.writeString(PATH, GSON.toJson(data));
         } catch (IOException ignored) {

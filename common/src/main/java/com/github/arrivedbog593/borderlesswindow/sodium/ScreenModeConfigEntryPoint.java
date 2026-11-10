@@ -1,18 +1,21 @@
 package com.github.arrivedbog593.borderlesswindow.sodium;
 
-import com.github.arrivedbog593.borderlesswindow.bobbing.CameraBobMode;
-import com.github.arrivedbog593.borderlesswindow.cloud.CloudState;
+import com.github.arrivedbog593.borderlesswindow.camera.CameraBobMode;
+import com.github.arrivedbog593.borderlesswindow.camera.DistortionState;
+import com.github.arrivedbog593.borderlesswindow.camera.FovState;
+import com.github.arrivedbog593.borderlesswindow.camera.ZoomMode;
+import com.github.arrivedbog593.borderlesswindow.camera.ZoomState;
 import com.github.arrivedbog593.borderlesswindow.distance.DistanceState;
-import com.github.arrivedbog593.borderlesswindow.distortion.DistortionState;
 import com.github.arrivedbog593.borderlesswindow.enchantment.EnchantmentLevelStyle;
-import com.github.arrivedbog593.borderlesswindow.fov.FovState;
 import com.github.arrivedbog593.borderlesswindow.fps.FpsOverlayMode;
 import com.github.arrivedbog593.borderlesswindow.fps.FpsOverlayPosition;
 import com.github.arrivedbog593.borderlesswindow.fps.IdleFpsState;
 import com.github.arrivedbog593.borderlesswindow.fps.UnfocusedFpsState;
-import com.github.arrivedbog593.borderlesswindow.sound.UnfocusedVolumeState;
-import com.github.arrivedbog593.borderlesswindow.window.F11Mode;
-import com.github.arrivedbog593.borderlesswindow.window.ScreenMode;
+import com.github.arrivedbog593.borderlesswindow.fps.UnfocusedVolumeState;
+import com.github.arrivedbog593.borderlesswindow.general.F11Mode;
+import com.github.arrivedbog593.borderlesswindow.general.ScreenMode;
+import com.github.arrivedbog593.borderlesswindow.visual.CloudState;
+import com.github.arrivedbog593.borderlesswindow.visual.FogState;
 import net.caffeinemc.mods.sodium.api.config.ConfigEntryPoint;
 import net.caffeinemc.mods.sodium.api.config.structure.ConfigBuilder;
 import net.minecraft.network.chat.Component;
@@ -27,15 +30,15 @@ import net.minecraft.resources.ResourceLocation;
  * each split into unnamed option groups -- the same visual grouping
  * Sodium's own General page uses -- instead of one page per feature,
  * which had grown to nine entries in the sidebar:
- * - General: F11 behavior | menu background blur. Small features with no
- *   better home.
+ * - General: F11 behavior | held item name | menu background blur. Small
+ *   features with no better home.
  * - Enchantments: numerals | glint speed and strength.
  * - FPS & Background: FPS overlay | background (unfocused FPS cap, idle
  *   FPS cap, rendering while minimized, unfocused volume).
- * - Visual Effects: fog | cloud height | screen overlays. What is drawn
- *   over or around the world.
- * - Camera: bobbing | FOV | distortion. How the view itself moves and
- *   is shaped.
+ * - Visual Effects: fog | cloud height | sky and weather | screen
+ *   overlays. What is drawn over or around the world.
+ * - Camera: bobbing | FOV | distortion | zoom. How the view itself moves
+ *   and is shaped.
  * - Distances: dropped items, orbs, armor stands | particles.
  * A new feature should become a group on one of these pages; it only
  * earns a page of its own if it brings several options with it.
@@ -88,6 +91,17 @@ public class ScreenModeConfigEntryPoint implements ConfigEntryPoint {
                                         .setStorageHandler(this.storage::flush)
                                         .setBinding(this.storage::setF11Target, this.storage::getF11Target)
                                         .setDefaultValue(F11Mode.BORDERLESS)
+                                )
+                        )
+                        // HUD: the held item's name over the hotbar.
+                        .addOptionGroup(builder.createOptionGroup()
+                                .addOption(builder.createBooleanOption(
+                                                ResourceLocation.parse("borderlesswindow:held_item_name"))
+                                        .setName(Component.translatable("borderlesswindow.options.held_item_name.name"))
+                                        .setTooltip(Component.translatable("borderlesswindow.options.held_item_name.tooltip"))
+                                        .setStorageHandler(this.storage::flush)
+                                        .setBinding(this.storage::setHeldItemName, this.storage::getHeldItemName)
+                                        .setDefaultValue(true)
                                 )
                         )
                         // Vanilla's menu background blur. Like the FOV and
@@ -253,7 +267,8 @@ public class ScreenModeConfigEntryPoint implements ConfigEntryPoint {
                                 )
                         )
                 )
-                // Page 4 - Visual Effects: fog, clouds, screen overlays.
+                // Page 4 - Visual Effects: fog, clouds, sky and weather,
+                // screen overlays.
                 .addPage(builder.createOptionPage()
                         .setName(Component.translatable("borderlesswindow.options.sodium.pages.visuals"))
                         // Fog: the four per-type toggles.
@@ -290,31 +305,67 @@ public class ScreenModeConfigEntryPoint implements ConfigEntryPoint {
                                         .setBinding(this.storage::setPowderSnowFog, this.storage::getPowderSnowFog)
                                         .setDefaultValue(true)
                                 )
+                                // Where the terrain fog begins. Greyed out
+                                // while the terrain fog is removed: there is
+                                // nothing left to move. See FogState.
+                                .addOption(builder.createIntegerOption(
+                                                ResourceLocation.parse("borderlesswindow:fog_terrain_start"))
+                                        .setName(Component.translatable("borderlesswindow.options.fog_terrain_start.name"))
+                                        .setTooltip(Component.translatable("borderlesswindow.options.fog_terrain_start.tooltip"))
+                                        .setRange(FogState.DEFAULT_START, FogState.MAX_START, FogState.START_STEP)
+                                        .setValueFormatter(FogState::formatStart)
+                                        .setStorageHandler(this.storage::flush)
+                                        .setBinding(this.storage::setFogTerrainStart, this.storage::getFogTerrainStart)
+                                        .setDefaultValue(FogState.DEFAULT_START)
+                                        .setEnabledProvider(
+                                                state -> state.readBooleanOption(
+                                                        ResourceLocation.parse("borderlesswindow:fog_terrain")),
+                                                ResourceLocation.parse("borderlesswindow:fog_terrain"))
+                                )
                         )
                         // Cloud height.
                         // Range is [DEFAULT_SLOT .. MAX_HEIGHT]; the leftmost slot
                         // (just below MIN_HEIGHT) shows "Default" and disables the
-                        // override. See ScreenModeStorage for the encoding.
+                        // override. See CloudState for the encoding.
                         .addOptionGroup(builder.createOptionGroup()
                                 .addOption(builder.createIntegerOption(
                                                 ResourceLocation.parse("borderlesswindow:cloud_height"))
                                         .setName(Component.translatable("borderlesswindow.options.cloud_height.name"))
                                         .setTooltip(Component.translatable("borderlesswindow.options.cloud_height.tooltip"))
-                                        .setRange(ScreenModeStorage.SODIUM_CLOUD_DEFAULT_SLOT,
-                                                CloudState.MAX_HEIGHT, 1)
-                                        .setValueFormatter(value -> {
-                                            if (value <= ScreenModeStorage.SODIUM_CLOUD_DEFAULT_SLOT) {
-                                                return Component.translatable("borderlesswindow.options.cloud_height.default");
-                                            }
-                                            if (value == CloudState.VANILLA_HEIGHT) {
-                                                return Component.translatable("borderlesswindow.options.cloud_height.regular", value);
-                                            }
-                                            return Component.literal(String.valueOf(value));
-                                        })
+                                        .setRange(CloudState.DEFAULT_SLOT, CloudState.MAX_HEIGHT, 1)
+                                        .setValueFormatter(CloudState::formatSlot)
                                         .setStorageHandler(this.storage::flush)
                                         .setBinding(this.storage::setCloudHeightSlider,
                                                 this.storage::getCloudHeightSlider)
-                                        .setDefaultValue(ScreenModeStorage.SODIUM_CLOUD_DEFAULT_SLOT)
+                                        .setDefaultValue(CloudState.DEFAULT_SLOT)
+                                )
+                        )
+                        // Sky and weather: drawing only, the day cycle and
+                        // the weather go on. See SkyState.
+                        .addOptionGroup(builder.createOptionGroup()
+                                .addOption(builder.createBooleanOption(
+                                                ResourceLocation.parse("borderlesswindow:sky_sun_moon"))
+                                        .setName(Component.translatable("borderlesswindow.options.sky_sun_moon.name"))
+                                        .setTooltip(Component.translatable("borderlesswindow.options.sky_sun_moon.tooltip"))
+                                        .setStorageHandler(this.storage::flush)
+                                        .setBinding(this.storage::setSunMoon, this.storage::getSunMoon)
+                                        .setDefaultValue(true)
+                                )
+                                .addOption(builder.createBooleanOption(
+                                                ResourceLocation.parse("borderlesswindow:sky_stars"))
+                                        .setName(Component.translatable("borderlesswindow.options.sky_stars.name"))
+                                        .setTooltip(Component.translatable("borderlesswindow.options.sky_stars.tooltip"))
+                                        .setStorageHandler(this.storage::flush)
+                                        .setBinding(this.storage::setStars, this.storage::getStars)
+                                        .setDefaultValue(true)
+                                )
+                                .addOption(builder.createBooleanOption(
+                                                ResourceLocation.parse("borderlesswindow:sky_weather"))
+                                        .setName(Component.translatable("borderlesswindow.options.sky_weather.name"))
+                                        .setTooltip(Component.translatable("borderlesswindow.options.sky_weather.tooltip"))
+                                        .setStorageHandler(this.storage::flush)
+                                        .setBinding(this.storage::setWeather, this.storage::getWeather)
+                                        .setDefaultValue(true)
                                 )
                         )
                         // Screen overlays: drawn on top of the view.
@@ -390,8 +441,9 @@ public class ScreenModeConfigEntryPoint implements ConfigEntryPoint {
                                 )
                         )
                 )
-                // Page 5 - Camera: bobbing, FOV and distortion, how the view itself
-                // moves and is shaped rather than what is drawn over it.
+                // Page 5 - Camera: bobbing, FOV, distortion and zoom, how the
+                // view itself moves and is shaped rather than what is drawn
+                // over it.
                 .addPage(builder.createOptionPage()
                         .setName(Component.translatable("borderlesswindow.options.sodium.pages.camera"))
                         // Bobbing. Both options sit UNDER vanilla's own
@@ -542,6 +594,64 @@ public class ScreenModeConfigEntryPoint implements ConfigEntryPoint {
                                         .setStorageHandler(this.storage::flush)
                                         .setBinding(this.storage::setDistortionNausea, this.storage::getDistortionNausea)
                                         .setDefaultValue(DistortionState.DEFAULT_PERCENT)
+                                )
+                        )
+                        // Zoom. The key is in Minecraft's Controls, like
+                        // every other key; nothing here does anything until
+                        // it is pressed. See ZoomState.
+                        .addOptionGroup(builder.createOptionGroup()
+                                .addOption(builder.createEnumOption(
+                                                ResourceLocation.parse("borderlesswindow:zoom_mode"),
+                                                ZoomMode.class)
+                                        .setName(Component.translatable("borderlesswindow.options.zoom_mode.name"))
+                                        .setTooltip(Component.translatable("borderlesswindow.options.zoom_mode.tooltip"))
+                                        .setElementNameProvider(mode -> Component.translatable(mode.getTranslationKey()))
+                                        .setStorageHandler(this.storage::flush)
+                                        .setBinding(this.storage::setZoomMode, this.storage::getZoomMode)
+                                        .setDefaultValue(ZoomMode.HOLD)
+                                )
+                                .addOption(builder.createIntegerOption(
+                                                ResourceLocation.parse("borderlesswindow:zoom_level"))
+                                        .setName(Component.translatable("borderlesswindow.options.zoom_level.name"))
+                                        .setTooltip(Component.translatable("borderlesswindow.options.zoom_level.tooltip"))
+                                        .setRange(ZoomState.MIN_LEVEL, ZoomState.MAX_LEVEL, 1)
+                                        .setValueFormatter(value -> Component.translatable(
+                                                "borderlesswindow.options.zoom_level.value", value))
+                                        .setStorageHandler(this.storage::flush)
+                                        .setBinding(this.storage::setZoomLevel, this.storage::getZoomLevel)
+                                        .setDefaultValue(ZoomState.DEFAULT_LEVEL)
+                                )
+                                .addOption(builder.createBooleanOption(
+                                                ResourceLocation.parse("borderlesswindow:zoom_scroll"))
+                                        .setName(Component.translatable("borderlesswindow.options.zoom_scroll.name"))
+                                        .setTooltip(Component.translatable("borderlesswindow.options.zoom_scroll.tooltip"))
+                                        .setStorageHandler(this.storage::flush)
+                                        .setBinding(this.storage::setZoomScroll, this.storage::getZoomScroll)
+                                        .setDefaultValue(true)
+                                )
+                                .addOption(builder.createBooleanOption(
+                                                ResourceLocation.parse("borderlesswindow:zoom_smooth"))
+                                        .setName(Component.translatable("borderlesswindow.options.zoom_smooth.name"))
+                                        .setTooltip(Component.translatable("borderlesswindow.options.zoom_smooth.tooltip"))
+                                        .setStorageHandler(this.storage::flush)
+                                        .setBinding(this.storage::setZoomSmooth, this.storage::getZoomSmooth)
+                                        .setDefaultValue(true)
+                                )
+                                .addOption(builder.createBooleanOption(
+                                                ResourceLocation.parse("borderlesswindow:zoom_hide_hand"))
+                                        .setName(Component.translatable("borderlesswindow.options.zoom_hide_hand.name"))
+                                        .setTooltip(Component.translatable("borderlesswindow.options.zoom_hide_hand.tooltip"))
+                                        .setStorageHandler(this.storage::flush)
+                                        .setBinding(this.storage::setZoomHideHand, this.storage::getZoomHideHand)
+                                        .setDefaultValue(true)
+                                )
+                                .addOption(builder.createBooleanOption(
+                                                ResourceLocation.parse("borderlesswindow:zoom_hide_hud"))
+                                        .setName(Component.translatable("borderlesswindow.options.zoom_hide_hud.name"))
+                                        .setTooltip(Component.translatable("borderlesswindow.options.zoom_hide_hud.tooltip"))
+                                        .setStorageHandler(this.storage::flush)
+                                        .setBinding(this.storage::setZoomHideHud, this.storage::getZoomHideHud)
+                                        .setDefaultValue(false)
                                 )
                         )
                 )

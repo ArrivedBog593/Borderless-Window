@@ -1,4 +1,4 @@
-package com.github.arrivedbog593.borderlesswindow.distortion;
+package com.github.arrivedbog593.borderlesswindow.camera;
 
 import com.github.arrivedbog593.borderlesswindow.config.BorderlessConfigFile;
 

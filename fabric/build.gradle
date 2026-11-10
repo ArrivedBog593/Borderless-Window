@@ -12,13 +12,18 @@ dependencies {
     modImplementation "net.fabricmc:fabric-loader:${fabric_loader_version}"
 
     // No Fabric API as a dependency: the mod hooks fog, the screen overlays
-    // and the HUD with its own mixins. The one exception is assets: Fabric
+    // and the HUD with its own mixins. The exceptions are assets and the
+    // zoom key. Assets first: Fabric
     // Loader alone never loads a mod's assets/ (lang files...), Fabric
     // API's resource loader does. Bundled jar-in-jar with its base module,
     // as Sodium does, so players still install nothing; with Fabric API
     // present, the loader picks the newer copy of each module.
     include(modImplementation(fabricApi.module('fabric-api-base', fabric_api_version)))
     include(modImplementation(fabricApi.module('fabric-resource-loader-v0', fabric_api_version)))
+    // Same deal for the zoom key: Fabric Loader has no way to add a key to
+    // Controls (nor to give it a category of its own), the key binding
+    // module does.
+    include(modImplementation(fabricApi.module('fabric-key-binding-api-v1', fabric_api_version)))
 
     // Optional integrations, compiled against only. To test them, drop the
     // regular jars into the run's mods/ folder, as on NeoForge: Fabric

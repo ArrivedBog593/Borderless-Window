@@ -1,6 +1,6 @@
 package com.github.arrivedbog593.borderlesswindow.mixin;
 
-import com.github.arrivedbog593.borderlesswindow.fov.FovState;
+import com.github.arrivedbog593.borderlesswindow.camera.FovState;
 import com.llamalad7.mixinextras.injector.ModifyExpressionValue;
 import net.minecraft.client.player.AbstractClientPlayer;
 import net.minecraft.util.Mth;

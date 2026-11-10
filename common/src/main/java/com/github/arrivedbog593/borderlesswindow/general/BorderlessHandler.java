@@ -1,19 +1,21 @@
-package com.github.arrivedbog593.borderlesswindow.window;
+package com.github.arrivedbog593.borderlesswindow.general;
 
-import com.github.arrivedbog593.borderlesswindow.bobbing.BobbingState;
-import com.github.arrivedbog593.borderlesswindow.cloud.CloudState;
+import com.github.arrivedbog593.borderlesswindow.camera.BobbingState;
+import com.github.arrivedbog593.borderlesswindow.camera.DistortionState;
+import com.github.arrivedbog593.borderlesswindow.camera.FovState;
+import com.github.arrivedbog593.borderlesswindow.camera.ZoomState;
 import com.github.arrivedbog593.borderlesswindow.config.BorderlessConfigFile;
 import com.github.arrivedbog593.borderlesswindow.distance.DistanceState;
-import com.github.arrivedbog593.borderlesswindow.distortion.DistortionState;
 import com.github.arrivedbog593.borderlesswindow.enchantment.EnchantmentLevelState;
-import com.github.arrivedbog593.borderlesswindow.fog.FogState;
-import com.github.arrivedbog593.borderlesswindow.fov.FovState;
 import com.github.arrivedbog593.borderlesswindow.fps.FpsOverlayState;
 import com.github.arrivedbog593.borderlesswindow.fps.IdleFpsState;
 import com.github.arrivedbog593.borderlesswindow.fps.MinimizedRenderState;
 import com.github.arrivedbog593.borderlesswindow.fps.UnfocusedFpsState;
-import com.github.arrivedbog593.borderlesswindow.screeneffect.ScreenEffectState;
-import com.github.arrivedbog593.borderlesswindow.sound.UnfocusedVolumeState;
+import com.github.arrivedbog593.borderlesswindow.fps.UnfocusedVolumeState;
+import com.github.arrivedbog593.borderlesswindow.visual.CloudState;
+import com.github.arrivedbog593.borderlesswindow.visual.FogState;
+import com.github.arrivedbog593.borderlesswindow.visual.ScreenEffectState;
+import com.github.arrivedbog593.borderlesswindow.visual.SkyState;
 import com.mojang.blaze3d.platform.Window;
 import org.lwjgl.PointerBuffer;
 import org.lwjgl.glfw.GLFWVidMode;
@@ -114,7 +116,10 @@ public final class BorderlessHandler {
         MinimizedRenderState.init(config.minimizedSkipRender());
         IdleFpsState.init(config.idleFpsDelay(), config.idleFpsLimit());
         FogState.init(config.terrainFog(), config.waterFog(),
-                config.lavaFog(), config.powderSnowFog());
+                config.lavaFog(), config.powderSnowFog(),
+                config.fogTerrainStart());
+        SkyState.init(config.sunMoon(), config.stars(), config.weather());
+        HudState.init(config.heldItemName());
         CloudState.init(config.cloudHeight());
         ScreenEffectState.init(config.waterOverlay(), config.fireOverlay(),
                 config.smartFire(), config.pumpkinOverlay(),
@@ -127,6 +132,9 @@ public final class BorderlessHandler {
                 config.fovBow(), config.fovFluid());
         DistanceState.init(config.distanceItems(), config.distanceOrbs(),
                 config.distanceArmorStands(), config.distanceParticles());
+        ZoomState.init(config.zoomMode(), config.zoomLevel(),
+                config.zoomScroll(), config.zoomSmooth(),
+                config.zoomHideHand(), config.zoomHideHud());
 
         if (glfwGetWindowMonitor(window.getWindow()) != 0L) {
             // The game booted in exclusive fullscreen via options.txt.

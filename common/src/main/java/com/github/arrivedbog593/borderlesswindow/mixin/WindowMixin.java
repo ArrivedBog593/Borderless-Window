@@ -1,7 +1,7 @@
 package com.github.arrivedbog593.borderlesswindow.mixin;
 
-import com.github.arrivedbog593.borderlesswindow.window.BorderlessHandler;
-import com.github.arrivedbog593.borderlesswindow.window.ScreenMode;
+import com.github.arrivedbog593.borderlesswindow.general.BorderlessHandler;
+import com.github.arrivedbog593.borderlesswindow.general.ScreenMode;
 import com.github.arrivedbog593.borderlesswindow.sodium.SodiumMenuRefresher;
 import com.mojang.blaze3d.platform.Window;
 import org.spongepowered.asm.mixin.Mixin;

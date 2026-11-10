@@ -1,6 +1,7 @@
-package com.github.arrivedbog593.borderlesswindow.cloud;
+package com.github.arrivedbog593.borderlesswindow.visual;
 
 import com.github.arrivedbog593.borderlesswindow.config.BorderlessConfigFile;
+import net.minecraft.network.chat.Component;
 
 /**
  * Holds the custom cloud height, mirroring the role FogState/FpsOverlayState
@@ -96,6 +97,40 @@ public final class CloudState {
     public static void setHeight(int newHeight) {
         applyHeight(newHeight);
         persist();
+    }
+
+    /**
+     * The slider slot (just below MIN_HEIGHT) that represents "Default".
+     * Both UIs show the height as one contiguous range,
+     * [DEFAULT_SLOT .. MAX_HEIGHT], while the stored sentinel is
+     * {@link #DEFAULT_HEIGHT} (-1), disjoint from the real heights;
+     * {@link #toSlot}/{@link #fromSlot} translate, the same trick as
+     * UnfocusedFpsState's "Off" slot.
+     */
+    public static final int DEFAULT_SLOT = MIN_HEIGHT - 1;
+
+    /** Stored value -> slider position. */
+    public static int toSlot(int value) {
+        return value == DEFAULT_HEIGHT ? DEFAULT_SLOT : value;
+    }
+
+    /** Slider position -> stored value. */
+    public static int fromSlot(int slot) {
+        return slot <= DEFAULT_SLOT ? DEFAULT_HEIGHT : slot;
+    }
+
+    /**
+     * Slider label shared by both UIs: "Default", "192 (Regular)" for
+     * the unmodified vanilla height, or the plain height.
+     */
+    public static Component formatSlot(int slot) {
+        if (slot <= DEFAULT_SLOT) {
+            return Component.translatable("borderlesswindow.options.cloud_height.default");
+        }
+        if (slot == VANILLA_HEIGHT) {
+            return Component.translatable("borderlesswindow.options.cloud_height.regular", slot);
+        }
+        return Component.literal(String.valueOf(slot));
     }
 
     /** True when a real override is active (not the sentinel). */

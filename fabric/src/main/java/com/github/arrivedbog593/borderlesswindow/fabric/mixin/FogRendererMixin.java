@@ -1,6 +1,6 @@
 package com.github.arrivedbog593.borderlesswindow.fabric.mixin;
 
-import com.github.arrivedbog593.borderlesswindow.fog.FogHandler;
+import com.github.arrivedbog593.borderlesswindow.visual.FogHandler;
 import com.mojang.blaze3d.systems.RenderSystem;
 import net.minecraft.client.Camera;
 import net.minecraft.client.renderer.FogRenderer;
