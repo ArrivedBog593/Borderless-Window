@@ -139,10 +139,11 @@ jobs:
 
           # Each file states its own optional integrations, so a loader never lists a mod that does not exist for it:
           # Sodium is on both, Mod Menu is Fabric-only. Slug plus project ID, which the Upload API takes for an exact
-          # match. Keep the project's Default Relations to what fits every loader (Sodium): the API docs do not say
-          # whether defaults get merged into files uploaded with their own relations.
-          SODIUM='{"slug": "sodium", "projectID": "394468", "type": "optionalDependency"}'
-          MODMENU='{"slug": "modmenu", "projectID": "308702", "type": "optionalDependency"}'
+          # match. The ID is a JSON number: as a string the API rejects the whole upload (error 1002, "Expected
+          # Integer but got String"). Keep the project's Default Relations to what fits every loader (Sodium): the
+          # API docs do not say whether defaults get merged into files uploaded with their own relations.
+          SODIUM='{"slug": "sodium", "projectID": 394468, "type": "optionalDependency"}'
+          MODMENU='{"slug": "modmenu", "projectID": 308702, "type": "optionalDependency"}'
           case "$LOADER" in
             fabric)   LOADER_NAME=Fabric;   RELATIONS="[$SODIUM, $MODMENU]" ;;
             neoforge) LOADER_NAME=NeoForge; RELATIONS="[$SODIUM]" ;;
