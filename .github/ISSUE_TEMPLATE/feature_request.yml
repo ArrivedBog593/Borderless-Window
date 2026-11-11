@@ -1,0 +1,47 @@
+name: Feature suggestion
+description: An option or feature you'd like the mod to have.
+title: "[Suggestion] "
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for the idea! English or Spanish are both fine.
+
+        Good to know before suggesting: the mod is client-side only, and every setting defaults to vanilla behavior. It works on the window and on what Minecraft already calculates (FOV, fog, FPS limits, what gets drawn…). It doesn't touch shaders, chunk rendering, lighting or textures.
+
+  - type: textarea
+    id: idea
+    attributes:
+      label: What would you like?
+      description: The problem it solves or what you'd use it for, and how you picture it working.
+    validations:
+      required: true
+
+  - type: dropdown
+    id: page
+    attributes:
+      label: Where would it fit?
+      description: The settings page it would go on, if you have an idea.
+      options:
+        - General
+        - Enchantments
+        - FPS & Background
+        - Visual Effects
+        - Camera
+        - Distances
+        - Somewhere new / not sure
+
+  - type: textarea
+    id: references
+    attributes:
+      label: Other mods that do something similar
+      description: If another mod already has it, its name helps to understand what you mean.
+
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Checks
+      options:
+        - label: I searched the existing issues and this hasn't been suggested yet.
+          required: true

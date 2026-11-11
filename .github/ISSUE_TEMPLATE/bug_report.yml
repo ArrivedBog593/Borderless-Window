@@ -1,0 +1,120 @@
+# GitHub only reads issue templates from the default branch: this folder
+# lives on NeoFabric/1.21.1 alone. Add every newly published Minecraft
+# version to the dropdown below.
+name: Bug or crash report
+description: Something doesn't work as it should, or the game crashes.
+title: "[Bug] "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to report this! English or Spanish are both fine.
+
+        Before opening, please check that you're on the latest version of the mod for your Minecraft version, and that the problem still happens with only this mod (and Sodium, if you use it) installed.
+
+  - type: dropdown
+    id: type
+    attributes:
+      label: Type
+      options:
+        - Bug (something doesn't work as expected)
+        - Crash (the game closes or won't start)
+    validations:
+      required: true
+
+  - type: dropdown
+    id: minecraft
+    attributes:
+      label: Minecraft version
+      options:
+        - "1.21.1"
+        - "1.21.11"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: loader
+    attributes:
+      label: Loader
+      options:
+        - NeoForge
+        - Fabric
+    validations:
+      required: true
+
+  - type: input
+    id: mod-version
+    attributes:
+      label: Mod version
+      description: Shown in the mod list, or in the jar's name.
+      placeholder: "1.11.1"
+    validations:
+      required: true
+
+  - type: input
+    id: os
+    attributes:
+      label: Operating system
+      placeholder: "Windows 11, Linux (KDE Wayland), macOS 15…"
+    validations:
+      required: true
+
+  - type: input
+    id: monitors
+    attributes:
+      label: Monitor setup
+      description: Only if it has to do with the screen mode or the window. Number of monitors, resolution, refresh rate and display scaling.
+      placeholder: "2 monitors: 2560×1440 165 Hz at 100% + 1920×1080 60 Hz at 125%"
+
+  - type: textarea
+    id: description
+    attributes:
+      label: What happened?
+      description: What you saw, and what you expected to happen instead.
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1. Open Video Settings
+        2. Set Screen Mode to Borderless
+        3. Press F11
+        4. …
+    validations:
+      required: true
+
+  - type: textarea
+    id: mods
+    attributes:
+      label: Other mods
+      description: Especially Sodium, Reese's Sodium Options, Iris (and the shader pack), or anything else that touches the window, FPS or rendering. A full mod list is welcome.
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs
+      description: |
+        For a crash, the crash report from `.minecraft/crash-reports/`. For anything else, `.minecraft/logs/latest.log`.
+        Upload it to [mclo.gs](https://mclo.gs) and paste the link, or drag the file into this box.
+    validations:
+      required: true
+
+  - type: textarea
+    id: extra
+    attributes:
+      label: Screenshots or anything else
+      description: Screenshots, videos or the mod's config (`.minecraft/config/borderlesswindow.json`) if it helps.
+
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Checks
+      options:
+        - label: I'm using the latest version of the mod for my Minecraft version.
+          required: true
+        - label: I searched the existing issues and this hasn't been reported yet.
+          required: true
