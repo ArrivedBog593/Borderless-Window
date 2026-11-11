@@ -51,6 +51,10 @@ loom {
             ideConfigGenerated(true)
             // run/<minecraft>/<loader>/<side>; see neoforge/build.gradle.
             runDir("../run/${minecraft_version}/fabric/client")
+            // A fixed name, as NeoForge's run has. Without it vanilla makes
+            // one up on every launch ("Player" + 3 digits of the clock), so
+            // each run is a different player in the same world.
+            programArgs('--username', 'Dev')
         }
         // The mod is client-only: no IDE entry for a server run.
         server {

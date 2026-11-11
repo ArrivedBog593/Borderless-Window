@@ -21,7 +21,7 @@ A lightweight client-side mod for **NeoForge and Fabric 1.21.1** that adds **bor
 - **FPS overlay**: the current FPS, or a single line with the Min / Avg / Max over the last 15 seconds. Any screen corner. It samples the game's own counter, so it always matches F3 and respects VSync and FPS caps, and it hides itself while F3 is open.
 - **Background options**: Minecraft 1.21.1 keeps running at full speed and full volume when nobody is looking. Four independent options fix that:
   - **Unfocused FPS limit**: cap the frame rate while the game is in the background (alt-tabbed, minimized, or behind another window), from 5 to 60 FPS.
-  - **Idle FPS limit**: cap the frame rate after a few minutes with no keyboard or mouse input, even while the window is focused. Any input lifts it at once.
+  - **Idle FPS limit**: cap the frame rate after a few minutes with no keyboard or mouse input, even while the window is focused, with an optional second, lower cap after a longer wait. Any input lifts it at once.
   - **Pause rendering when minimized**: stop drawing frames entirely while minimized. The game itself keeps running — only the picture stops.
   - **Unfocused volume**: lower or mute the game while it is in the background, as a share of your Master Volume.
   - All four work alongside Dynamic FPS: the lower frame rate cap wins.

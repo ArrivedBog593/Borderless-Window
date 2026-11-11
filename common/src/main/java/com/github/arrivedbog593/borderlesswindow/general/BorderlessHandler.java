@@ -114,7 +114,8 @@ public final class BorderlessHandler {
         UnfocusedFpsState.init(config.unfocusedFpsLimit());
         UnfocusedVolumeState.init(config.unfocusedVolume());
         MinimizedRenderState.init(config.minimizedSkipRender());
-        IdleFpsState.init(config.idleFpsDelay(), config.idleFpsLimit());
+        IdleFpsState.init(config.idleFpsDelay(), config.idleFpsLimit(),
+                config.idleFpsSecondDelay(), config.idleFpsSecondLimit());
         FogState.init(config.terrainFog(), config.waterFog(),
                 config.lavaFog(), config.powderSnowFog(),
                 config.fogTerrainStart());

@@ -82,6 +82,12 @@ public final class ScreenModeStorage {
     private int pendingIdleFpsLimit = IdleFpsState.getLimit();
     private boolean idleFpsLimitDirty = false;
 
+    private int pendingIdleFpsSecondDelay = IdleFpsState.getSecondDelayMinutes();
+    private boolean idleFpsSecondDelayDirty = false;
+
+    private int pendingIdleFpsSecondLimit = IdleFpsState.getSecondLimit();
+    private boolean idleFpsSecondLimitDirty = false;
+
     private boolean pendingTerrainFog = FogState.isTerrainFogEnabled();
     private boolean terrainFogDirty = false;
 
@@ -290,6 +296,26 @@ public final class ScreenModeStorage {
     public void setIdleFpsLimit(int limit) {
         this.pendingIdleFpsLimit = limit;
         this.idleFpsLimitDirty = true;
+    }
+
+    /** Off is SecondIdleDelayRange.OFF_VALUE on the Sodium side; see there. */
+    public int getIdleFpsSecondDelay() {
+        int minutes = IdleFpsState.getSecondDelayMinutes();
+        return minutes == IdleFpsState.OFF ? SecondIdleDelayRange.OFF_VALUE : minutes;
+    }
+
+    public void setIdleFpsSecondDelay(int minutes) {
+        this.pendingIdleFpsSecondDelay = minutes == SecondIdleDelayRange.OFF_VALUE ? IdleFpsState.OFF : minutes;
+        this.idleFpsSecondDelayDirty = true;
+    }
+
+    public int getIdleFpsSecondLimit() {
+        return IdleFpsState.getSecondLimit();
+    }
+
+    public void setIdleFpsSecondLimit(int limit) {
+        this.pendingIdleFpsSecondLimit = limit;
+        this.idleFpsSecondLimitDirty = true;
     }
 
     public boolean getTerrainFog() {
@@ -728,6 +754,17 @@ public final class ScreenModeStorage {
         if (this.idleFpsLimitDirty) {
             IdleFpsState.setLimit(this.pendingIdleFpsLimit);
             this.idleFpsLimitDirty = false;
+        }
+
+        // After the first delay: the second one is checked against it.
+        if (this.idleFpsSecondDelayDirty) {
+            IdleFpsState.setSecondDelayMinutes(this.pendingIdleFpsSecondDelay);
+            this.idleFpsSecondDelayDirty = false;
+        }
+
+        if (this.idleFpsSecondLimitDirty) {
+            IdleFpsState.setSecondLimit(this.pendingIdleFpsSecondLimit);
+            this.idleFpsSecondLimitDirty = false;
         }
 
         if (this.terrainFogDirty) {

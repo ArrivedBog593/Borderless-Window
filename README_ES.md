@@ -21,7 +21,7 @@ Un mod ligero client-side para **NeoForge y Fabric 1.21.1** que agrega **pantall
 - **Contador de FPS**: los FPS actuales, o una sola línea con el Mín. / Prom. / Máx. de los últimos 15 segundos. En cualquier esquina de la pantalla. Muestrea el contador del propio juego, así que siempre coincide con F3 y respeta el VSync y el límite de FPS, y se oculta solo mientras F3 está abierto.
 - **Opciones de segundo plano**: Minecraft 1.21.1 sigue corriendo a toda velocidad y a todo volumen cuando nadie lo está viendo. Cuatro opciones independientes lo arreglan:
   - **Límite de FPS sin foco**: limita los FPS mientras el juego está en segundo plano (con Alt+Tab, minimizado o detrás de otra ventana), de 5 a 60 FPS.
-  - **Límite por inactividad**: limita los FPS tras unos minutos sin usar el teclado ni el mouse, aunque la ventana esté enfocada. Cualquier input lo quita al instante.
+  - **Límite por inactividad**: limita los FPS tras unos minutos sin usar el teclado ni el mouse, aunque la ventana esté enfocada, con un segundo límite opcional, más bajo, tras una espera más larga. Cualquier input lo quita al instante.
   - **Pausar render al minimizar**: deja de dibujar por completo mientras está minimizado. El juego sigue corriendo — solo se detiene la imagen.
   - **Volumen sin foco**: baja o silencia el juego mientras está en segundo plano, como proporción de tu Volumen general.
   - Las cuatro funcionan junto con Dynamic FPS: gana el límite de FPS más bajo.

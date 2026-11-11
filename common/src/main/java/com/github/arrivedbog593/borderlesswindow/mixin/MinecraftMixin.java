@@ -51,9 +51,7 @@ public abstract class MinecraftMixin {
         if (UnfocusedFpsState.isEnabled() && !this.isWindowActive()) {
             limit = Math.min(limit, UnfocusedFpsState.getLimit());
         }
-        if (IdleFpsState.isIdle()) {
-            limit = Math.min(limit, IdleFpsState.getLimit());
-        }
+        limit = Math.min(limit, IdleFpsState.getCurrentCap());
         if (limit != cir.getReturnValueI()) {
             cir.setReturnValue(limit);
         }
