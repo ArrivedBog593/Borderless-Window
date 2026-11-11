@@ -3,7 +3,9 @@ package com.github.arrivedbog593.borderlesswindow.mixin;
 import com.github.arrivedbog593.borderlesswindow.fps.IdleFpsState;
 import com.github.arrivedbog593.borderlesswindow.fps.MinimizedRenderState;
 import com.github.arrivedbog593.borderlesswindow.fps.UnfocusedFpsState;
+import com.llamalad7.mixinextras.injector.ModifyExpressionValue;
 import com.mojang.blaze3d.platform.FramerateLimitTracker;
+import net.minecraft.client.InactivityFpsLimit;
 import net.minecraft.client.Minecraft;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
@@ -29,7 +31,8 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
  * option (30 after a minute without input, 10 after ten). Taking the
  * minimum keeps all of that, and keeps a regular Max Framerate that is
  * already lower than any of the caps. When several apply at once, the
- * lowest wins.
+ * lowest wins -- except vanilla's AFK mode, which the mod's idle caps
+ * replace while they are on (see IdleFpsState).
  * <p>
  * Focus comes from Minecraft.windowActive, which vanilla updates from the
  * GLFW focus callback. Sodium does not touch this path, so the cap works
@@ -51,11 +54,25 @@ public abstract class FramerateLimitTrackerMixin {
         if (UnfocusedFpsState.isEnabled() && !this.minecraft.isWindowActive()) {
             limit = Math.min(limit, UnfocusedFpsState.getLimit());
         }
-        if (IdleFpsState.isIdle()) {
-            limit = Math.min(limit, IdleFpsState.getLimit());
-        }
+        limit = Math.min(limit, IdleFpsState.getCurrentCap());
         if (limit != cir.getReturnValueI()) {
             cir.setReturnValue(limit);
         }
+    }
+
+    /**
+     * The option read at the top of getThrottleReason (its only
+     * OptionInstance.get call). Reporting "Minimized" skips just the AFK
+     * branch: the minimized check comes before it and the no-world-menu
+     * check after it, both untouched. The option itself, its button and
+     * options.txt keep the player's choice -- this only changes what the
+     * tracker sees, and only while the mod's first idle stage is on.
+     * isHeavilyThrottled reads the same method; vanilla uses it only to
+     * silence the F3 pie profiler's slow-frame warnings.
+     */
+    @ModifyExpressionValue(method = "getThrottleReason",
+            at = @At(value = "INVOKE", target = "Lnet/minecraft/client/OptionInstance;get()Ljava/lang/Object;"))
+    private Object borderlesswindow$replaceAfkMode(Object mode) {
+        return IdleFpsState.replacesVanillaAfkMode() ? InactivityFpsLimit.MINIMIZED : mode;
     }
 }

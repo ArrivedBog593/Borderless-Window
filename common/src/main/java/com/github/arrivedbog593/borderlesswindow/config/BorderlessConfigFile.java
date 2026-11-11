@@ -41,8 +41,8 @@ import java.nio.file.Path;
  * <p>
  * Deliberately fault-tolerant: if the file is missing, corrupt, or has
  * invalid or absent values, the defaults are used (Windowed / F11 ->
- * Borderless / FPS overlay off, top-left / no unfocused FPS cap / no idle FPS
- * cap / full volume while unfocused / rendering while minimized / all fog enabled / cloud height
+ * Borderless / FPS overlay off, top-left / no unfocused FPS cap / no idle FPS caps
+ * / full volume while unfocused / rendering while minimized / all fog enabled / cloud height
  * default / water and fire overlays on, smart fire off / full camera and
  * hand bobbing / mixed enchantment numerals) without crashing.
  * Configs written by older versions of the mod simply lack the newer
@@ -73,6 +73,8 @@ public final class BorderlessConfigFile {
         boolean minimized_skip_render = false;
         int idle_fps_delay = IdleFpsState.OFF;
         int idle_fps_limit = IdleFpsState.DEFAULT_LIMIT;
+        int idle_fps_second_delay = IdleFpsState.OFF;
+        int idle_fps_second_limit = IdleFpsState.DEFAULT_SECOND_LIMIT;
         boolean fog_terrain = true;
         boolean fog_water = true;
         boolean fog_lava = true;
@@ -117,6 +119,7 @@ public final class BorderlessConfigFile {
                                int unfocusedFpsLimit, int unfocusedVolume,
                                boolean minimizedSkipRender,
                                int idleFpsDelay, int idleFpsLimit,
+                               int idleFpsSecondDelay, int idleFpsSecondLimit,
                                boolean terrainFog, boolean waterFog,
                                boolean lavaFog, boolean powderSnowFog,
                                int cloudHeight,
@@ -163,6 +166,7 @@ public final class BorderlessConfigFile {
                 data.unfocused_fps_limit, data.unfocused_volume,
                 data.minimized_skip_render,
                 data.idle_fps_delay, data.idle_fps_limit,
+                data.idle_fps_second_delay, data.idle_fps_second_limit,
                 data.fog_terrain, data.fog_water, data.fog_lava, data.fog_powder_snow,
                 data.cloud_height,
                 data.overlay_water, data.overlay_fire, data.overlay_fire_smart,
@@ -206,6 +210,8 @@ public final class BorderlessConfigFile {
         data.minimized_skip_render = MinimizedRenderState.isEnabled();
         data.idle_fps_delay = IdleFpsState.getDelayMinutes();
         data.idle_fps_limit = IdleFpsState.getLimit();
+        data.idle_fps_second_delay = IdleFpsState.getSecondDelayMinutes();
+        data.idle_fps_second_limit = IdleFpsState.getSecondLimit();
         data.fog_terrain = FogState.isTerrainFogEnabled();
         data.fog_water = FogState.isWaterFogEnabled();
         data.fog_lava = FogState.isLavaFogEnabled();

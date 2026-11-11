@@ -32,10 +32,11 @@ import java.util.function.IntSupplier;
 public final class IntOptionSlider extends AbstractSliderButton {
 
     private final String nameKey;
-    private final int min;
+    private int min;
     private final int max;
     private final int step;
     private final IntFunction<Component> formatter;
+    private final IntSupplier getter;
     private final IntConsumer applier;
     private final Runnable persister;
 
@@ -48,9 +49,10 @@ public final class IntOptionSlider extends AbstractSliderButton {
         this.max = max;
         this.step = step;
         this.formatter = formatter;
+        this.getter = getter;
         this.applier = applier;
         this.persister = persister;
-        this.value = this.toSliderValue(getter.getAsInt());
+        this.value = this.toSliderValue(this.getter.getAsInt());
         this.updateMessage();
     }
 
@@ -62,6 +64,18 @@ public final class IntOptionSlider extends AbstractSliderButton {
     private int toOptionValue() {
         int steps = (int) Math.round(this.value * (this.max - this.min) / this.step);
         return Math.min(this.min + steps * this.step, this.max);
+    }
+
+    /**
+     * Moves the left end of the range, for a slider whose lowest value
+     * depends on another option (the second idle delay starts at the
+     * first). The thumb is re-placed from the getter, since the same
+     * value now sits at a different position.
+     */
+    public void setMinimum(int newMin) {
+        this.min = newMin;
+        this.value = this.toSliderValue(this.getter.getAsInt());
+        this.updateMessage();
     }
 
     @Override

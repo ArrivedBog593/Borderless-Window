@@ -33,7 +33,7 @@ import net.minecraft.resources.Identifier;
  * - General: F11 behavior | held item name | menu background blur. Small
  *   features with no better home.
  * - Enchantments: numerals | glint speed and strength.
- * - FPS & Background: FPS overlay | background (unfocused FPS cap, idle
+ * - FPS & Background: FPS overlay | background (unfocused FPS cap, two-stage idle
  *   FPS cap, rendering while minimized, unfocused volume).
  * - Visual Effects: fog | cloud height | sky and weather | screen
  *   overlays. What is drawn over or around the world.
@@ -223,9 +223,7 @@ public class ScreenModeConfigEntryPoint implements ConfigEntryPoint {
                                         .setName(Component.translatable("borderlesswindow.options.idle_fps_delay.name"))
                                         .setTooltip(Component.translatable("borderlesswindow.options.idle_fps_delay.tooltip"))
                                         .setRange(IdleFpsState.OFF, IdleFpsState.MAX_DELAY_MINUTES, 1)
-                                        .setValueFormatter(value -> value <= IdleFpsState.OFF
-                                                ? Component.translatable("borderlesswindow.options.distortion.off")
-                                                : Component.translatable("borderlesswindow.options.idle_fps_delay.minutes", value))
+                                        .setValueFormatter(IdleFpsState::formatDelay)
                                         .setStorageHandler(this.storage::flush)
                                         .setBinding(this.storage::setIdleFpsDelay, this.storage::getIdleFpsDelay)
                                         .setDefaultValue(IdleFpsState.OFF)
@@ -244,6 +242,47 @@ public class ScreenModeConfigEntryPoint implements ConfigEntryPoint {
                                         .setStorageHandler(this.storage::flush)
                                         .setBinding(this.storage::setIdleFpsLimit, this.storage::getIdleFpsLimit)
                                         .setDefaultValue(IdleFpsState.DEFAULT_LIMIT)
+                                )
+                                // Second stage: only on top of the first,
+                                // and always later. See SecondIdleDelayRange.
+                                .addOption(builder.createIntegerOption(
+                                                Identifier.parse("borderlesswindow:idle_fps_second_delay"))
+                                        .setName(Component.translatable("borderlesswindow.options.idle_fps_second_delay.name"))
+                                        .setTooltip(Component.translatable("borderlesswindow.options.idle_fps_second_delay.tooltip"))
+                                        .setEnabledProvider(
+                                                state -> state.readIntOption(
+                                                        Identifier.parse("borderlesswindow:idle_fps_delay")) != IdleFpsState.OFF,
+                                                Identifier.parse("borderlesswindow:idle_fps_delay"))
+                                        .setRangeProvider(
+                                                state -> new SecondIdleDelayRange(state.readIntOption(
+                                                        Identifier.parse("borderlesswindow:idle_fps_delay"))),
+                                                Identifier.parse("borderlesswindow:idle_fps_delay"))
+                                        .setValueFormatter(IdleFpsState::formatDelay)
+                                        .setStorageHandler(this.storage::flush)
+                                        .setBinding(this.storage::setIdleFpsSecondDelay, this.storage::getIdleFpsSecondDelay)
+                                        .setDefaultValue(SecondIdleDelayRange.OFF_VALUE)
+                                )
+                                .addOption(builder.createIntegerOption(
+                                                Identifier.parse("borderlesswindow:idle_fps_second_limit"))
+                                        .setName(Component.translatable("borderlesswindow.options.idle_fps_second_limit.name"))
+                                        .setTooltip(Component.translatable("borderlesswindow.options.idle_fps_second_limit.tooltip"))
+                                        .setEnabledProvider(
+                                                // "> first" also covers Off (-1, see
+                                                // SecondIdleDelayRange) and a second
+                                                // delay the first has just caught up with.
+                                                state -> {
+                                                    int first = state.readIntOption(
+                                                            Identifier.parse("borderlesswindow:idle_fps_delay"));
+                                                    return first != IdleFpsState.OFF && state.readIntOption(
+                                                            Identifier.parse("borderlesswindow:idle_fps_second_delay")) > first;
+                                                },
+                                                Identifier.parse("borderlesswindow:idle_fps_delay"),
+                                                Identifier.parse("borderlesswindow:idle_fps_second_delay"))
+                                        .setRange(UnfocusedFpsState.MIN_LIMIT, UnfocusedFpsState.MAX_LIMIT, 1)
+                                        .setValueFormatter(value -> Component.translatable("borderlesswindow.fps_overlay.fps", value))
+                                        .setStorageHandler(this.storage::flush)
+                                        .setBinding(this.storage::setIdleFpsSecondLimit, this.storage::getIdleFpsSecondLimit)
+                                        .setDefaultValue(IdleFpsState.DEFAULT_SECOND_LIMIT)
                                 )
                                 .addOption(builder.createBooleanOption(
                                                 Identifier.parse("borderlesswindow:minimized_skip_render"))

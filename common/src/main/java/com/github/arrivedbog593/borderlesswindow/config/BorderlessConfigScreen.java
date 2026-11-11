@@ -208,20 +208,11 @@ public class BorderlessConfigScreen extends Screen {
                 Component.translatable("borderlesswindow.options.unfocused_fps_limit.tooltip")));
         list.addOption(unfocusedFpsSlider);
 
-        // Idle cap: minutes without input before it kicks in ("Off" is
-        // vanilla), then the cap itself. See IdleFpsState.
-        IntOptionSlider idleDelaySlider = new IntOptionSlider(0, 0, OPTION_WIDTH, OPTION_HEIGHT,
-                "borderlesswindow.options.idle_fps_delay.name",
-                IdleFpsState.OFF, IdleFpsState.MAX_DELAY_MINUTES, 1,
-                value -> value <= IdleFpsState.OFF
-                        ? Component.translatable("borderlesswindow.options.distortion.off")
-                        : Component.translatable("borderlesswindow.options.idle_fps_delay.minutes", value),
-                IdleFpsState::getDelayMinutes, IdleFpsState::applyDelayMinutes,
-                IdleFpsState::persist);
-        idleDelaySlider.setTooltip(Tooltip.create(
-                Component.translatable("borderlesswindow.options.idle_fps_delay.tooltip")));
-        list.addOption(idleDelaySlider);
-
+        // Idle caps, two stages: minutes without input before each kicks
+        // in ("Off" is vanilla), each followed by its cap. The second
+        // stage builds on the first, so it is greyed while the first is
+        // off and its slider starts at the first delay (that leftmost
+        // slot is its "Off"). See IdleFpsState.
         IntOptionSlider idleLimitSlider = new IntOptionSlider(0, 0, OPTION_WIDTH, OPTION_HEIGHT,
                 "borderlesswindow.options.idle_fps_limit.name",
                 UnfocusedFpsState.MIN_LIMIT, UnfocusedFpsState.MAX_LIMIT, 1,
@@ -230,7 +221,53 @@ public class BorderlessConfigScreen extends Screen {
                 IdleFpsState::persist);
         idleLimitSlider.setTooltip(Tooltip.create(
                 Component.translatable("borderlesswindow.options.idle_fps_limit.tooltip")));
+
+        IntOptionSlider idleSecondLimitSlider = new IntOptionSlider(0, 0, OPTION_WIDTH, OPTION_HEIGHT,
+                "borderlesswindow.options.idle_fps_second_limit.name",
+                UnfocusedFpsState.MIN_LIMIT, UnfocusedFpsState.MAX_LIMIT, 1,
+                value -> Component.translatable("borderlesswindow.fps_overlay.fps", value),
+                IdleFpsState::getSecondLimit, IdleFpsState::applySecondLimit,
+                IdleFpsState::persist);
+        idleSecondLimitSlider.setTooltip(Tooltip.create(
+                Component.translatable("borderlesswindow.options.idle_fps_second_limit.tooltip")));
+
+        IntOptionSlider idleSecondDelaySlider = new IntOptionSlider(0, 0, OPTION_WIDTH, OPTION_HEIGHT,
+                "borderlesswindow.options.idle_fps_second_delay.name",
+                IdleFpsState.getDelayMinutes(), IdleFpsState.MAX_SECOND_DELAY_MINUTES, 1,
+                slot -> IdleFpsState.formatDelay(
+                        IdleFpsState.fromSecondDelaySlot(slot, IdleFpsState.getDelayMinutes())),
+                () -> IdleFpsState.toSecondDelaySlot(
+                        IdleFpsState.getSecondDelayMinutes(), IdleFpsState.getDelayMinutes()),
+                slot -> {
+                    IdleFpsState.applySecondDelayMinutes(
+                            IdleFpsState.fromSecondDelaySlot(slot, IdleFpsState.getDelayMinutes()));
+                    idleSecondLimitSlider.active = IdleFpsState.getSecondDelayMinutes() != IdleFpsState.OFF;
+                },
+                IdleFpsState::persist);
+        idleSecondDelaySlider.setTooltip(Tooltip.create(
+                Component.translatable("borderlesswindow.options.idle_fps_second_delay.tooltip")));
+
+        IntOptionSlider idleDelaySlider = new IntOptionSlider(0, 0, OPTION_WIDTH, OPTION_HEIGHT,
+                "borderlesswindow.options.idle_fps_delay.name",
+                IdleFpsState.OFF, IdleFpsState.MAX_DELAY_MINUTES, 1,
+                IdleFpsState::formatDelay,
+                IdleFpsState::getDelayMinutes,
+                minutes -> {
+                    // May turn the second stage off (see IdleFpsState),
+                    // so its widgets follow.
+                    IdleFpsState.applyDelayMinutes(minutes);
+                    idleSecondDelaySlider.setMinimum(IdleFpsState.getDelayMinutes());
+                    this.updateIdleSliders(idleLimitSlider, idleSecondDelaySlider, idleSecondLimitSlider);
+                },
+                IdleFpsState::persist);
+        idleDelaySlider.setTooltip(Tooltip.create(
+                Component.translatable("borderlesswindow.options.idle_fps_delay.tooltip")));
+        this.updateIdleSliders(idleLimitSlider, idleSecondDelaySlider, idleSecondLimitSlider);
+
+        list.addOption(idleDelaySlider);
         list.addOption(idleLimitSlider);
+        list.addOption(idleSecondDelaySlider);
+        list.addOption(idleSecondLimitSlider);
 
         // Skip drawing while minimized. Off is vanilla. See
         // MinimizedRenderState.
@@ -657,6 +694,20 @@ public class BorderlessConfigScreen extends Screen {
         ZoomState.persist();
 
         this.minecraft.setScreen(this.parent);
+    }
+
+    /**
+     * Greys out what the first idle delay being off makes meaningless:
+     * its own cap and the whole second stage. The second cap also needs
+     * a second delay. Same rules as the enabled providers on the Sodium
+     * page.
+     */
+    private void updateIdleSliders(IntOptionSlider limit, IntOptionSlider secondDelay,
+                                   IntOptionSlider secondLimit) {
+        boolean firstStage = IdleFpsState.getDelayMinutes() != IdleFpsState.OFF;
+        limit.active = firstStage;
+        secondDelay.active = firstStage;
+        secondLimit.active = firstStage && IdleFpsState.getSecondDelayMinutes() != IdleFpsState.OFF;
     }
 
     /**
