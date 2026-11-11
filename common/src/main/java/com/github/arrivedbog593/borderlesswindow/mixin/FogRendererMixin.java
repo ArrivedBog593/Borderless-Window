@@ -6,7 +6,6 @@ import net.minecraft.client.Camera;
 import net.minecraft.client.renderer.fog.FogData;
 import net.minecraft.client.renderer.fog.FogRenderer;
 import net.minecraft.world.level.material.FogType;
-import org.joml.Vector4f;
 import org.objectweb.asm.Opcodes;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
@@ -18,11 +17,11 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
  * <p>
  * WHERE. setupFog lets the camera's environment fill a FogData, then sets
  * the render distance fog last ({@code renderDistanceEnd = far}) and
- * uploads the whole FogData to the GPU. Right after that assignment every
- * value is final and none has been read yet. The FogData fields are read
- * as the upload's arguments, so injecting at the upload itself would be
- * too late. Verified against setupFog in 1.21.11 on both loaders: one
- * assignment to renderDistanceEnd, one FogData and one FogType local.
+ * returns it. Right after that assignment every value is final and none
+ * has been read yet. Since 26.1 the FogData travels in the frame's camera
+ * state and GameRenderer uploads it later (updateBuffer). Verified against
+ * setupFog in 26.1.2 on both loaders: one assignment to renderDistanceEnd,
+ * one FogData and one FogType local.
  * <p>
  * In common/ for both loaders: NeoForge's own fog event fires right after
  * this point and sees our values, so a mod listening to it still gets the
@@ -37,7 +36,7 @@ public abstract class FogRendererMixin {
                     target = "Lnet/minecraft/client/renderer/fog/FogData;renderDistanceEnd:F",
                     opcode = Opcodes.PUTFIELD,
                     shift = At.Shift.AFTER))
-    private void borderlesswindow$applyFogSettings(CallbackInfoReturnable<Vector4f> cir,
+    private void borderlesswindow$applyFogSettings(CallbackInfoReturnable<FogData> cir,
                                                    @Local(argsOnly = true) Camera camera,
                                                    @Local(argsOnly = true) int renderDistance,
                                                    @Local FogData fogData,

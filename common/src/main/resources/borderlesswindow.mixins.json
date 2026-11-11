@@ -4,6 +4,7 @@
   "compatibilityLevel": "JAVA_21",
   "mixins": [
     "AbstractClientPlayerMixin",
+    "CameraMixin",
     "ChannelMixin",
     "ClientLevelMixin",
     "CloudRendererMixin",
@@ -13,6 +14,7 @@
     "FogRendererMixin",
     "FramerateLimitTrackerMixin",
     "GameRendererMixin",
+    "GLXMixin",
     "GuiMixin",
     "KeyboardHandlerMixin",
     "MinecraftMixin",

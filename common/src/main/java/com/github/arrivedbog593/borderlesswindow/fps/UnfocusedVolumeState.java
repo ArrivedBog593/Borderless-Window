@@ -74,9 +74,9 @@ public final class UnfocusedVolumeState {
     public static void refresh() {
         Minecraft minecraft = Minecraft.getInstance();
         // Not dead code, despite the IDE: Minecraft's packages are
-        // non-null by default, but its constructor calls
-        // setWindowActive(true) before it creates the sound manager, and
-        // MinecraftMixin runs this from there.
+        // non-null by default, but the Minecraft constructor creates the
+        // window before the sound manager, and a focus event in between
+        // reaches this through WindowMixin.
         //noinspection ConstantValue
         if (minecraft.getSoundManager() == null) {
             return;

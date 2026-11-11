@@ -9,7 +9,8 @@ import com.github.arrivedbog593.borderlesswindow.config.BorderlessConfigFile;
  * "FOV Effects" option applies to all four sources, it just does so as
  * one number. Finding where took some digging: it appears nowhere in
  * AbstractClientPlayer.getFieldOfViewModifier, and only once in
- * GameRenderer.getFov (the fluid squeeze). The other application lives
+ * Camera.modifyFovBasedOnDeathOrFluid (the fluid squeeze; GameRenderer.getFov
+ * up to 1.21.11). The other application lives
  * in NeoForge's ComputeFovModifierEvent constructor, which replaced
  * vanilla's own lerp when the hook was patched in.
  * <p>

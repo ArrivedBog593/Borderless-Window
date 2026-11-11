@@ -22,6 +22,7 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.ModifyArg;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -42,6 +43,7 @@ import java.util.List;
  * Plain vanilla code, so it lives in common/ and works on every loader.
  * Extends OptionsSubScreen only to reach its protected options list.
  */
+@SuppressWarnings("unused") // lambda parameters required by CycleButton/Button callbacks
 @Mixin(VideoSettingsScreen.class)
 public abstract class VideoSettingsScreenMixin extends OptionsSubScreen {
 
@@ -109,19 +111,25 @@ public abstract class VideoSettingsScreenMixin extends OptionsSubScreen {
      * Swaps vanilla's Fullscreen toggle for the Screen Mode selector, in
      * place, so it keeps its spot in the grid. Vanilla builds the small
      * options as one array and hands it to addSmall.
+     * <p>
+     * Also drops vanilla's Exclusive Fullscreen toggle (26.1+): the mod's
+     * Fullscreen is always exclusive (see GLXMixin), so the toggle would
+     * do nothing. Brightness moves up next to the selector.
      */
     @ModifyArg(method = "addOptions",
             at = @At(value = "INVOKE",
                     target = "Lnet/minecraft/client/gui/components/OptionsList;addSmall([Lnet/minecraft/client/OptionInstance;)V"))
     private OptionInstance<?>[] borderlesswindow$replaceFullscreen(OptionInstance<?>[] smallOptions) {
-        OptionInstance<?>[] replaced = smallOptions.clone();
-        for (int i = 0; i < replaced.length; i++) {
-            if (replaced[i] == this.options.fullscreen()) {
+        List<OptionInstance<?>> replaced = new ArrayList<>(smallOptions.length);
+        for (OptionInstance<?> option : smallOptions) {
+            if (option == this.options.fullscreen()) {
                 this.borderlesswindow$screenMode = borderlesswindow$screenModeOption();
-                replaced[i] = this.borderlesswindow$screenMode;
+                replaced.add(this.borderlesswindow$screenMode);
+            } else if (option != this.options.exclusiveFullscreen()) {
+                replaced.add(option);
             }
         }
-        return replaced;
+        return replaced.toArray(OptionInstance<?>[]::new);
     }
 
     @Inject(method = "addOptions", at = @At("TAIL"))

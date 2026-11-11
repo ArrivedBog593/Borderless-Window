@@ -30,7 +30,8 @@ import static org.lwjgl.glfw.GLFW.*;
  *   (+1 px of height, see applyBorderless), but it REMAINS a window
  *   (glfwSetWindowMonitor with monitor=NULL). Windows never changes the
  *   physical display mode, so there are no scaling/HDR conflicts.
- * - FULLSCREEN: real EXCLUSIVE fullscreen, same as vanilla
+ * - FULLSCREEN: real EXCLUSIVE fullscreen, as vanilla with its
+ *   Exclusive Fullscreen option on, which GLXMixin forces
  *   (glfwSetWindowMonitor with an actual monitor handle).
  */
 public final class BorderlessHandler {

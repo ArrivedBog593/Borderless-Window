@@ -1,5 +1,7 @@
 package com.github.arrivedbog593.borderlesswindow.mixin;
 
+import com.github.arrivedbog593.borderlesswindow.fps.IdleFpsState;
+import com.github.arrivedbog593.borderlesswindow.fps.UnfocusedVolumeState;
 import com.github.arrivedbog593.borderlesswindow.general.BorderlessHandler;
 import com.github.arrivedbog593.borderlesswindow.general.ScreenMode;
 import com.github.arrivedbog593.borderlesswindow.sodium.SodiumMenuRefresher;
@@ -47,5 +49,21 @@ public abstract class WindowMixin {
     @Inject(method = "isFullscreen", at = @At("RETURN"), cancellable = true)
     private void borderlesswindow$isFullscreen(CallbackInfoReturnable<Boolean> cir) {
         cir.setReturnValue(BorderlessHandler.getCurrentMode() != ScreenMode.WINDOWED);
+    }
+
+    /**
+     * onFocus is the GLFW focus callback's landing point, so this fires on
+     * every focus change (Minecraft.setWindowActive did this up to 1.21.11;
+     * since 26.1 the window keeps the focus itself and
+     * Minecraft.isWindowActive just asks it). Runs at TAIL: the window must
+     * already hold the new value when the volume is recomputed. Clicking
+     * back into the game also counts as activity for the idle cap.
+     */
+    @Inject(method = "onFocus", at = @At("TAIL"))
+    private void borderlesswindow$onFocusChanged(long handle, boolean focused, CallbackInfo ci) {
+        UnfocusedVolumeState.refresh();
+        if (focused) {
+            IdleFpsState.markInput();
+        }
     }
 }

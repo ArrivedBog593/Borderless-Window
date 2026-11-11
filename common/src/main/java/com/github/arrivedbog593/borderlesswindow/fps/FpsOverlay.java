@@ -2,7 +2,7 @@ package com.github.arrivedbog593.borderlesswindow.fps;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.network.chat.Component;
 import org.jetbrains.annotations.NotNull;
 
@@ -76,7 +76,7 @@ public final class FpsOverlay {
     private FpsOverlay() {
     }
 
-    public static void render(GuiGraphics guiGraphics) {
+    public static void render(GuiGraphicsExtractor guiGraphics) {
         if (FpsOverlayState.getMode() == FpsOverlayMode.OFF) {
             // Drop any stale data, so re-enabling starts a fresh window.
             samples.clear();
@@ -118,7 +118,7 @@ public final class FpsOverlay {
         }
     }
 
-    private static void draw(GuiGraphics guiGraphics, Minecraft minecraft) {
+    private static void draw(GuiGraphicsExtractor guiGraphics, Minecraft minecraft) {
         Font font = minecraft.font;
 
         // SIMPLE:   "60 FPS"
@@ -134,7 +134,7 @@ public final class FpsOverlay {
                 ? MARGIN
                 : guiGraphics.guiWidth() - MARGIN - font.width(line);
 
-        guiGraphics.drawString(font, line, x, y, TEXT_COLOR, true);
+        guiGraphics.text(font, line, x, y, TEXT_COLOR, true);
     }
 
     private static @NotNull Component getLine(Minecraft minecraft) {

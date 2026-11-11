@@ -25,7 +25,7 @@ import com.github.arrivedbog593.borderlesswindow.visual.FogState;
 import com.github.arrivedbog593.borderlesswindow.visual.ScreenEffectState;
 import com.github.arrivedbog593.borderlesswindow.visual.SkyState;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.CycleButton;
 import net.minecraft.client.gui.components.Tooltip;
@@ -57,6 +57,7 @@ import org.jetbrains.annotations.NotNull;
  * sliders, which defer their write to avoid hammering the disk mid-drag
  * -- onClose() covers the keyboard path for them.
  */
+@SuppressWarnings("unused") // lambda parameters required by CycleButton/Button callbacks
 public class BorderlessConfigScreen extends Screen {
 
     /** Space reserved for the title above the list. */
@@ -672,9 +673,10 @@ public class BorderlessConfigScreen extends Screen {
     }
 
     @Override
-    public void render(@NotNull GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
-        super.render(guiGraphics, mouseX, mouseY, partialTick);
-        guiGraphics.drawCenteredString(this.font, this.title, this.width / 2, 12, 0xFFFFFF);
+    public void extractRenderState(@NotNull GuiGraphicsExtractor guiGraphics, int mouseX, int mouseY, float partialTick) {
+        super.extractRenderState(guiGraphics, mouseX, mouseY, partialTick);
+        // Opaque white: since 1.21.6 text with a zero alpha is not drawn.
+        guiGraphics.centeredText(this.font, this.title, this.width / 2, 12, 0xFFFFFFFF);
     }
 
     @Override

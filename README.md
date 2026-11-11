@@ -5,13 +5,13 @@
 
 *[Español](README_ES.md)*
 
-A lightweight client-side mod for **NeoForge and Fabric 1.21.11** that adds **borderless fullscreen** to Minecraft, replacing the exclusive fullscreen toggle with a proper 3-mode system — plus a set of video and quality-of-life options Minecraft doesn't expose.
+A lightweight client-side mod for **NeoForge and Fabric 26.1.2** that adds **borderless fullscreen** to Minecraft, replacing the exclusive fullscreen toggle with a proper 3-mode system — plus a set of video and quality-of-life options Minecraft doesn't expose.
 
 ## Features
 
 ### Window
 
-- **Three screen modes**: Windowed, Borderless, and Minecraft's regular exclusive Fullscreen.
+- **Three screen modes**: Windowed, Borderless, and Fullscreen, which is always exclusive (Minecraft's own "Exclusive Fullscreen" option is no longer needed).
 - **Configurable F11**: toggle Borderless, toggle exclusive Fullscreen, or **cycle through all three modes**.
 - **HDR-friendly**: avoids the black-screen flash and color profile switch that exclusive fullscreen (and naive borderless implementations) cause with Windows HDR enabled.
 - **Multi-monitor aware**: applies on the monitor the window is currently on, not always the primary one.
@@ -42,8 +42,8 @@ A lightweight client-side mod for **NeoForge and Fabric 1.21.11** that adds **bo
 ### Configuration and compatibility
 
 - **NeoForge and Fabric**: the same mod, every feature, on both loaders. They even share the same config file.
-- **Built into Minecraft's own menus**: without Sodium, the "Fullscreen" toggle in Video Settings becomes a "Screen Mode" selector, and a "Borderless Window..." button there opens the full config screen. No other mod needed on either loader.
-- **Sodium integration** (optional): with [Sodium](https://www.curseforge.com/minecraft/mc-mods/sodium) 0.8.x installed, the "Fullscreen" checkbox in its video settings is replaced by a "Screen Mode" selector, and the mod gets its own section with six pages. Built entirely on Sodium's official Config API — no fragile mixins into Sodium internals. Also plays nice with Reese's Sodium Options.
+- **Built into Minecraft's own menus**: without Sodium, the "Fullscreen" toggle in Video Settings becomes a "Screen Mode" selector (Minecraft's "Exclusive Fullscreen" toggle is hidden), and a "Borderless Window..." button there opens the full config screen. No other mod needed on either loader.
+- **Sodium integration** (optional): with [Sodium](https://www.curseforge.com/minecraft/mc-mods/sodium) 0.9.0 or newer installed, the "Fullscreen Mode" selector in its video settings is replaced by a "Screen Mode" selector, and the mod gets its own section with six pages. Built entirely on Sodium's official Config API — no fragile mixins into Sodium internals. Also plays nice with Reese's Sodium Options.
 - **Nothing else to install**: works with or without Sodium. On Fabric it does not require Fabric API — the two small pieces it uses, to load its translations and to add the zoom key to Controls, ship inside the jar, as Sodium does. Mod Menu is optional.
 - **Persistent**: all settings are remembered between sessions (`config/borderlesswindow.json`).
 - **Translatable**: all strings live in standard lang files (`en_us`, `es_mx`, `es_es` included — contributions welcome).
@@ -64,9 +64,9 @@ Every setting defaults to vanilla behavior, so installing or updating the mod ne
 
 ## Requirements
 
-- Minecraft **1.21.11**
-- **NeoForge** 21.11.x, or **Fabric Loader** 0.17.3+ (Fabric API not required)
-- (Optional) **Sodium 0.8.x** for the video settings integration
+- Minecraft **26.1.2**
+- **NeoForge** 26.1.2.x, or **Fabric Loader** 0.18.4+ (Fabric API not required)
+- (Optional) **Sodium 0.9.0+** for the video settings integration
 - (Optional, Fabric) **Mod Menu**, to also open the config from its mod list
 
 Download the jar for your loader: `borderlesswindow-neoforge-…` or `borderlesswindow-fabric-…`.

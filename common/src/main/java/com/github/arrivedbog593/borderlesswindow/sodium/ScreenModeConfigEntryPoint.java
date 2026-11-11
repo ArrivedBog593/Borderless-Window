@@ -44,7 +44,7 @@ import net.minecraft.resources.Identifier;
  * earns a page of its own if it brings several options with it.
  * <p>
  * The Screen Mode option itself lives on Sodium's General page, since it
- * REPLACES Sodium's fullscreen checkbox (registerOptionReplacement).
+ * REPLACES Sodium's fullscreen selector (registerOptionReplacement).
  * <p>
  * The cloud TYPE (Off/Fast/Fancy) is deliberately NOT offered here: that
  * option already exists as vanilla's cloudStatus, shown by Sodium on its
@@ -52,8 +52,11 @@ import net.minecraft.resources.Identifier;
  * expose. The Sodium API cannot insert an option into Sodium's own pages,
  * so the height lives on our page instead.
  * <p>
- * Verified against the actual Sodium mc1.21.1-0.8.12 source code:
- * - The ID of its fullscreen option is "sodium:general.fullscreen".
+ * Verified against the actual Sodium 0.9.2+mc26.1.2 code:
+ * - The ID of its fullscreen option is "sodium:general.fullscreen_mode"
+ *   (an Off/Exclusive/Borderless selector, since Sodium's 26.1 builds,
+ *   0.8.12 included; up to its 1.21.11 builds it was the
+ *   "sodium:general.fullscreen" checkbox).
  * - Replacements are matched by exact ID in Config.java, so a wrong ID
  *   silently does nothing.
  * - IntegerOptionBuilder exposes setRange(min,max,step) and
@@ -749,7 +752,7 @@ public class ScreenModeConfigEntryPoint implements ConfigEntryPoint {
                         )
                 )
                 .registerOptionReplacement(
-                        Identifier.parse("sodium:general.fullscreen"),
+                        Identifier.parse("sodium:general.fullscreen_mode"),
                         builder.createEnumOption(
                                         Identifier.parse("borderlesswindow:screen_mode"),
                                         ScreenMode.class)
@@ -760,9 +763,9 @@ public class ScreenModeConfigEntryPoint implements ConfigEntryPoint {
                                 .setBinding(this.storage::setScreenMode, this.storage::getScreenMode)
                                 .setDefaultValue(ScreenMode.WINDOWED)
                 )
-                // Sodium's "Fullscreen Resolution" option used to depend on
-                // "sodium:general.fullscreen" (which our replacement removed),
-                // and that crashed the dependency validation. This overlay
+                // Sodium's "Fullscreen Resolution" option depends on
+                // "sodium:general.fullscreen_mode", which our replacement
+                // removes, and that crashes the dependency validation. This overlay
                 // replaces ONLY its enabled condition: it now depends on our
                 // enum option and is enabled solely in exclusive Fullscreen
                 // mode (the only mode where switching the display resolution

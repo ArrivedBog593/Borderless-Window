@@ -7,7 +7,7 @@ import org.lwjgl.glfw.GLFW;
 /**
  * Holds the "skip rendering while minimized" toggle. MinecraftMixin and
  * FramerateLimitTrackerMixin consult it every frame: while the window is
- * minimized the first skips GameRenderer.render() and the second caps the
+ * minimized the first skips drawing the frame and the second caps the
  * loop at {@link #MINIMIZED_FPS}.
  * <p>
  * WHAT VANILLA ALREADY DOES (1.21.2+): a minimized window is capped at 10

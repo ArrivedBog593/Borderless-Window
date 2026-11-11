@@ -12,7 +12,7 @@ import org.lwjgl.glfw.GLFW;
  * The zoom: its six settings, its key and its live state.
  * <p>
  * HOW IT ZOOMS. By narrowing the field of view at the very end of
- * GameRenderer.getFov (see GameRendererMixin), never by touching the
+ * Camera.calculateFov (see CameraMixin), never by touching the
  * render distance: the world is drawn exactly as far as before, only a
  * smaller slice of it fills the screen. Being the last step, it stacks
  * on top of everything else that moves the FOV -- vanilla's setting,

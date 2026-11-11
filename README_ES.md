@@ -5,13 +5,13 @@
 
 *[English](README.md)*
 
-Un mod ligero client-side para **NeoForge y Fabric 1.21.11** que agrega **pantalla completa sin bordes** a Minecraft, reemplazando el fullscreen exclusivo con un sistema de 3 modos — más un conjunto de opciones de video y de calidad de vida que Minecraft no ofrece.
+Un mod ligero client-side para **NeoForge y Fabric 26.1.2** que agrega **pantalla completa sin bordes** a Minecraft, reemplazando el fullscreen exclusivo con un sistema de 3 modos — más un conjunto de opciones de video y de calidad de vida que Minecraft no ofrece.
 
 ## Características
 
 ### Ventana
 
-- **Tres modos de pantalla**: Ventana, Sin bordes, y la Pantalla completa exclusiva normal de Minecraft.
+- **Tres modos de pantalla**: Ventana, Sin bordes, y Pantalla completa, que siempre es exclusiva (la opción "Pantalla completa exclusiva" de Minecraft ya no hace falta).
 - **F11 configurable**: alternar Sin bordes, alternar Pantalla completa exclusiva, o **ciclar entre los tres modos**.
 - **Compatible con HDR**: evita el parpadeo de pantalla negra y el cambio de perfil de color que el fullscreen exclusivo (y los borderless mal implementados) causan con el HDR de Windows activado.
 - **Soporte multi-monitor**: se aplica en el monitor donde está la ventana, no siempre en el primario.
@@ -42,8 +42,8 @@ Un mod ligero client-side para **NeoForge y Fabric 1.21.11** que agrega **pantal
 ### Configuración y compatibilidad
 
 - **NeoForge y Fabric**: el mismo mod, con todas sus funciones, en los dos loaders. Incluso comparten el mismo archivo de configuración.
-- **Integrado en los menús del propio Minecraft**: sin Sodium, el interruptor de "Pantalla completa" de los Ajustes de video se convierte en un selector de "Modo de pantalla", y un botón "Borderless Window..." ahí mismo abre la pantalla de configuración completa. No requiere ningún otro mod en ninguno de los dos loaders.
-- **Integración con Sodium** (opcional): con [Sodium](https://www.curseforge.com/minecraft/mc-mods/sodium) 0.8.x instalado, el checkbox de "Pantalla completa" de su menú de video se reemplaza por un selector de "Modo de pantalla", y el mod obtiene su propia sección con seis páginas. Construido completamente sobre la Config API oficial de Sodium — sin mixins frágiles a sus clases internas. También funciona bien con Reese's Sodium Options.
+- **Integrado en los menús del propio Minecraft**: sin Sodium, el interruptor de "Pantalla completa" de los Ajustes de video se convierte en un selector de "Modo de pantalla" (el interruptor de "Pantalla completa exclusiva" de Minecraft se oculta), y un botón "Borderless Window..." ahí mismo abre la pantalla de configuración completa. No requiere ningún otro mod en ninguno de los dos loaders.
+- **Integración con Sodium** (opcional): con [Sodium](https://www.curseforge.com/minecraft/mc-mods/sodium) 0.9.0 o más nuevo instalado, el selector "Fullscreen Mode" de su menú de video se reemplaza por un selector de "Modo de pantalla", y el mod obtiene su propia sección con seis páginas. Construido completamente sobre la Config API oficial de Sodium — sin mixins frágiles a sus clases internas. También funciona bien con Reese's Sodium Options.
 - **Nada más que instalar**: funciona con o sin Sodium. En Fabric no requiere Fabric API — las dos piezas pequeñas que usa, para cargar sus traducciones y para agregar la tecla de zoom a Controles, vienen dentro del jar, igual que hace Sodium. Mod Menu es opcional.
 - **Persistente**: todos los ajustes se recuerdan entre sesiones (`config/borderlesswindow.json`).
 - **Traducible**: todos los textos viven en lang files estándar (`en_us`, `es_mx`, `es_es` incluidos — se aceptan contribuciones).
@@ -64,9 +64,9 @@ Todos los ajustes vienen por defecto en el comportamiento normal del juego, así
 
 ## Requisitos
 
-- Minecraft **1.21.11**
-- **NeoForge** 21.11.x, o **Fabric Loader** 0.17.3+ (no requiere Fabric API)
-- (Opcional) **Sodium 0.8.x** para la integración con el menú de video
+- Minecraft **26.1.2**
+- **NeoForge** 26.1.2.x, o **Fabric Loader** 0.18.4+ (no requiere Fabric API)
+- (Opcional) **Sodium 0.9.0+** para la integración con el menú de video
 - (Opcional, Fabric) **Mod Menu**, para abrir también la configuración desde su lista de mods
 
 Descarga el jar de tu loader: `borderlesswindow-neoforge-…` o `borderlesswindow-fabric-…`.

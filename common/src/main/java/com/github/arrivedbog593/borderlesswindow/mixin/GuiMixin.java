@@ -7,7 +7,7 @@ import com.github.arrivedbog593.borderlesswindow.visual.ScreenEffectState;
 import com.llamalad7.mixinextras.injector.ModifyExpressionValue;
 import com.llamalad7.mixinextras.injector.v2.WrapWithCondition;
 import net.minecraft.client.gui.Gui;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.resources.Identifier;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
@@ -32,18 +32,18 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
  * The same method draws the green Nausea texture; this class also
  * scales it to the Nausea slider (see DistortionState).
  * <p>
- * The three overlay injections sit on the call sites inside renderCameraOverlays
+ * The three overlay injections sit on the call sites inside extractCameraOverlays
  * rather than inside the render methods themselves, so the methods stay
  * callable and untouched for any other mod that invokes them.
  * <p>
  * THE VIGNETTE IS DELIBERATELY NOT OFFERED. It is drawn from the same
- * method, but it doubles as the world border warning: renderVignette
+ * method, but it doubles as the world border warning: extractVignette
  * tints the screen cyan as you approach the border. A plain toggle
  * would delete that warning along with the darkening, which is the same
  * category of mistake as removing the suffocation overlay -- hiding
  * information the game is trying to give you. Offering it would mean
  * keeping the border case alive, which needs the local distance value
- * from inside renderVignette; a separate feature if it is ever wanted.
+ * from inside extractVignette; a separate feature if it is ever wanted.
  * <p>
  * MixinExtras rather than @Redirect, for the reason spelled out in
  * GameRendererMixin: @WrapWithCondition stacks with other mods touching
@@ -55,26 +55,26 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 public abstract class GuiMixin {
 
     /**
-     * Covers BOTH calls to renderTextureOverlay inside
-     * renderCameraOverlays -- the pumpkin blur and the powder snow
+     * Covers BOTH calls to extractTextureOverlay inside
+     * extractCameraOverlays -- the pumpkin blur and the powder snow
      * outline -- because @At without an ordinal matches every matching
      * invocation in the target method. CameraOverlayFilter tells them
      * apart by texture.
      * <p>
-     * Only the vanilla pumpkin is affected: it reaches renderTextureOverlay
+     * Only the vanilla pumpkin is affected: it reaches extractTextureOverlay
      * through the carved pumpkin's camera overlay texture. NeoForge adds a
      * call to IClientItemExtensions.renderFirstPersonOverlay for modded
      * worn items, which is a different call and stays untouched: another
      * mod's overlay is not ours to remove.
      */
     @WrapWithCondition(
-            method = "renderCameraOverlays",
+            method = "extractCameraOverlays",
             at = @At(value = "INVOKE",
-                    target = "Lnet/minecraft/client/gui/Gui;renderTextureOverlay("
-                            + "Lnet/minecraft/client/gui/GuiGraphics;"
+                    target = "Lnet/minecraft/client/gui/Gui;extractTextureOverlay("
+                            + "Lnet/minecraft/client/gui/GuiGraphicsExtractor;"
                             + "Lnet/minecraft/resources/Identifier;F)V"))
     private boolean borderlesswindow$shouldRenderTextureOverlay(Gui instance,
-                                                                GuiGraphics guiGraphics,
+                                                                GuiGraphicsExtractor guiGraphics,
                                                                 Identifier texture,
                                                                 float alpha) {
         return CameraOverlayFilter.shouldRenderTextureOverlay(texture);
@@ -87,12 +87,12 @@ public abstract class GuiMixin {
      * skipping here changes nothing else.
      */
     @WrapWithCondition(
-            method = "renderCameraOverlays",
+            method = "extractCameraOverlays",
             at = @At(value = "INVOKE",
-                    target = "Lnet/minecraft/client/gui/Gui;renderPortalOverlay("
-                            + "Lnet/minecraft/client/gui/GuiGraphics;F)V"))
+                    target = "Lnet/minecraft/client/gui/Gui;extractPortalOverlay("
+                            + "Lnet/minecraft/client/gui/GuiGraphicsExtractor;F)V"))
     private boolean borderlesswindow$shouldRenderPortalOverlay(Gui instance,
-                                                               GuiGraphics guiGraphics,
+                                                               GuiGraphicsExtractor guiGraphics,
                                                                float alpha) {
         return ScreenEffectState.isPortalOverlayEnabled();
     }
@@ -104,19 +104,19 @@ public abstract class GuiMixin {
      * and is not touched.
      * <p>
      * Wrapping the CALL rather than the method matters here: NeoForge
-     * patched renderSpyglassOverlay to pull its texture from
+     * patched extractSpyglassOverlay to pull its texture from
      * IClientItemExtensions.getScopeOverlayTexture, which is how mods
      * like Spyglass Improvements supply custom scopes. Leaving the
      * method intact means their feature keeps working whenever this
      * option is left on.
      */
     @WrapWithCondition(
-            method = "renderCameraOverlays",
+            method = "extractCameraOverlays",
             at = @At(value = "INVOKE",
-                    target = "Lnet/minecraft/client/gui/Gui;renderSpyglassOverlay("
-                            + "Lnet/minecraft/client/gui/GuiGraphics;F)V"))
+                    target = "Lnet/minecraft/client/gui/Gui;extractSpyglassOverlay("
+                            + "Lnet/minecraft/client/gui/GuiGraphicsExtractor;F)V"))
     private boolean borderlesswindow$shouldRenderSpyglassOverlay(Gui instance,
-                                                                 GuiGraphics guiGraphics,
+                                                                 GuiGraphicsExtractor guiGraphics,
                                                                  float scopeScale) {
         return ScreenEffectState.isSpyglassOverlayEnabled();
     }
@@ -143,7 +143,7 @@ public abstract class GuiMixin {
      * DistortionState), so vanilla's scale passes through untouched.
      */
     @ModifyExpressionValue(
-            method = "renderCameraOverlays",
+            method = "extractCameraOverlays",
             at = @At(value = "INVOKE", target = "Ljava/lang/Double;floatValue()F"))
     private float borderlesswindow$scaleNauseaOverlayCue(float original) {
         if (DistortionState.isInPortal()) {
@@ -157,7 +157,7 @@ public abstract class GuiMixin {
      * <p>
      * FABRIC'S HOOK ONLY, though it is applied on both loaders. Vanilla
      * draws the name through this one-argument method, called from
-     * renderHotbarAndDecorations. NeoForge does not: its SELECTED_ITEM_NAME
+     * extractHotbarAndDecorations. NeoForge does not: its SELECTED_ITEM_NAME
      * HUD layer calls a two-argument overload (with a y shift) directly,
      * so on NeoForge this injection is never reached and
      * BorderlessWindowNeoForge cancels that layer through
@@ -168,7 +168,7 @@ public abstract class GuiMixin {
      * NeoForge was this unused method -- the first version of this option
      * did nothing there.
      */
-    @Inject(method = "renderSelectedItemName(Lnet/minecraft/client/gui/GuiGraphics;)V",
+    @Inject(method = "extractSelectedItemName(Lnet/minecraft/client/gui/GuiGraphicsExtractor;)V",
             at = @At("HEAD"), cancellable = true)
     private void borderlesswindow$hideHeldItemName(CallbackInfo ci) {
         if (!HudState.isHeldItemNameEnabled()) {

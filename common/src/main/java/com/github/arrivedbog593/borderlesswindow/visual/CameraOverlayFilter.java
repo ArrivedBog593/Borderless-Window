@@ -10,7 +10,7 @@ import net.minecraft.resources.Identifier;
  * <p>
  * WHY THE TEXTURE IS THE DISCRIMINATOR. Vanilla draws BOTH the pumpkin
  * blur and the powder snow outline through the same private method,
- * Gui.renderTextureOverlay, changing only the texture and the alpha. A
+ * Gui.extractTextureOverlay, changing only the texture and the alpha. A
  * single injection therefore covers both, and the Identifier is
  * the only thing telling them apart.
  * <p>
@@ -21,7 +21,7 @@ import net.minecraft.resources.Identifier;
  * plain equals() is enough.
  * <p>
  * UNKNOWN TEXTURES PASS THROUGH. Anything that is not one of our two
- * returns true, so if another mod ever calls renderTextureOverlay with
+ * returns true, so if another mod ever calls extractTextureOverlay with
  * its own texture we leave it alone. Defaulting to "draw it" is the
  * safe direction: the worst case is an option that does not cover
  * something, instead of us silently erasing another mod's overlay.

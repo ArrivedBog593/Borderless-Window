@@ -1,7 +1,7 @@
 package com.github.arrivedbog593.borderlesswindow.config;
 
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.AbstractWidget;
 import net.minecraft.client.gui.components.ContainerObjectSelectionList;
 import net.minecraft.client.gui.components.events.GuiEventListener;
@@ -65,12 +65,12 @@ public class BorderlessOptionsList extends ContainerObjectSelectionList<Borderle
         }
 
         @Override
-        public void renderContent(@NotNull GuiGraphics guiGraphics, int mouseX, int mouseY,
+        public void extractContent(@NotNull GuiGraphicsExtractor guiGraphics, int mouseX, int mouseY,
                                   boolean hovering, float partialTick) {
             Minecraft minecraft = Minecraft.getInstance();
             // Sits low in its row so it reads as a title for what follows.
             int y = this.getContentY() + this.getContentHeight() - minecraft.font.lineHeight - 1;
-            guiGraphics.drawCenteredString(minecraft.font, this.title,
+            guiGraphics.centeredText(minecraft.font, this.title,
                     this.getContentX() + this.getContentWidth() / 2, y, 0xFFA0A0A0);
         }
 
@@ -95,12 +95,12 @@ public class BorderlessOptionsList extends ContainerObjectSelectionList<Borderle
         }
 
         @Override
-        public void renderContent(@NotNull GuiGraphics guiGraphics, int mouseX, int mouseY,
+        public void extractContent(@NotNull GuiGraphicsExtractor guiGraphics, int mouseX, int mouseY,
                                   boolean hovering, float partialTick) {
             // The list scrolls, so the widget is repositioned every frame.
             this.widget.setX(this.getContentX() + (this.getContentWidth() - this.widget.getWidth()) / 2);
             this.widget.setY(this.getContentY() + (this.getContentHeight() - this.widget.getHeight()) / 2);
-            this.widget.render(guiGraphics, mouseX, mouseY, partialTick);
+            this.widget.extractRenderState(guiGraphics, mouseX, mouseY, partialTick);
         }
 
         @Override

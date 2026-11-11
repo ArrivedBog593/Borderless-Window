@@ -2,7 +2,7 @@ package com.github.arrivedbog593.borderlesswindow.fabric;
 
 import com.github.arrivedbog593.borderlesswindow.camera.ZoomState;
 import net.fabricmc.api.ClientModInitializer;
-import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper;
+import net.fabricmc.fabric.api.client.keymapping.v1.KeyMappingHelper;
 import net.minecraft.client.KeyMapping;
 
 /**
@@ -17,6 +17,6 @@ public class BorderlessWindowFabric implements ClientModInitializer {
     @Override
     public void onInitializeClient() {
         KeyMapping.Category.register(ZoomState.CATEGORY.id());
-        KeyBindingHelper.registerKeyBinding(ZoomState.KEY);
+        KeyMappingHelper.registerKeyMapping(ZoomState.KEY);
     }
 }

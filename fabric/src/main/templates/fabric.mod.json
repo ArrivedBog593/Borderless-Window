@@ -32,12 +32,12 @@
   "depends": {
     "fabricloader": "${fabric_loader_requirement}",
     "fabric-resource-loader-v1": "*",
-    "fabric-key-binding-api-v1": "*",
+    "fabric-key-mapping-api-v1": "*",
     "minecraft": "${minecraft_version}",
     "java": ">=${java_version}"
   },
   "suggests": {
-    "sodium": ">=0.8.0",
+    "sodium": ">=0.9.0",
     "modmenu": "*"
   }
 }

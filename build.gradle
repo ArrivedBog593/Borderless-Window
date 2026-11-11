@@ -2,6 +2,9 @@
 plugins {
     // Kept current: Loom refuses dependencies built with a newer Loom than
     // itself (Sodium, Mod Menu and Fabric API in the dev run).
-    id 'fabric-loom' version '1.16.3' apply false
-    id 'net.neoforged.moddev' version '2.0.141' apply false
+    // Since 26.1 Minecraft ships unobfuscated: net.fabricmc.fabric-loom is
+    // the Loom that neither maps nor remaps (fabric-loom stays for the
+    // obfuscated versions).
+    id 'net.fabricmc.fabric-loom' version '1.19.4' apply false
+    id 'net.neoforged.moddev' version '2.0.148' apply false
 }

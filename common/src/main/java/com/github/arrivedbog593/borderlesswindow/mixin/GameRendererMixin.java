@@ -3,23 +3,20 @@ package com.github.arrivedbog593.borderlesswindow.mixin;
 import com.github.arrivedbog593.borderlesswindow.camera.BobbingState;
 import com.github.arrivedbog593.borderlesswindow.camera.CameraBobMode;
 import com.github.arrivedbog593.borderlesswindow.camera.DistortionState;
-import com.github.arrivedbog593.borderlesswindow.camera.FovState;
 import com.github.arrivedbog593.borderlesswindow.camera.ZoomState;
 import com.llamalad7.mixinextras.injector.ModifyExpressionValue;
-import com.llamalad7.mixinextras.injector.ModifyReturnValue;
 import com.llamalad7.mixinextras.injector.v2.WrapWithCondition;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
-import com.llamalad7.mixinextras.sugar.Local;
 import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.client.DeltaTracker;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.Options;
 import net.minecraft.client.gui.Gui;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.renderer.GameRenderer;
-import net.minecraft.util.Mth;
-import org.joml.Matrix4f;
+import net.minecraft.client.renderer.state.level.CameraRenderState;
+import org.joml.Matrix4fc;
 import org.joml.Quaternionfc;
 import org.objectweb.asm.Opcodes;
 import org.spongepowered.asm.mixin.Mixin;
@@ -83,10 +80,11 @@ public abstract class GameRendererMixin {
     @WrapWithCondition(
             method = "renderItemInHand",
             at = @At(value = "INVOKE",
-                    target = "Lnet/minecraft/client/renderer/GameRenderer;bobView(Lcom/mojang/blaze3d/vertex/PoseStack;F)V"))
+                    target = "Lnet/minecraft/client/renderer/GameRenderer;bobView("
+                            + "Lnet/minecraft/client/renderer/state/level/CameraRenderState;Lcom/mojang/blaze3d/vertex/PoseStack;)V"))
     private boolean borderlesswindow$shouldBobHand(GameRenderer instance,
-                                                   PoseStack poseStack,
-                                                   float partialTicks) {
+                                                   CameraRenderState cameraState,
+                                                   PoseStack poseStack) {
         return BobbingState.isHandBobEnabled();
     }
 
@@ -103,10 +101,11 @@ public abstract class GameRendererMixin {
     @WrapOperation(
             method = "renderLevel",
             at = @At(value = "INVOKE",
-                    target = "Lnet/minecraft/client/renderer/GameRenderer;bobView(Lcom/mojang/blaze3d/vertex/PoseStack;F)V"))
+                    target = "Lnet/minecraft/client/renderer/GameRenderer;bobView("
+                            + "Lnet/minecraft/client/renderer/state/level/CameraRenderState;Lcom/mojang/blaze3d/vertex/PoseStack;)V"))
     private void borderlesswindow$wrapCameraBob(GameRenderer instance,
+                                                CameraRenderState cameraState,
                                                 PoseStack poseStack,
-                                                float partialTicks,
                                                 Operation<Void> original) {
         CameraBobMode mode = BobbingState.getCameraBobMode();
 
@@ -115,13 +114,13 @@ public abstract class GameRendererMixin {
         }
 
         if (mode == CameraBobMode.FULL) {
-            original.call(instance, poseStack, partialTicks);
+            original.call(instance, cameraState, poseStack);
             return;
         }
 
         this.borderlesswindow$strippingCameraBob = true;
         try {
-            original.call(instance, poseStack, partialTicks);
+            original.call(instance, cameraState, poseStack);
         } finally {
             this.borderlesswindow$strippingCameraBob = false;
         }
@@ -219,50 +218,16 @@ public abstract class GameRendererMixin {
     }
 
     /**
-     * The water/lava squeeze, the only FOV effect vanilla's own slider
-     * reaches. The original value is already scaled by that slider (a
-     * lerp between 1.0 and 0.857), so ours multiplies on top -- with
-     * FOV Effects at 0% in Minecraft there is nothing left to soften.
-     * <p>
-     * ordinal = 1: getFov lerps twice, the fov modifier first and this
-     * squeeze second, both on floats.
-     */
-    @ModifyExpressionValue(
-            method = "getFov",
-            at = @At(value = "INVOKE", target = "Lnet/minecraft/util/Mth;lerp(FFF)F", ordinal = 1))
-    private float borderlesswindow$scaleFluidFov(float original) {
-        return Mth.lerp(FovState.getFluidFactor(), 1.0F, original);
-    }
-
-    /**
      * Start of every frame: reads the zoom key and advances the zoom
-     * animation before anything below reads the FOV. See ZoomState.
+     * animation before the camera works out this frame's FOV. Since 26.1
+     * that happens in update (Camera.update), the first of the frame's
+     * update / extract / render steps; the FOV hooks live in CameraMixin.
+     * See ZoomState.
      */
-    @Inject(method = "render", at = @At("HEAD"))
-    private void borderlesswindow$updateZoom(DeltaTracker deltaTracker, boolean renderLevel,
+    @Inject(method = "update", at = @At("HEAD"))
+    private void borderlesswindow$updateZoom(DeltaTracker deltaTracker, boolean advanceGameTime,
                                              CallbackInfo ci) {
         ZoomState.onFrame();
-    }
-
-    /**
-     * The zoom itself: the FOV of the view, divided by the zoom level.
-     * <p>
-     * At RETURN, so it is the last word on every path. On NeoForge that
-     * places it after ClientHooks.getFieldOfView (the ComputeFov event),
-     * and on both loaders after vanilla's FOV setting, the FOV effects and
-     * the per-source sliders above -- the zoom narrows whatever they left.
-     * <p>
-     * Only the useFOVSetting call is the view. The other one, from
-     * renderItemInHand, sizes the held item at a fixed 70 degrees, and
-     * zooming it would blow the hand up to fill the screen.
-     */
-    @ModifyReturnValue(method = "getFov", at = @At("RETURN"))
-    private float borderlesswindow$applyZoom(float original,
-                                             @Local(argsOnly = true) boolean useFovSetting) {
-        if (!useFovSetting) {
-            return original;
-        }
-        return (float) (original * ZoomState.getFovMultiplier());
     }
 
     /** "Hide Hand" while zooming: the held item is simply not drawn. */
@@ -270,9 +235,10 @@ public abstract class GameRendererMixin {
             method = "renderLevel",
             at = @At(value = "INVOKE",
                     target = "Lnet/minecraft/client/renderer/GameRenderer;renderItemInHand("
-                            + "FZLorg/joml/Matrix4f;)V"))
-    private boolean borderlesswindow$shouldRenderHand(GameRenderer instance, float partialTick,
-                                                      boolean sleeping, Matrix4f projectionMatrix) {
+                            + "Lnet/minecraft/client/renderer/state/level/CameraRenderState;"
+                            + "FLorg/joml/Matrix4fc;)V"))
+    private boolean borderlesswindow$shouldRenderHand(GameRenderer instance, CameraRenderState cameraState,
+                                                      float partialTick, Matrix4fc modelViewMatrix) {
         return !ZoomState.shouldHideHand();
     }
 
@@ -284,11 +250,11 @@ public abstract class GameRendererMixin {
      * back untouched afterwards.
      */
     @WrapOperation(
-            method = "render",
+            method = "extractGui",
             at = @At(value = "INVOKE",
-                    target = "Lnet/minecraft/client/gui/Gui;render("
-                            + "Lnet/minecraft/client/gui/GuiGraphics;Lnet/minecraft/client/DeltaTracker;)V"))
-    private void borderlesswindow$hideHudWhileZooming(Gui instance, GuiGraphics guiGraphics,
+                    target = "Lnet/minecraft/client/gui/Gui;extractRenderState("
+                            + "Lnet/minecraft/client/gui/GuiGraphicsExtractor;Lnet/minecraft/client/DeltaTracker;)V"))
+    private void borderlesswindow$hideHudWhileZooming(Gui instance, GuiGraphicsExtractor guiGraphics,
                                                       DeltaTracker deltaTracker,
                                                       Operation<Void> original) {
         if (!ZoomState.shouldHideHud()) {

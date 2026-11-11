@@ -1,70 +1,76 @@
 # Borderless Window 1.11.0
 
-*NeoForge · Fabric 1.21.11 · 2026-11-10*
+*NeoForge · Fabric 26.1.2 · 2026-11-11*
 
-> **A second step for the idle limit, which now takes over from Minecraft's.** Step away for a few minutes and the game drops to one frame rate; stay away longer and it drops further. Any key or mouse movement brings it all back at once.
+> **Now on Minecraft 26.1.2.** Every feature of 1.11.0, on both loaders, with nothing else to install, and a Fullscreen mode that is always exclusive.
 
 ## ⚠️ Important Notes
 
-- **While the mod's Idle FPS Limit is on, it replaces Minecraft's "AFK" mode** of Reduce FPS When (in Video Settings, or on Sodium's Performance page). Until now the two stacked and the lowest won, so a 20 FPS idle limit still ended up at 10 after ten minutes. Now the mod's idle limits are the only ones that apply, and Minecraft's 10 FPS while minimized stays. With the mod's Idle FPS Limit off (the default), Minecraft's option works exactly as before. The option itself keeps your choice; nothing is changed in `options.txt`
-- Every setting stays as it was. The new options start off
-- When updating, delete the 1.10.0 jar from your mods folder
+- **The first version for Minecraft 26.1.2.** Download the file for 26.1.2 and your loader; the 1.21.x jars do not work here
+- **Fullscreen is always exclusive.** Minecraft 26.1 added its own "Exclusive Fullscreen" option, off by default. Off, Minecraft's fullscreen is not really exclusive: it stays on top of everything and still minimizes when you Alt+Tab, a weaker version of Borderless. Sodium turns that option on at first launch, so the same Fullscreen behaved differently with and without Sodium. Now the mod's Fullscreen is exclusive either way, and Minecraft's option is hidden from Video Settings, since the Screen Mode selector already covers both kinds of fullscreen. Borderless is still the one to use with HDR or for instant Alt+Tab
+- **If you type with a Chinese, Japanese or Korean input method**, use Borderless instead of Fullscreen. Sodium keeps Minecraft's fullscreen non-exclusive for those input methods, and Borderless works better with them
+- **Sodium integration needs Sodium 0.9.0 or newer.** Sodium's 26.1 builds replaced its Fullscreen checkbox with a "Fullscreen Mode" selector (Off / Exclusive / Borderless); the mod's Screen Mode takes its place, as it did with the checkbox
+- Same config file and option IDs as on 1.21.x: copying `config/borderlesswindow.json` from an older instance carries your settings over
 
 ## ✨ New Features
 
-### Idle FPS limit in two steps
-
-- **Second Idle Limit After** and **Second Idle FPS Limit**: a later cap on top of the existing idle limit. For example, 30 FPS after 5 minutes without input, then 10 FPS after 20 minutes
-- The second time can go up to 60 minutes, and it is always longer than the first: its slider starts right after the first idle time, and its leftmost position is Off. Both times count from your last keyboard or mouse input
-- It builds on the first step, so it is greyed out while the first idle limit is off. If you raise the first time to or past the second, the second step turns off
-- When both steps apply, the lower cap wins. As before, a lower Max Framerate or Unfocused FPS Limit still wins over both
-- The options are on the FPS & Background page in Sodium, right after the first idle limit, and in the same place in the mod's config screen
+- **Everything from 1.11.0, on Minecraft 26.1.2**: the three screen modes and configurable F11, the FPS counter, the background options with the idle limit in two steps, the fog toggles and Fog Start, cloud height, sky and weather, the held item name, screen and camera overlays, split FOV, distortion and view bobbing, zoom, enchantment numerals, draw distances, and Minecraft's own sliders that Sodium leaves out
+- With Sodium, the mod's six pages and the Screen Mode selector work as on 1.21.11, also alongside Reese's Sodium Options and Iris
 
 ## 🔧 Technical Changes
 
-- Replacing the AFK mode only changes what `FramerateLimitTracker.getThrottleReason` reads from the option: it sees "Minimized" while the mod's first idle step is on. The minimized and out-of-world menu limits are untouched
-- In the mod's config screen (without Sodium), the Idle FPS Limit is now greyed out while its idle time is off, as it already was on the Sodium page
-- On the Sodium page, the second idle time keeps its Off position while the first one moves, so lowering the first time never turns the second step on by itself
-- **Fixed:** with Reese's Sodium Options installed, pressing F11 while Sodium's video settings were open changed the window but left Screen Mode showing the previous mode until the menu was reopened. It now updates right away, as it already did without that mod
+- Ported to Minecraft 26.1.2, which ships unobfuscated, runs on Java 25 and splits every frame into update, extract and render. Every hook was checked against the 26.1.2 code on both loaders:
+  - **Zoom and Fluid FOV**: the camera now works out its own FOV, so both live in `Camera` (`calculateFov` and `modifyFovBasedOnDeathOrFluid`). The zoom still applies last, after NeoForge's ComputeFov event
+  - **Pause Rendering When Minimized**: skips extracting, drawing and presenting the frame in `Minecraft.renderFrame`
+  - **Weather**: empties the rain and snow columns of the weather render state. Skipping the draw call, as before, now crashes on an empty buffer
+  - **Fog**: the same hook, now on the `FogData` that `FogRenderer.setupFog` returns
+  - **Unfocused volume**: follows the window's own focus callback (`Window.onFocus`), which also counts clicking back in as activity for the idle limit
+  - **HUD, overlays and screens**: on Minecraft's renamed extract methods (`GuiGraphicsExtractor`)
+- **Fullscreen**: Minecraft's option only sets a GLFW hint (`GLFW_SOFT_FULLSCREEN`, from LWJGL's own GLFW) when the game starts. On Windows that hint just makes the window 1 px taller than the monitor so it is not taken over as exclusive. The mod forces it off in `GLX._initGlfw`; GLFW reads it each time it fits a window to a monitor, so it covers every switch to Fullscreen without a restart
+- **On Fabric**, the bundled key binding module is now `fabric-key-mapping-api-v1`, renamed in 26.1, and the mod jar is no longer remapped. Fabric API is still not required
+- **Fixed:** the title of the mod's config screen (without Sodium) was not drawn. Since Minecraft 1.21.6 text with a fully transparent color is skipped, and the title's white had no alpha
 
 ## 📦 Dependencies
 
-- Minecraft 1.21.11 with NeoForge 21.11.x, or with Fabric Loader 0.17.3 or newer
-- Optional: Sodium 0.8.x on either loader, and Mod Menu on Fabric
+- Minecraft 26.1.2 with NeoForge 26.1.2.x, or with Fabric Loader 0.18.4 or newer
+- Optional: Sodium 0.9.0 or newer on either loader, and Mod Menu on Fabric
 
 ---
 
 <details>
 <summary><b>🇪🇸 Leer en español</b></summary>
 
-> **Un segundo escalón para el límite por inactividad, que ahora toma el lugar del de Minecraft.** Aléjate unos minutos y el juego baja a unos FPS; quédate lejos más tiempo y baja todavía más. Cualquier tecla o movimiento del mouse lo regresa todo al instante.
+> **Ahora en Minecraft 26.1.2.** Todas las funciones de la 1.11.0, en los dos loaders y sin instalar nada más, y con un modo Pantalla completa que siempre es exclusivo.
 
 ## ⚠️ Notas Importantes
 
-- **Mientras el Límite por inactividad del mod está activado, reemplaza el modo "Al ausentarse"** del Reducir FPS de Minecraft (en Opciones de gráficos, o en la página Rendimiento de Sodium). Hasta ahora los dos se sumaban y ganaba el más bajo, así que un límite por inactividad de 20 FPS terminaba en 10 a los diez minutos. Ahora solo aplican los límites por inactividad del mod, y los 10 FPS de Minecraft con el juego minimizado se quedan. Con el Límite por inactividad del mod desactivado (por defecto), la opción de Minecraft funciona igual que antes. La opción conserva lo que elegiste; no se cambia nada en `options.txt`
-- Los ajustes se quedan como estaban. Las opciones nuevas empiezan desactivadas
-- Al actualizar, borra el jar de la 1.10.0 de tu carpeta de mods
+- **La primera versión para Minecraft 26.1.2.** Descarga el archivo para 26.1.2 y tu loader; los jars de la 1.21.x no funcionan aquí
+- **Pantalla completa siempre es exclusiva.** Minecraft 26.1 agregó su propia opción "Pantalla completa exclusiva", desactivada por defecto. Desactivada, la pantalla completa de Minecraft no es exclusiva de verdad: se queda encima de todo y aun así se minimiza con Alt+Tab, una versión peor de Sin bordes. Sodium activa esa opción en su primer arranque, así que la misma Pantalla completa se comportaba distinto con y sin Sodium. Ahora la Pantalla completa del mod es exclusiva en los dos casos, y la opción de Minecraft se oculta de Opciones de gráficos, porque el selector de Modo de pantalla ya cubre los dos tipos de pantalla completa. Sin bordes sigue siendo el modo para usar con HDR o para un Alt+Tab instantáneo
+- **Si escribes con un método de entrada chino, japonés o coreano**, usa Sin bordes en lugar de Pantalla completa. Sodium deja la pantalla completa de Minecraft no exclusiva para esos métodos de entrada, y Sin bordes funciona mejor con ellos
+- **La integración con Sodium requiere Sodium 0.9.0 o más nuevo.** Las versiones de Sodium para 26.1 reemplazaron su checkbox de Pantalla completa con un selector "Fullscreen Mode" (Off / Exclusive / Borderless); el Modo de pantalla del mod toma su lugar, como lo hacía con el checkbox
+- El mismo archivo de configuración e IDs de opciones que en 1.21.x: copiar `config/borderlesswindow.json` de una instancia anterior conserva tus ajustes
 
 ## ✨ Nuevas Características
 
-### Límite por inactividad en dos escalones
-
-- **Segundo límite por inactividad tras** y **Segundo límite de FPS por inactividad**: un límite posterior encima del límite por inactividad que ya existía. Por ejemplo, 30 FPS tras 5 minutos sin input, y luego 10 FPS tras 20 minutos
-- El segundo tiempo llega hasta 60 minutos y siempre es mayor que el primero: su slider empieza justo después del primer tiempo de inactividad, y su primera posición es Desactivado. Los dos tiempos cuentan desde la última vez que usaste el teclado o el mouse
-- Se apoya en el primer escalón, así que sale en gris mientras el primer límite por inactividad está desactivado. Si subes el primer tiempo hasta el segundo o más, el segundo escalón se desactiva
-- Cuando aplican los dos escalones, gana el límite más bajo. Como antes, unos FPS máximos o un Límite de FPS sin foco más bajos siguen ganando sobre los dos
-- Las opciones están en la página FPS y segundo plano de Sodium, justo después del primer límite por inactividad, y en el mismo lugar en la pantalla de configuración del mod
+- **Todo lo de la 1.11.0, en Minecraft 26.1.2**: los tres modos de pantalla y F11 configurable, el contador de FPS, las opciones de segundo plano con el límite por inactividad en dos escalones, los toggles de niebla y el Inicio de la niebla, la altura de las nubes, cielo y clima, el nombre del objeto en mano, los overlays de pantalla y de cámara, el FOV, la distorsión y el balanceo separados, el zoom, los números de encantamientos, las distancias de dibujado, y los sliders de Minecraft que Sodium deja fuera
+- Con Sodium, las seis páginas del mod y el selector de Modo de pantalla funcionan como en 1.21.11, también junto a Reese's Sodium Options e Iris
 
 ## 🔧 Cambios Técnicos
 
-- Reemplazar el modo "Al ausentarse" solo cambia lo que `FramerateLimitTracker.getThrottleReason` lee de la opción: ve "Al minimizar" mientras el primer escalón del mod está activado. Los límites al minimizar y en los menús fuera del mundo no se tocan
-- En la pantalla de configuración del mod (sin Sodium), el Límite de FPS por inactividad ahora sale en gris mientras su tiempo de inactividad está desactivado, como ya pasaba en la página de Sodium
-- En la página de Sodium, el segundo tiempo de inactividad conserva su posición Desactivado aunque se mueva el primero, así que bajar el primer tiempo nunca activa el segundo escalón por sí solo
-- **Corregido:** con Reese's Sodium Options instalado, presionar F11 con las opciones de video de Sodium abiertas cambiaba la ventana, pero Modo de pantalla seguía mostrando el modo anterior hasta volver a abrir el menú. Ahora se actualiza al instante, como ya pasaba sin ese mod
+- Portado a Minecraft 26.1.2, que viene sin ofuscar, corre en Java 25 y divide cada frame en actualizar, extraer y dibujar. Cada hook se revisó contra el código de 26.1.2 en los dos loaders:
+  - **Zoom y FOV en fluidos**: la cámara ahora calcula su propio FOV, así que los dos viven en `Camera` (`calculateFov` y `modifyFovBasedOnDeathOrFluid`). El zoom se sigue aplicando al final, después del evento ComputeFov de NeoForge
+  - **Pausar render al minimizar**: se salta extraer, dibujar y presentar el frame en `Minecraft.renderFrame`
+  - **Clima**: vacía las columnas de lluvia y nieve del estado de render del clima. Saltarse la llamada de dibujo, como antes, ahora crashea con un buffer vacío
+  - **Niebla**: el mismo hook, ahora sobre el `FogData` que regresa `FogRenderer.setupFog`
+  - **Volumen sin foco**: sigue el callback de foco de la propia ventana (`Window.onFocus`), que además cuenta volver a hacer clic en el juego como actividad para el límite por inactividad
+  - **HUD, overlays y pantallas**: sobre los métodos extract renombrados de Minecraft (`GuiGraphicsExtractor`)
+- **Pantalla completa**: la opción de Minecraft solo define una pista de GLFW (`GLFW_SOFT_FULLSCREEN`, del GLFW propio de LWJGL) al iniciar el juego. En Windows esa pista solo hace la ventana 1 px más alta que el monitor para que no se tome como exclusiva. El mod la fuerza a desactivada en `GLX._initGlfw`; GLFW la lee cada vez que ajusta una ventana a un monitor, así que cubre cada cambio a Pantalla completa sin reiniciar
+- **En Fabric**, el módulo incluido para las teclas ahora es `fabric-key-mapping-api-v1`, renombrado en 26.1, y el jar del mod ya no se remapea. Sigue sin requerir Fabric API
+- **Corregido:** el título de la pantalla de configuración del mod (sin Sodium) no se dibujaba. Desde Minecraft 1.21.6 se omite el texto con un color totalmente transparente, y el blanco del título no tenía alfa
 
 ## 📦 Dependencias
 
-- Minecraft 1.21.11 con NeoForge 21.11.x, o con Fabric Loader 0.17.3 o más nuevo
-- Opcional: Sodium 0.8.x en cualquiera de los dos loaders, y Mod Menu en Fabric
+- Minecraft 26.1.2 con NeoForge 26.1.2.x, o con Fabric Loader 0.18.4 o más nuevo
+- Opcional: Sodium 0.9.0 o más nuevo en cualquiera de los dos loaders, y Mod Menu en Fabric
 
 </details>

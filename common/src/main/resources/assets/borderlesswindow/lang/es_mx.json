@@ -23,7 +23,7 @@
   "borderlesswindow.options.sodium.pages.distances": "Distancias",
 
   "borderlesswindow.options.screen_mode.name": "Modo de pantalla",
-  "borderlesswindow.options.screen_mode.tooltip": "Elige entre ventana normal, pantalla completa sin bordes, o el fullscreen normal de Minecraft.",
+  "borderlesswindow.options.screen_mode.tooltip": "Elige entre ventana normal, pantalla completa sin bordes o pantalla completa exclusiva. Pantalla completa siempre es exclusiva, así que la opción Pantalla completa exclusiva de Minecraft ya no hace falta. Si escribes con un método de entrada chino, japonés o coreano, Sin bordes funciona mejor con él.",
   "borderlesswindow.screen_mode.windowed": "En ventana",
   "borderlesswindow.screen_mode.borderless": "Sin bordes",
   "borderlesswindow.screen_mode.fullscreen": "Pantalla completa",
