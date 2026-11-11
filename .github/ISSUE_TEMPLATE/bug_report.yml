@@ -30,6 +30,7 @@ body:
       options:
         - "1.21.1"
         - "1.21.11"
+        - "26.1.2"
     validations:
       required: true
 

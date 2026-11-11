@@ -4,7 +4,7 @@
 # Dependabot reads this file from the default branch only, and without
 # target-branch it only updates the default branch. Every live branch has its
 # own workflows, so each needs its own entry here. Add one when a branch is
-# created (a future NeoFabric/26.1.2, for instance); this file does not need
+# created (a future NeoFabric/26.2, for instance); this file does not need
 # copying to the other branches.
 version: 2
 updates:
@@ -22,6 +22,17 @@ updates:
   - package-ecosystem: "github-actions"
     directory: "/"
     target-branch: "NeoFabric/1.21.11"
+    schedule:
+      interval: "monthly"
+    commit-message:
+      prefix: "chore"
+    groups:
+      actions:
+        patterns: ["*"]
+
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    target-branch: "NeoFabric/26.1.2"
     schedule:
       interval: "monthly"
     commit-message:
