@@ -3,14 +3,11 @@ package com.github.arrivedbog593.borderlesswindow.neoforge;
 import com.github.arrivedbog593.borderlesswindow.camera.ZoomState;
 import com.github.arrivedbog593.borderlesswindow.config.BorderlessConfigScreen;
 import com.github.arrivedbog593.borderlesswindow.fps.FpsOverlay;
-import com.github.arrivedbog593.borderlesswindow.general.BorderlessHandler;
 import com.github.arrivedbog593.borderlesswindow.general.HudState;
 import com.github.arrivedbog593.borderlesswindow.visual.ScreenEffectHandler;
-import net.minecraft.client.Minecraft;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.ModContainer;
 import net.neoforged.fml.common.Mod;
-import net.neoforged.fml.event.lifecycle.FMLClientSetupEvent;
 import net.neoforged.neoforge.client.event.RegisterKeyMappingsEvent;
 import net.neoforged.neoforge.client.event.RenderBlockScreenEffectEvent;
 import net.neoforged.neoforge.client.event.RenderGuiEvent;
@@ -27,10 +24,11 @@ import net.neoforged.neoforge.common.NeoForge;
  * configurable from the Mods menu (Config button) when it is not.
  * <p>
  * Everything else lives in common/; this class only connects it to
- * NeoForge: the client setup that restores the saved settings, the zoom
- * key, the three events common/ needs (HUD, block screen overlays, the
- * held item name's HUD layer), and the Config button. Each event handler
- * just translates the event for the loader-neutral class that decides.
+ * NeoForge: the zoom key, the three events common/ needs (HUD, block screen
+ * overlays, the held item name's HUD layer), and the Config button. Each
+ * event handler just translates the event for the loader-neutral class
+ * that decides. The saved settings are restored on the second frame (see
+ * MinecraftInitMixin), not from client setup.
  */
 @Mod(BorderlessWindowNeoForge.MOD_ID)
 @SuppressWarnings("unused")
@@ -39,7 +37,6 @@ public class BorderlessWindowNeoForge {
     public static final String MOD_ID = "borderlesswindow";
 
     public BorderlessWindowNeoForge(IEventBus modEventBus, ModContainer modContainer) {
-        modEventBus.addListener(BorderlessWindowNeoForge::onClientSetup);
         modEventBus.addListener(BorderlessWindowNeoForge::onRegisterKeyMappings);
 
         // Game event bus (not the mod bus) for the per-frame events.
@@ -51,13 +48,6 @@ public class BorderlessWindowNeoForge {
         // in the Mods menu. This is the UI for users without Sodium.
         modContainer.registerExtensionPoint(IConfigScreenFactory.class,
                 (container, parent) -> new BorderlessConfigScreen(parent));
-    }
-
-    private static void onClientSetup(FMLClientSetupEvent event) {
-        // enqueueWork runs on the game's main thread -- mandatory, since
-        // GLFW calls are not thread-safe.
-        event.enqueueWork(() ->
-                BorderlessHandler.initializeFromConfig(Minecraft.getInstance().getWindow()));
     }
 
     /** Adds the zoom key to Controls; NeoForge also saves it in options.txt. */

@@ -32,7 +32,7 @@ public abstract class WindowMixin {
 
         // Swallow toggles that happen before our config is loaded: vanilla's
         // Minecraft constructor auto-calls toggleFullScreen() at boot when
-        // options.txt says fullscreen=true, which runs before client setup.
+        // options.txt says fullscreen=true, long before MinecraftInitMixin.
         // initializeFromConfig() is the single authority on the startup mode.
         if (!BorderlessHandler.isInitialized()) {
             return;

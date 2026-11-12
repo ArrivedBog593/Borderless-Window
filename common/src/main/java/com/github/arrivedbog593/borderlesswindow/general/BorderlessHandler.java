@@ -95,7 +95,8 @@ public final class BorderlessHandler {
     }
 
     /**
-     * Called exactly once at game startup (from FMLClientSetupEvent).
+     * Called exactly once at game startup, on the second frame (see
+     * MinecraftInitMixin).
      * <p>
      * 1. Syncs the internal state with reality: if options.txt had
      *    fullscreen=true, vanilla may have CREATED the window in exclusive

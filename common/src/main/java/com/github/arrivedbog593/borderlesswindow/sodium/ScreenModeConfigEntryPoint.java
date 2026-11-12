@@ -81,6 +81,10 @@ public class ScreenModeConfigEntryPoint implements ConfigEntryPoint {
     public void registerConfigLate(ConfigBuilder builder) {
         builder.registerOwnModOptions()
                 .setName("Borderless Window")
+                // The mod icon beside the name in the page list, in its own
+                // colors (setIcon would be a single-color one, tinted by
+                // Sodium). Same file as the mod lists' icon.
+                .setNonTintedIcon(Identifier.parse("borderlesswindow:icon.png"))
                 // Page 1 - General.
                 .addPage(builder.createOptionPage()
                         .setName(Component.translatable("borderlesswindow.options.sodium.pages.general"))

@@ -13,6 +13,12 @@ neoForge {
             // the loader: run/ is not in git, so every branch shares it, and
             // versions and loaders must never mix mods or worlds.
             gameDirectory = rootProject.file("run/${minecraft_version}/neoforge/client")
+            // Running from the IDE checks every draw against what its
+            // pipeline declares, and Iris's shader pipelines leave some
+            // samplers unbound: with a shaderpack on, the game crashes
+            // ("Missing sampler" in GlCommandEncoder.trySetup). The check
+            // never runs outside the IDE.
+            systemProperty 'neoforge.disableGlValidation', 'true'
         }
 
         configureEach {
