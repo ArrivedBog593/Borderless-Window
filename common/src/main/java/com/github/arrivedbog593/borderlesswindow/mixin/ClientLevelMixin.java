@@ -48,7 +48,7 @@ public abstract class ClientLevelMixin {
             return;
         }
 
-        double distanceSqr = this.minecraft.gameRenderer.getMainCamera().position()
+        double distanceSqr = this.minecraft.gameRenderer.mainCamera().position()
                 .distanceToSqr(x, y, z);
         if (DistanceState.isBeyond(DistanceState.getParticles(), distanceSqr)) {
             ci.cancel();

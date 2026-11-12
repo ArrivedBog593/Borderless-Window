@@ -13,6 +13,12 @@ neoForge {
             // the loader: run/ is not in git, so every branch shares it, and
             // versions and loaders must never mix mods or worlds.
             gameDirectory = rootProject.file("run/${minecraft_version}/neoforge/client")
+            // Since 26.2, running from the IDE checks every draw against 16
+            // vertex buffer slots, and Iris's shader pipelines declare fewer:
+            // with a shaderpack on, the hand crashes the game (index out of
+            // bounds in GlCommandEncoder.validateDraw). The check never runs
+            // outside the IDE.
+            systemProperty 'neoforge.disableGlValidation', 'true'
         }
 
         configureEach {

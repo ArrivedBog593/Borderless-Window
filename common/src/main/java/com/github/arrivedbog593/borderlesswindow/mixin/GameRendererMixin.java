@@ -10,10 +10,6 @@ import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.client.DeltaTracker;
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.Options;
-import net.minecraft.client.gui.Gui;
-import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.client.renderer.state.level.CameraRenderState;
 import org.joml.Matrix4fc;
@@ -225,8 +221,7 @@ public abstract class GameRendererMixin {
      * See ZoomState.
      */
     @Inject(method = "update", at = @At("HEAD"))
-    private void borderlesswindow$updateZoom(DeltaTracker deltaTracker, boolean advanceGameTime,
-                                             CallbackInfo ci) {
+    private void borderlesswindow$updateZoom(DeltaTracker deltaTracker, CallbackInfo ci) {
         ZoomState.onFrame();
     }
 
@@ -240,34 +235,5 @@ public abstract class GameRendererMixin {
     private boolean borderlesswindow$shouldRenderHand(GameRenderer instance, CameraRenderState cameraState,
                                                       float partialTick, Matrix4fc modelViewMatrix) {
         return !ZoomState.shouldHideHand();
-    }
-
-    /**
-     * "Hide HUD" while zooming, done the way F1 does it: hideGui is raised
-     * for the duration of this one call. Everything that already honors
-     * F1 -- every HUD layer on both loaders, other mods' HUD elements, the
-     * FPS counter -- hides with it, and the player's own F1 state is put
-     * back untouched afterwards.
-     */
-    @WrapOperation(
-            method = "extractGui",
-            at = @At(value = "INVOKE",
-                    target = "Lnet/minecraft/client/gui/Gui;extractRenderState("
-                            + "Lnet/minecraft/client/gui/GuiGraphicsExtractor;Lnet/minecraft/client/DeltaTracker;)V"))
-    private void borderlesswindow$hideHudWhileZooming(Gui instance, GuiGraphicsExtractor guiGraphics,
-                                                      DeltaTracker deltaTracker,
-                                                      Operation<Void> original) {
-        if (!ZoomState.shouldHideHud()) {
-            original.call(instance, guiGraphics, deltaTracker);
-            return;
-        }
-        Options options = Minecraft.getInstance().options;
-        boolean hideGui = options.hideGui;
-        options.hideGui = true;
-        try {
-            original.call(instance, guiGraphics, deltaTracker);
-        } finally {
-            options.hideGui = hideGui;
-        }
     }
 }

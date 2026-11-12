@@ -89,7 +89,7 @@ public final class FpsOverlay {
         Minecraft minecraft = Minecraft.getInstance();
         sample(now, minecraft);
 
-        if (minecraft.options.hideGui || minecraft.getDebugOverlay().showDebugScreen()) {
+        if (minecraft.gui.hud.isHidden() || minecraft.getDebugOverlay().showDebugScreen()) {
             return;
         }
 

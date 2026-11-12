@@ -1,6 +1,7 @@
 {
   "required": true,
   "package": "com.github.arrivedbog593.borderlesswindow.mixin",
+  "plugin": "com.github.arrivedbog593.borderlesswindow.BorderlessMixinPlugin",
   "compatibilityLevel": "JAVA_21",
   "mixins": [
     "AbstractClientPlayerMixin",
@@ -14,9 +15,11 @@
     "FogRendererMixin",
     "FramerateLimitTrackerMixin",
     "GameRendererMixin",
-    "GLXMixin",
     "GuiMixin",
+    "HudMixin",
+    "IrisHandRendererMixin",
     "KeyboardHandlerMixin",
+    "MinecraftInitMixin",
     "MinecraftMixin",
     "MouseHandlerMixin",
     "SkyRendererMixin",

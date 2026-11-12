@@ -4,8 +4,8 @@ import com.github.arrivedbog593.borderlesswindow.visual.ScreenEffectHandler;
 import com.llamalad7.mixinextras.injector.v2.WrapWithCondition;
 import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.ScreenEffectRenderer;
+import net.minecraft.client.renderer.SubmitNodeCollector;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
@@ -15,10 +15,11 @@ import org.spongepowered.asm.mixin.injection.At;
 /**
  * Fabric's stand-in for NeoForge's RenderBlockScreenEffectEvent.
  * <p>
- * renderScreenEffect calls one method per view overlay; skipping a call is
- * what cancelling the event does on NeoForge. Only the water and fire calls
- * are wrapped: renderTex, the overlay drawn with your head inside a block,
- * is never touched (see ScreenEffectHandler).
+ * submit (renderScreenEffect up to 26.1.2) calls one method per view
+ * overlay; skipping a call is what cancelling the event does on NeoForge.
+ * Only the water and fire calls are wrapped: submitBlockSprite, the
+ * overlay drawn with your head inside a block, is never touched (see
+ * ScreenEffectHandler).
  */
 @Mixin(ScreenEffectRenderer.class)
 public abstract class ScreenEffectRendererMixin {
@@ -27,22 +28,22 @@ public abstract class ScreenEffectRendererMixin {
     @Final
     private Minecraft minecraft;
 
-    @WrapWithCondition(method = "renderScreenEffect",
+    @WrapWithCondition(method = "submit",
             at = @At(value = "INVOKE",
-                    target = "Lnet/minecraft/client/renderer/ScreenEffectRenderer;renderWater("
+                    target = "Lnet/minecraft/client/renderer/ScreenEffectRenderer;submitWater("
                             + "Lnet/minecraft/client/Minecraft;Lcom/mojang/blaze3d/vertex/PoseStack;"
-                            + "Lnet/minecraft/client/renderer/MultiBufferSource;)V"))
+                            + "Lnet/minecraft/client/renderer/SubmitNodeCollector;)V"))
     private boolean borderlesswindow$drawWater(Minecraft minecraft, PoseStack poseStack,
-                                               MultiBufferSource bufferSource) {
+                                               SubmitNodeCollector submitNodeCollector) {
         return !ScreenEffectHandler.shouldHideWater();
     }
 
-    @WrapWithCondition(method = "renderScreenEffect",
+    @WrapWithCondition(method = "submit",
             at = @At(value = "INVOKE",
-                    target = "Lnet/minecraft/client/renderer/ScreenEffectRenderer;renderFire("
-                            + "Lcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/MultiBufferSource;"
+                    target = "Lnet/minecraft/client/renderer/ScreenEffectRenderer;submitFire("
+                            + "Lcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/SubmitNodeCollector;"
                             + "Lnet/minecraft/client/renderer/texture/TextureAtlasSprite;)V"))
-    private boolean borderlesswindow$drawFire(PoseStack poseStack, MultiBufferSource bufferSource,
+    private boolean borderlesswindow$drawFire(PoseStack poseStack, SubmitNodeCollector submitNodeCollector,
                                               TextureAtlasSprite sprite) {
         return !ScreenEffectHandler.shouldHideFire(this.minecraft.player);
     }

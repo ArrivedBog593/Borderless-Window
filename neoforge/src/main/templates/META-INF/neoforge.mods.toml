@@ -8,9 +8,15 @@ clientSideOnly=true
 modId="${mod_id}"
 version="${mod_version}"
 displayName="${mod_name}"
-logoFile="assets/${mod_id}/icon.png"
-# Pixel-art icon: keep it crisp when NeoForge scales it.
-logoBlur=false
+displayURL="https://github.com/ArrivedBog593/Borderless-Window"
+# Since 26.2 the mod list shows an icon beside the name in the list and a
+# banner above the details (logoFile, now deprecated, was only the
+# banner). The square icon serves as both.
+iconFile="assets/${mod_id}/icon.png"
+bannerFile="assets/${mod_id}/icon.png"
+# Pixel-art icon: keep it crisp when NeoForge scales it (the banner is
+# never blurred).
+iconBlur=false
 authors="${mod_authors}"
 description='''${mod_description}'''
 displayTest="IGNORE_ALL_VERSION"

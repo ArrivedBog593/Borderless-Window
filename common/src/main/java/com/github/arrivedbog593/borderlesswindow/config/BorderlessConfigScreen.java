@@ -695,7 +695,7 @@ public class BorderlessConfigScreen extends Screen {
         DistanceState.persist();
         ZoomState.persist();
 
-        this.minecraft.setScreen(this.parent);
+        this.minecraft.gui.setScreen(this.parent);
     }
 
     /**

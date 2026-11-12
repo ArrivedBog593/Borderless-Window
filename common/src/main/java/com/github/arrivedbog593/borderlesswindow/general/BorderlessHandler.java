@@ -17,6 +17,7 @@ import com.github.arrivedbog593.borderlesswindow.visual.FogState;
 import com.github.arrivedbog593.borderlesswindow.visual.ScreenEffectState;
 import com.github.arrivedbog593.borderlesswindow.visual.SkyState;
 import com.mojang.blaze3d.platform.Window;
+import net.minecraft.client.Minecraft;
 import org.lwjgl.PointerBuffer;
 import org.lwjgl.glfw.GLFWVidMode;
 
@@ -31,7 +32,7 @@ import static org.lwjgl.glfw.GLFW.*;
  *   (glfwSetWindowMonitor with monitor=NULL). Windows never changes the
  *   physical display mode, so there are no scaling/HDR conflicts.
  * - FULLSCREEN: real EXCLUSIVE fullscreen, as vanilla with its
- *   Exclusive Fullscreen option on, which GLXMixin forces
+ *   Exclusive Fullscreen option on, which MinecraftMixin forces
  *   (glfwSetWindowMonitor with an actual monitor handle).
  */
 public final class BorderlessHandler {
@@ -95,7 +96,8 @@ public final class BorderlessHandler {
     }
 
     /**
-     * Called exactly once at game startup (from FMLClientSetupEvent).
+     * Called exactly once at game startup, on the second frame (see
+     * MinecraftInitMixin).
      * <p>
      * 1. Syncs the internal state with reality: if options.txt had
      *    fullscreen=true, vanilla may have CREATED the window in exclusive
@@ -175,6 +177,8 @@ public final class BorderlessHandler {
         ScreenMode previous = currentMode;
         currentMode = mode;
 
+        int framebufferWidth = window.getWidth();
+        int framebufferHeight = window.getHeight();
         boolean applied = switch (mode) {
             case WINDOWED -> applyWindowed(handle);
             case BORDERLESS -> applyBorderless(handle);
@@ -187,6 +191,18 @@ public final class BorderlessHandler {
             // internal state back to match reality.
             currentMode = previous;
             return;
+        }
+
+        // Borderless reports a framebuffer 1 px shorter than its window
+        // (WindowMixin.isSoftScreen). Between it and a mode of the same
+        // visible size -- Fullscreen on the same monitor -- vanilla sees no
+        // framebuffer change, so it never reconfigures the surface it
+        // presents to, which keeps the old window's height: OpenGL would
+        // draw every frame 1 px off. Report the change ourselves.
+        if ((previous == ScreenMode.BORDERLESS || mode == ScreenMode.BORDERLESS)
+                && window.getWidth() == framebufferWidth
+                && window.getHeight() == framebufferHeight) {
+            Minecraft.getInstance().framebufferSizeChanged();
         }
 
         BorderlessConfigFile.saveCurrent();

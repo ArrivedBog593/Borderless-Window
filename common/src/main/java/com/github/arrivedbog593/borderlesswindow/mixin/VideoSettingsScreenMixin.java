@@ -113,8 +113,8 @@ public abstract class VideoSettingsScreenMixin extends OptionsSubScreen {
      * options as one array and hands it to addSmall.
      * <p>
      * Also drops vanilla's Exclusive Fullscreen toggle (26.1+): the mod's
-     * Fullscreen is always exclusive (see GLXMixin), so the toggle would
-     * do nothing. Brightness moves up next to the selector.
+     * Fullscreen is always exclusive (see MinecraftMixin), so the toggle
+     * would do nothing. Brightness moves up next to the selector.
      */
     @ModifyArg(method = "addOptions",
             at = @At(value = "INVOKE",
@@ -143,7 +143,7 @@ public abstract class VideoSettingsScreenMixin extends OptionsSubScreen {
         // matching vanilla's "big" options above it.
         Button button = Button.builder(
                         Component.translatable("borderlesswindow.options.vanilla.open_config"),
-                        pressed -> Minecraft.getInstance().setScreen(new BorderlessConfigScreen(this)))
+                        pressed -> Minecraft.getInstance().gui.setScreen(new BorderlessConfigScreen(this)))
                 .tooltip(Tooltip.create(Component.translatable("borderlesswindow.options.vanilla.open_config.tooltip")))
                 .width(310)
                 .build();

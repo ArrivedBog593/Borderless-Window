@@ -42,7 +42,7 @@ public abstract class MouseHandlerMixin {
     private void borderlesswindow$scrollZoom(long windowPointer, double xOffset, double yOffset,
                                              CallbackInfo ci) {
         Minecraft minecraft = Minecraft.getInstance();
-        if (windowPointer != minecraft.getWindow().handle() || minecraft.getOverlay() != null) {
+        if (windowPointer != minecraft.getWindow().handle() || minecraft.gui.overlay() != null) {
             return;
         }
         double amount = minecraft.options.discreteMouseScroll().get() ? Math.signum(yOffset) : yOffset;

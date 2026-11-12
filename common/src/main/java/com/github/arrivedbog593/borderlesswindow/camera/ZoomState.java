@@ -225,6 +225,7 @@ public final class ZoomState {
     }
 
     /** Whether the hand should be skipped this frame. */
+    @SuppressWarnings("BooleanMethodIsAlwaysInverted")
     public static boolean shouldHideHand() {
         return hideHand && isZooming(Minecraft.getInstance().player);
     }
@@ -242,7 +243,7 @@ public final class ZoomState {
      */
     public static boolean onScroll(double amount) {
         Minecraft minecraft = Minecraft.getInstance();
-        if (!scrollEnabled || minecraft.screen != null || !isZooming(minecraft.player)) {
+        if (!scrollEnabled || minecraft.gui.screen() != null || !isZooming(minecraft.player)) {
             return false;
         }
         if (scrollAccumulator != 0.0D && Math.signum(amount) != Math.signum(scrollAccumulator)) {

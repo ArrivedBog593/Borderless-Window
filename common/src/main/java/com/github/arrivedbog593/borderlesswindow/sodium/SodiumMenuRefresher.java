@@ -38,7 +38,7 @@ public final class SodiumMenuRefresher {
     }
 
     public static void refreshIfSodiumMenuOpen() {
-        Screen screen = Minecraft.getInstance().screen;
+        Screen screen = Minecraft.getInstance().gui.screen();
         if (screen == null || !SODIUM_OPTION_SCREENS.contains(screen.getClass().getName())) {
             return;
         }

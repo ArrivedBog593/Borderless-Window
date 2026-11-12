@@ -5,7 +5,9 @@ import com.github.arrivedbog593.borderlesswindow.fps.UnfocusedVolumeState;
 import com.github.arrivedbog593.borderlesswindow.general.BorderlessHandler;
 import com.github.arrivedbog593.borderlesswindow.general.ScreenMode;
 import com.github.arrivedbog593.borderlesswindow.sodium.SodiumMenuRefresher;
+import com.llamalad7.mixinextras.injector.ModifyReturnValue;
 import com.mojang.blaze3d.platform.Window;
+import net.minecraft.util.Util;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
@@ -32,7 +34,7 @@ public abstract class WindowMixin {
 
         // Swallow toggles that happen before our config is loaded: vanilla's
         // Minecraft constructor auto-calls toggleFullScreen() at boot when
-        // options.txt says fullscreen=true, which runs before client setup.
+        // options.txt says fullscreen=true, long before MinecraftInitMixin.
         // initializeFromConfig() is the single authority on the startup mode.
         if (!BorderlessHandler.isInitialized()) {
             return;
@@ -49,6 +51,28 @@ public abstract class WindowMixin {
     @Inject(method = "isFullscreen", at = @At("RETURN"), cancellable = true)
     private void borderlesswindow$isFullscreen(CallbackInfoReturnable<Boolean> cir) {
         cir.setReturnValue(BorderlessHandler.getCurrentMode() != ScreenMode.WINDOWED);
+    }
+
+    /**
+     * Since 26.2 a "soft" fullscreen window (vanilla's non-exclusive one,
+     * 1 px taller than the monitor on Windows) reports a framebuffer 1 px
+     * shorter than itself, and both graphics backends present the frame at
+     * the top of the window, so the extra row hangs off-screen unused.
+     * Vanilla decides that from the fullscreen field and its Exclusive
+     * Fullscreen option, neither of which follows the mod's modes: the
+     * field stays as the launch left it (toggleFullScreen is cancelled
+     * above) and Fullscreen is always exclusive (MinecraftMixin). Left
+     * alone, a game launched with --fullscreen and the option off would
+     * lose 1 px in every mode. Our Borderless window is the one with the
+     * extra pixel (BorderlessHandler.applyBorderless), so it gets the
+     * correction instead: its framebuffer matches the monitor. Windows
+     * only, as vanilla: elsewhere a window manager may clamp the window to
+     * the monitor, and the correction would cut a visible row.
+     */
+    @ModifyReturnValue(method = "isSoftScreen", at = @At("RETURN"))
+    private boolean borderlesswindow$isSoftScreen(boolean original) {
+        return Util.getPlatform() == Util.OS.WINDOWS
+                && BorderlessHandler.getCurrentMode() == ScreenMode.BORDERLESS;
     }
 
     /**

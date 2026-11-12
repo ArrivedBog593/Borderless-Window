@@ -5,13 +5,13 @@
 
 *[Español](README_ES.md)*
 
-A lightweight client-side mod for **NeoForge and Fabric 26.1.2** that adds **borderless fullscreen** to Minecraft, replacing the exclusive fullscreen toggle with a proper 3-mode system — plus a set of video and quality-of-life options Minecraft doesn't expose.
+A lightweight client-side mod for **NeoForge and Fabric 26.2** that adds **borderless fullscreen** to Minecraft, replacing the exclusive fullscreen toggle with a proper 3-mode system — plus a set of video and quality-of-life options Minecraft doesn't expose.
 
 ## Features
 
 ### Window
 
-- **Three screen modes**: Windowed, Borderless, and Fullscreen, which is always exclusive (Minecraft's own "Exclusive Fullscreen" option is no longer needed).
+- **Three screen modes**: Windowed, Borderless, and Fullscreen, which is always exclusive with OpenGL (Minecraft's own "Exclusive Fullscreen" option is no longer needed). With Vulkan, Minecraft 26.2's other graphics API, its fullscreen is never exclusive, so there it does not conflict with HDR.
 - **Configurable F11**: toggle Borderless, toggle exclusive Fullscreen, or **cycle through all three modes**.
 - **HDR-friendly**: avoids the black-screen flash and color profile switch that exclusive fullscreen (and naive borderless implementations) cause with Windows HDR enabled.
 - **Multi-monitor aware**: applies on the monitor the window is currently on, not always the primary one.
@@ -44,6 +44,7 @@ A lightweight client-side mod for **NeoForge and Fabric 26.1.2** that adds **bor
 - **NeoForge and Fabric**: the same mod, every feature, on both loaders. They even share the same config file.
 - **Built into Minecraft's own menus**: without Sodium, the "Fullscreen" toggle in Video Settings becomes a "Screen Mode" selector (Minecraft's "Exclusive Fullscreen" toggle is hidden), and a "Borderless Window..." button there opens the full config screen. No other mod needed on either loader.
 - **Sodium integration** (optional): with [Sodium](https://www.curseforge.com/minecraft/mc-mods/sodium) 0.9.0 or newer installed, the "Fullscreen Mode" selector in its video settings is replaced by a "Screen Mode" selector, and the mod gets its own section with six pages. Built entirely on Sodium's official Config API — no fragile mixins into Sodium internals. Also plays nice with Reese's Sodium Options.
+- **Iris shaders**: with a shaderpack on, Iris draws the hand itself; the zoom's Hide Hand and the separate Hand Bobbing follow it there too.
 - **Nothing else to install**: works with or without Sodium. On Fabric it does not require Fabric API — the two small pieces it uses, to load its translations and to add the zoom key to Controls, ship inside the jar, as Sodium does. Mod Menu is optional.
 - **Persistent**: all settings are remembered between sessions (`config/borderlesswindow.json`).
 - **Translatable**: all strings live in standard lang files (`en_us`, `es_mx`, `es_es` included — contributions welcome).
@@ -64,12 +65,14 @@ Every setting defaults to vanilla behavior, so installing or updating the mod ne
 
 ## Requirements
 
-- Minecraft **26.1.2**
-- **NeoForge** 26.1.2.x, or **Fabric Loader** 0.18.4+ (Fabric API not required)
+- Minecraft **26.2**
+- **NeoForge** 26.2.x, or **Fabric Loader** 0.18.4+ (Fabric API not required)
 - (Optional) **Sodium 0.9.0+** for the video settings integration
 - (Optional, Fabric) **Mod Menu**, to also open the config from its mod list
 
 Download the jar for your loader: `borderlesswindow-neoforge-…` or `borderlesswindow-fabric-…`.
+
+**Vulkan on NeoForge:** NeoForge 26.2.0.93's early loading screen always opens an OpenGL window, so with the Graphics API set to Vulkan the game stops at launch with "GLFW error 65540". Until NeoForge fixes it, set `earlyWindowControl = false` in `config/fml.toml`. Fabric is not affected.
 
 ## License
 
