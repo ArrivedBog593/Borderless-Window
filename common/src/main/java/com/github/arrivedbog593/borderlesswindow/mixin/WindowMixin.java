@@ -7,8 +7,10 @@ import com.github.arrivedbog593.borderlesswindow.general.ScreenMode;
 import com.github.arrivedbog593.borderlesswindow.sodium.SodiumMenuRefresher;
 import com.mojang.blaze3d.platform.Window;
 import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.ModifyVariable;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
@@ -25,6 +27,9 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
  */
 @Mixin(Window.class)
 public abstract class WindowMixin {
+
+    @Shadow
+    private int framebufferHeight;
 
     @Inject(method = "toggleFullScreen", at = @At("HEAD"), cancellable = true)
     private void borderlesswindow$onToggle(CallbackInfo ci) {
@@ -49,6 +54,36 @@ public abstract class WindowMixin {
     @Inject(method = "isFullscreen", at = @At("RETURN"), cancellable = true)
     private void borderlesswindow$isFullscreen(CallbackInfoReturnable<Boolean> cir) {
         cir.setReturnValue(BorderlessHandler.getCurrentMode() != ScreenMode.WINDOWED);
+    }
+
+    /**
+     * Our Borderless window is 1 px taller than the monitor, and the game
+     * would render that extra row too, off-screen. Here the framebuffer
+     * size the game renders at leaves it out, so it matches the monitor
+     * (1920x1080 instead of 1920x1081: F3, screenshots, one row less to
+     * draw), and GlCommandEncoderMixin presents the frame at the top of the
+     * window. Minecraft 26.2 does the same for its own non-exclusive
+     * fullscreen. A newHeight of 0 (minimized) is left alone.
+     * <p>
+     * BorderlessHandler.setMode switches the mode before moving the window,
+     * so the resize callback already sees the new one. Between Borderless
+     * and Fullscreen on the same monitor the size stays the same, and only
+     * where the frame is presented changes.
+     */
+    @ModifyVariable(method = "onFramebufferResize", at = @At("HEAD"), argsOnly = true, ordinal = 1)
+    private int borderlesswindow$hideBottomRowOnResize(int newHeight) {
+        return newHeight > 1 && BorderlessHandler.hasHiddenBottomRow() ? newHeight - 1 : newHeight;
+    }
+
+    /**
+     * Same as above for the size read straight from GLFW (at window
+     * creation, before the saved mode applies, so normally a no-op).
+     */
+    @Inject(method = "refreshFramebufferSize", at = @At("TAIL"))
+    private void borderlesswindow$hideBottomRowOnRefresh(CallbackInfo ci) {
+        if (this.framebufferHeight > 1 && BorderlessHandler.hasHiddenBottomRow()) {
+            this.framebufferHeight--;
+        }
     }
 
     /**

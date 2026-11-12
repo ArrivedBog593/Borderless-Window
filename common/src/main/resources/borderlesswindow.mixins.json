@@ -16,6 +16,7 @@
     "FramerateLimitTrackerMixin",
     "GameRendererMixin",
     "GLXMixin",
+    "GlCommandEncoderMixin",
     "GuiMixin",
     "IrisHandRendererMixin",
     "KeyboardHandlerMixin",
