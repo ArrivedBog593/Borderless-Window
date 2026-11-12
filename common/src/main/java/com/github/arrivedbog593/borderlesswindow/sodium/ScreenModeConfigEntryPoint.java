@@ -18,6 +18,7 @@ import com.github.arrivedbog593.borderlesswindow.visual.CloudState;
 import com.github.arrivedbog593.borderlesswindow.visual.FogState;
 import net.caffeinemc.mods.sodium.api.config.ConfigEntryPoint;
 import net.caffeinemc.mods.sodium.api.config.structure.ConfigBuilder;
+import net.caffeinemc.mods.sodium.api.config.structure.ModOptionsBuilder;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
 
@@ -76,8 +77,18 @@ public class ScreenModeConfigEntryPoint implements ConfigEntryPoint {
 
     @Override
     public void registerConfigLate(ConfigBuilder builder) {
-        builder.registerOwnModOptions()
-                .setName("Borderless Window")
+        ModOptionsBuilder options = builder.registerOwnModOptions()
+                .setName("Borderless Window");
+        // The mod icon beside the name in the page list, in its own colors
+        // (setIcon would be a single-color one, tinted by Sodium). Same file
+        // as the mod lists' icon. Sodium's first 1.21.11 builds (0.8.0) do
+        // not have setNonTintedIcon yet: there the page just has no icon.
+        try {
+            options.setNonTintedIcon(Identifier.parse("borderlesswindow:icon.png"));
+        } catch (LinkageError e) {
+            // Older Sodium API without the method.
+        }
+        options
                 // Page 1 - General.
                 .addPage(builder.createOptionPage()
                         .setName(Component.translatable("borderlesswindow.options.sodium.pages.general"))

@@ -44,6 +44,7 @@ A lightweight client-side mod for **NeoForge and Fabric 1.21.11** that adds **bo
 - **NeoForge and Fabric**: the same mod, every feature, on both loaders. They even share the same config file.
 - **Built into Minecraft's own menus**: without Sodium, the "Fullscreen" toggle in Video Settings becomes a "Screen Mode" selector, and a "Borderless Window..." button there opens the full config screen. No other mod needed on either loader.
 - **Sodium integration** (optional): with [Sodium](https://www.curseforge.com/minecraft/mc-mods/sodium) 0.8.x installed, the "Fullscreen" checkbox in its video settings is replaced by a "Screen Mode" selector, and the mod gets its own section with six pages. Built entirely on Sodium's official Config API — no fragile mixins into Sodium internals. Also plays nice with Reese's Sodium Options.
+- **Iris shaders**: with a shaderpack on, Iris draws the hand itself; the zoom's Hide Hand and the separate Hand Bobbing follow it there too.
 - **Nothing else to install**: works with or without Sodium. On Fabric it does not require Fabric API — the two small pieces it uses, to load its translations and to add the zoom key to Controls, ship inside the jar, as Sodium does. Mod Menu is optional.
 - **Persistent**: all settings are remembered between sessions (`config/borderlesswindow.json`).
 - **Translatable**: all strings live in standard lang files (`en_us`, `es_mx`, `es_es` included — contributions welcome).

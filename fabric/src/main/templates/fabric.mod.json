@@ -8,6 +8,7 @@
     "${mod_authors}"
   ],
   "contact": {
+    "homepage": "https://github.com/ArrivedBog593/Borderless-Window",
     "sources": "https://github.com/ArrivedBog593/Borderless-Window",
     "issues": "https://github.com/ArrivedBog593/Borderless-Window/issues"
   },
