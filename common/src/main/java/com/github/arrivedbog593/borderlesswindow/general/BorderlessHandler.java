@@ -17,6 +17,7 @@ import com.github.arrivedbog593.borderlesswindow.visual.FogState;
 import com.github.arrivedbog593.borderlesswindow.visual.ScreenEffectState;
 import com.github.arrivedbog593.borderlesswindow.visual.SkyState;
 import com.mojang.blaze3d.platform.Window;
+import net.minecraft.Util;
 import org.lwjgl.PointerBuffer;
 import org.lwjgl.glfw.GLFWVidMode;
 
@@ -58,6 +59,20 @@ public final class BorderlessHandler {
 
     public static ScreenMode getCurrentMode() {
         return currentMode;
+    }
+
+    /**
+     * Whether the window is our Borderless one, 1 px taller than the
+     * monitor (applyBorderless). The game then renders 1 px shorter than
+     * the window, matching the monitor, and presents that frame at the top
+     * of the window, leaving the extra row hidden below the screen (see
+     * WindowMixin and RenderTargetMixin), as Minecraft 26.2 does for its
+     * own non-exclusive fullscreen. Windows only: elsewhere a window
+     * manager may clamp the window to the monitor, and trimming would cut a
+     * visible row.
+     */
+    public static boolean hasHiddenBottomRow() {
+        return Util.getPlatform() == Util.OS.WINDOWS && currentMode == ScreenMode.BORDERLESS;
     }
 
     public static F11Mode getF11Target() {
