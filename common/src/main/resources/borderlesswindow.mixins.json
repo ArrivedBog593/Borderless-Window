@@ -14,6 +14,7 @@
     "FogRendererMixin",
     "FramerateLimitTrackerMixin",
     "GameRendererMixin",
+    "GlCommandEncoderMixin",
     "GuiMixin",
     "IrisHandRendererMixin",
     "KeyboardHandlerMixin",

@@ -6,6 +6,7 @@ English only.
 
 | Version | Notes                                               |
 |---------|-----------------------------------------------------|
+| 1.11.3  | [changelog-1.11.3.md](changelogs/changelog-1.11.3.md) |
 | 1.11.2  | [changelog-1.11.2.md](changelogs/changelog-1.11.2.md) |
 | 1.11.1  | [changelog-1.11.1.md](changelogs/changelog-1.11.1.md) |
 | 1.11.0  | [changelog-1.11.0.md](changelogs/changelog-1.11.0.md) |
