@@ -112,9 +112,9 @@ public abstract class VideoSettingsScreenMixin extends OptionsSubScreen {
      * place, so it keeps its spot in the grid. Vanilla builds the small
      * options as one array and hands it to addSmall.
      * <p>
-     * Also drops vanilla's Exclusive Fullscreen toggle (26.1+): the mod's
-     * Fullscreen is always exclusive (see MinecraftMixin), so the toggle
-     * would do nothing. Brightness moves up next to the selector.
+     * Also drops vanilla's Exclusive Fullscreen toggle: the selector sets it
+     * too (off for Borderless, on for Fullscreen; see BorderlessHandler).
+     * Brightness moves up next to the selector.
      */
     @ModifyArg(method = "addOptions",
             at = @At(value = "INVOKE",
@@ -169,6 +169,6 @@ public abstract class VideoSettingsScreenMixin extends OptionsSubScreen {
                 new OptionInstance.Enum<>(List.of(ScreenMode.values()),
                         Codec.STRING.xmap(ScreenMode::valueOf, ScreenMode::name)),
                 BorderlessHandler.getCurrentMode(),
-                mode -> BorderlessHandler.setMode(Minecraft.getInstance().getWindow(), mode));
+                mode -> BorderlessHandler.setMode(mode));
     }
 }

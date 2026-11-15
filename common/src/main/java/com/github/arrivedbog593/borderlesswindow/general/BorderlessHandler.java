@@ -16,50 +16,53 @@ import com.github.arrivedbog593.borderlesswindow.visual.CloudState;
 import com.github.arrivedbog593.borderlesswindow.visual.FogState;
 import com.github.arrivedbog593.borderlesswindow.visual.ScreenEffectState;
 import com.github.arrivedbog593.borderlesswindow.visual.SkyState;
-import com.mojang.blaze3d.platform.Window;
 import net.minecraft.client.Minecraft;
-import org.lwjgl.PointerBuffer;
-import org.lwjgl.glfw.GLFWVidMode;
-
-import static org.lwjgl.glfw.GLFW.*;
+import net.minecraft.client.Options;
 
 /**
- * GLFW logic for the 3 screen modes:
+ * The 3 screen modes, on top of vanilla's own window handling.
  * <p>
- * - WINDOWED: normal decorated window, restored to its previous size.
- * - BORDERLESS: undecorated window stretched to the monitor size
- *   (+1 px of height, see applyBorderless), but it REMAINS a window
- *   (glfwSetWindowMonitor with monitor=NULL). Windows never changes the
- *   physical display mode, so there are no scaling/HDR conflicts.
- * - FULLSCREEN: real EXCLUSIVE fullscreen, as vanilla with its
- *   Exclusive Fullscreen option on, which MinecraftMixin forces
- *   (glfwSetWindowMonitor with an actual monitor handle).
+ * Since 26.3 (SDL instead of GLFW) vanilla has all 3 itself, picked by two
+ * options it saves in options.txt:
+ * <p>
+ * - WINDOWED: Fullscreen off. Vanilla restores the window's last size and
+ *   position.
+ * - BORDERLESS: Fullscreen on, Exclusive Fullscreen off. On Windows, an
+ *   undecorated window covering the monitor, 1 px wider than it so the
+ *   driver does not take it over as exclusive (the same trick the mod used
+ *   to do itself, then with the extra pixel in height), and a framebuffer
+ *   without that pixel. Elsewhere, SDL's desktop fullscreen.
+ * - FULLSCREEN: Fullscreen on, Exclusive Fullscreen on. Real exclusive
+ *   fullscreen at the Fullscreen Resolution option's video mode.
+ * <p>
+ * Vanilla applies them without a restart and restores them at startup on
+ * its own. What the mod adds is one selector for the 3 (instead of the two
+ * toggles, see VideoSettingsScreenMixin and the Sodium page) and what F11
+ * does (the "F11 Mode" option, see MinecraftMixin.toggleFullscreen).
  */
 public final class BorderlessHandler {
 
-    private static ScreenMode currentMode = ScreenMode.WINDOWED;
-
     // False until initializeFromConfig() has loaded the saved config.
-    // Vanilla's Minecraft constructor calls toggleFullScreen() during early
-    // boot (to reconcile options.txt's fullscreen flag) -- long before our
-    // config is loaded. Toggles arriving before initialization must be
-    // swallowed, otherwise they apply the default F11 target and SAVE it,
-    // clobbering the user's saved config before we ever read it.
     private static boolean initialized = false;
 
     // What F11 does. Configurable through the "F11 Mode" option in the
     // video settings menu (Borderless Window section).
     private static F11Mode f11Target = F11Mode.BORDERLESS;
 
-    // Size/position of the window in WINDOWED mode, so we can restore it.
-    private static int savedX, savedY, savedWidth, savedHeight;
-    private static boolean hasSavedWindowedState = false;
-
     private BorderlessHandler() {
     }
 
+    /**
+     * The mode the options ask for. Vanilla applies a change to Fullscreen
+     * on the next frame, and puts the option back if the window could not
+     * follow it (Minecraft.fullscreenStateChanged).
+     */
     public static ScreenMode getCurrentMode() {
-        return currentMode;
+        Options options = Minecraft.getInstance().options;
+        if (!options.fullscreen().get()) {
+            return ScreenMode.WINDOWED;
+        }
+        return options.exclusiveFullscreen().get() ? ScreenMode.FULLSCREEN : ScreenMode.BORDERLESS;
     }
 
     public static F11Mode getF11Target() {
@@ -78,6 +81,7 @@ public final class BorderlessHandler {
      * - CYCLE: Windowed -> Borderless -> Fullscreen -> Windowed.
      */
     public static ScreenMode getNextF11Mode() {
+        ScreenMode currentMode = getCurrentMode();
         return switch (f11Target) {
             case BORDERLESS -> currentMode == ScreenMode.WINDOWED
                     ? ScreenMode.BORDERLESS : ScreenMode.WINDOWED;
@@ -97,20 +101,18 @@ public final class BorderlessHandler {
 
     /**
      * Called exactly once at game startup, on the second frame (see
-     * MinecraftInitMixin).
+     * MinecraftInitMixin). Hands every setting in
+     * config/borderlesswindow.json to its state holder (single load point
+     * for the whole config).
      * <p>
-     * 1. Syncs the internal state with reality: if options.txt had
-     *    fullscreen=true, vanilla may have CREATED the window in exclusive
-     *    fullscreen -- we detect that by asking GLFW whether the window
-     *    has a monitor assigned.
-     * 2. Applies the mode saved in config/borderlesswindow.json, and
-     *    hands the FPS overlay, fog, cloud, screen overlay, bobbing, and
-     *    enchantment numeral settings from the same file to their state
-     *    holders (single load point for the whole config).
-     * 3. Marks the handler as initialized, which unblocks F11 handling
-     *    in WindowMixin.
+     * The screen mode is vanilla's since 26.3 and already restored by the
+     * time this runs. Configs from older versions still hold the mode the
+     * mod restored itself: it is applied once here, so updating does not
+     * switch between Borderless and Fullscreen (those versions left
+     * Exclusive Fullscreen as it was), and the save that follows drops it
+     * from the file.
      */
-    public static void initializeFromConfig(Window window) {
+    public static void initializeFromConfig() {
         var config = BorderlessConfigFile.load();
         f11Target = config.f11Mode();
         FpsOverlayState.init(config.fpsOverlayMode(), config.fpsOverlayPosition());
@@ -140,160 +142,29 @@ public final class BorderlessHandler {
                 config.zoomScroll(), config.zoomSmooth(),
                 config.zoomHideHand(), config.zoomHideHud());
 
-        if (glfwGetWindowMonitor(window.handle()) != 0L) {
-            // The game booted in exclusive fullscreen via options.txt.
-            currentMode = ScreenMode.FULLSCREEN;
-        }
-
         initialized = true;
-        setMode(window, config.screenMode());
-    }
-
-    public static void setMode(Window window, ScreenMode mode) {
-        if (mode == currentMode) {
-            return;
+        if (config.legacyScreenMode() != null) {
+            setMode(config.legacyScreenMode());
+            BorderlessConfigFile.saveCurrent();
         }
-
-        long handle = window.handle();
-
-        // If we are leaving WINDOWED, remember its size/position so we can
-        // restore it later, regardless of which mode we switch to now.
-        if (currentMode == ScreenMode.WINDOWED) {
-            int[] x = new int[1], y = new int[1], w = new int[1], h = new int[1];
-            glfwGetWindowPos(handle, x, y);
-            glfwGetWindowSize(handle, w, h);
-            savedX = x[0];
-            savedY = y[0];
-            savedWidth = w[0];
-            savedHeight = h[0];
-            hasSavedWindowedState = true;
-        }
-
-        // Update the state BEFORE applying the GLFW change: applying resizes
-        // the window, which synchronously re-inits any open Screen -- and a
-        // rebuilt screen (e.g., our config screen) reads getCurrentMode() at
-        // that exact moment. If we updated the state after applying, those
-        // observers would rebuild with the stale mode (off-by-one UI bug).
-        ScreenMode previous = currentMode;
-        currentMode = mode;
-
-        int framebufferWidth = window.getWidth();
-        int framebufferHeight = window.getHeight();
-        boolean applied = switch (mode) {
-            case WINDOWED -> applyWindowed(handle);
-            case BORDERLESS -> applyBorderless(handle);
-            case FULLSCREEN -> applyExclusiveFullscreen(handle);
-        };
-
-        if (!applied) {
-            // The target monitor was in an invalid state (e.g., disconnected
-            // mid-switch). The window was left untouched, so roll the
-            // internal state back to match reality.
-            currentMode = previous;
-            return;
-        }
-
-        // Borderless reports a framebuffer 1 px shorter than its window
-        // (WindowMixin.isSoftScreen). Between it and a mode of the same
-        // visible size -- Fullscreen on the same monitor -- vanilla sees no
-        // framebuffer change, so it never reconfigures the surface it
-        // presents to, which keeps the old window's height: OpenGL would
-        // draw every frame 1 px off. Report the change ourselves.
-        if ((previous == ScreenMode.BORDERLESS || mode == ScreenMode.BORDERLESS)
-                && window.getWidth() == framebufferWidth
-                && window.getHeight() == framebufferHeight) {
-            Minecraft.getInstance().framebufferSizeChanged();
-        }
-
-        BorderlessConfigFile.saveCurrent();
-    }
-
-    private static boolean applyWindowed(long handle) {
-        glfwSetWindowAttrib(handle, GLFW_DECORATED, GLFW_TRUE);
-        if (hasSavedWindowedState) {
-            glfwSetWindowMonitor(handle, 0L, savedX, savedY, savedWidth, savedHeight, GLFW_DONT_CARE);
-        } else {
-            // No previous windowed state to restore (e.g., the game booted
-            // straight into borderless/fullscreen): use a sane default.
-            glfwSetWindowMonitor(handle, 0L, 100, 100, 1280, 720, GLFW_DONT_CARE);
-        }
-        return true;
-    }
-
-    private static boolean applyBorderless(long handle) {
-        long monitor = findWindowMonitor(handle);
-        GLFWVidMode vidMode = glfwGetVideoMode(monitor);
-        if (vidMode == null) {
-            // Monitor in an invalid state (e.g., being disconnected right
-            // now). Better to leave the window as-is than to crash.
-            return false;
-        }
-        int[] monitorX = new int[1], monitorY = new int[1];
-        glfwGetMonitorPos(monitor, monitorX, monitorY);
-
-        glfwSetWindowAttrib(handle, GLFW_DECORATED, GLFW_FALSE);
-
-        // ANTI-PROMOTION TRICK (+1 px of height):
-        // If a borderless window covers the monitor EXACTLY, Windows and
-        // the GPU driver (especially NVIDIA with OpenGL) "promote" it to
-        // an exclusive-fullscreen-like presentation mode (independent
-        // flip). With HDR enabled, that promotion causes the same black
-        // flash / color profile switch as exclusive fullscreen -- exactly
-        // what this mode is meant to avoid. Making the window 1 pixel
-        // taller than the monitor defeats the detection; the extra pixel
-        // hangs off-screen and is invisible. This is the same workaround
-        // used by borderless tools such as Special K or Borderless Gaming.
-        glfwSetWindowMonitor(handle, 0L, monitorX[0], monitorY[0],
-                vidMode.width(), vidMode.height() + 1, GLFW_DONT_CARE);
-        return true;
-    }
-
-    private static boolean applyExclusiveFullscreen(long handle) {
-        long monitor = findWindowMonitor(handle);
-        GLFWVidMode vidMode = glfwGetVideoMode(monitor);
-        if (vidMode == null) {
-            // Monitor in an invalid state: leave the window untouched.
-            return false;
-        }
-
-        // Real exclusive fullscreen: an actual monitor handle is passed.
-        // Decoration does not matter here, GLFW ignores it in exclusive mode.
-        glfwSetWindowMonitor(handle, monitor, 0, 0,
-                vidMode.width(), vidMode.height(), vidMode.refreshRate());
-        return true;
     }
 
     /**
-     * Returns the monitor the window is on RIGHT NOW (the one containing
-     * its center), instead of always assuming the primary one. This way,
-     * if you drag the window to your second monitor and enable
-     * borderless/fullscreen, it is applied on THAT monitor. If the center
-     * is not inside any monitor (rare case: window dragged outside all of
-     * them), it falls back to the primary monitor.
+     * Sets vanilla's two options to the mode and saves options.txt.
+     * Exclusive Fullscreen first: while the window is fullscreen, changing
+     * it applies at once (Borderless <-> Fullscreen), and turning
+     * Fullscreen on then picks the right kind on the next frame. Windowed
+     * keeps Exclusive Fullscreen as it was, as vanilla does.
      */
-    private static long findWindowMonitor(long handle) {
-        int[] wx = new int[1], wy = new int[1], ww = new int[1], wh = new int[1];
-        glfwGetWindowPos(handle, wx, wy);
-        glfwGetWindowSize(handle, ww, wh);
-        int centerX = wx[0] + ww[0] / 2;
-        int centerY = wy[0] + wh[0] / 2;
-
-        PointerBuffer monitors = glfwGetMonitors();
-        if (monitors != null) {
-            for (int i = 0; i < monitors.limit(); i++) {
-                long monitor = monitors.get(i);
-                GLFWVidMode vidMode = glfwGetVideoMode(monitor);
-                if (vidMode == null) {
-                    continue;
-                }
-                int[] mx = new int[1], my = new int[1];
-                glfwGetMonitorPos(monitor, mx, my);
-                if (centerX >= mx[0] && centerX < mx[0] + vidMode.width()
-                        && centerY >= my[0] && centerY < my[0] + vidMode.height()) {
-                    return monitor;
-                }
-            }
+    public static void setMode(ScreenMode mode) {
+        if (mode == getCurrentMode()) {
+            return;
         }
-        return glfwGetPrimaryMonitor();
+        Options options = Minecraft.getInstance().options;
+        if (mode != ScreenMode.WINDOWED) {
+            options.exclusiveFullscreen().set(mode == ScreenMode.FULLSCREEN);
+        }
+        options.fullscreen().set(mode != ScreenMode.WINDOWED);
+        options.save();
     }
 }

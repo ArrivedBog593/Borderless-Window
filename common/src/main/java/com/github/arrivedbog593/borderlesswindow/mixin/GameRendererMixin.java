@@ -4,17 +4,16 @@ import com.github.arrivedbog593.borderlesswindow.camera.BobbingState;
 import com.github.arrivedbog593.borderlesswindow.camera.CameraBobMode;
 import com.github.arrivedbog593.borderlesswindow.camera.DistortionState;
 import com.github.arrivedbog593.borderlesswindow.camera.ZoomState;
-import com.llamalad7.mixinextras.injector.ModifyExpressionValue;
 import com.llamalad7.mixinextras.injector.v2.WrapWithCondition;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
+import com.mojang.renderpearl.api.textures.GpuTextureView;
 import com.mojang.blaze3d.vertex.PoseStack;
+import com.mojang.math.Axis;
 import net.minecraft.client.DeltaTracker;
 import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.client.renderer.state.level.CameraRenderState;
-import org.joml.Matrix4fc;
-import org.joml.Quaternionfc;
-import org.objectweb.asm.Opcodes;
+import net.minecraft.client.renderer.state.level.PlayerRenderState;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
@@ -138,75 +137,26 @@ public abstract class GameRendererMixin {
     }
 
     /**
-     * Matches BOTH mulPose calls in bobView -- the Z roll that tilts the
-     * horizon and the X pitch that nods the view. Dropping the two of
-     * them is what makes VERTICAL_ONLY comfortable: the horizon line
-     * stays level no matter how fast you move.
+     * Matches BOTH rotations in bobView -- the Z roll that tilts the
+     * horizon and the X pitch that nods the view (rotateDegrees since
+     * 26.3, mulPose before). Dropping the two of them is what makes
+     * VERTICAL_ONLY comfortable: the horizon line stays level no matter
+     * how fast you move.
      */
     @WrapWithCondition(
             method = "bobView",
             at = @At(value = "INVOKE",
-                    target = "Lcom/mojang/blaze3d/vertex/PoseStack;mulPose(Lorg/joml/Quaternionfc;)V"))
+                    target = "Lcom/mojang/blaze3d/vertex/PoseStack;rotateDegrees(Lcom/mojang/math/Axis;F)V"))
     private boolean borderlesswindow$shouldApplyBobRotation(PoseStack instance,
-                                                            Quaternionfc rotation) {
+                                                            Axis axis, float degrees) {
         return !this.borderlesswindow$strippingCameraBob;
-    }
-
-    /**
-     * Splits vanilla's single Distortion Effects slider by source, portal
-     * half.
-     * <p>
-     * renderLevel reads the two sources apart -- the portal's intensity
-     * with this Mth.lerp (the only one in the method), Nausea's with
-     * getEffectBlendFactor below -- takes the larger and multiplies it by
-     * the squared vanilla scale. Scaling each source before that max is
-     * all the split needs.
-     * <p>
-     * Squaring our own factor matches vanilla's f2 * f2, so 50% here feels
-     * like 50% on Minecraft's slider.
-     * <p>
-     * tick() reads the same two sources once more, to blend the spin SPEED
-     * (20 for the portal, 7 for Nausea, weighted by intensity). Scaled
-     * there too, or a muted portal would still speed up the Nausea spin
-     * while you stand in one.
-     */
-    @ModifyExpressionValue(
-            method = "renderLevel",
-            at = @At(value = "INVOKE", target = "Lnet/minecraft/util/Mth;lerp(FFF)F"))
-    private float borderlesswindow$scalePortalDistortion(float original) {
-        float factor = DistortionState.getPortalFactor();
-        return original * factor * factor;
-    }
-
-    /** The portal's intensity as tick() reads it for the spin speed. */
-    @ModifyExpressionValue(
-            method = "tick",
-            at = @At(value = "FIELD",
-                    target = "Lnet/minecraft/client/player/LocalPlayer;portalEffectIntensity:F",
-                    opcode = Opcodes.GETFIELD))
-    private float borderlesswindow$scalePortalSpinSpeed(float original) {
-        return this.borderlesswindow$scalePortalDistortion(original);
-    }
-
-    /**
-     * Nausea half of the split above, in renderLevel and tick() alike.
-     * Inside a portal it takes the portal's percentage (see
-     * DistortionState).
-     */
-    @ModifyExpressionValue(
-            method = {"renderLevel", "tick"},
-            at = @At(value = "INVOKE",
-                    target = "Lnet/minecraft/client/player/LocalPlayer;"
-                            + "getEffectBlendFactor(Lnet/minecraft/core/Holder;F)F"))
-    private float borderlesswindow$scaleNauseaDistortion(float original) {
-        float factor = DistortionState.getNauseaSpinFactor();
-        return original * factor * factor;
     }
 
     /**
      * Start of every client tick, before the entities tick: settles
      * whether the player is in a portal for this tick (see
-     * DistortionState.latchPortalContact).
+     * DistortionState.latchPortalContact). The distortion itself is scaled
+     * in LevelExtractorMixin and LocalPlayerMixin.
      */
     @Inject(method = "tick", at = @At("HEAD"))
     private void borderlesswindow$latchPortalContact(CallbackInfo ci) {
@@ -225,15 +175,19 @@ public abstract class GameRendererMixin {
         ZoomState.onFrame();
     }
 
-    /** "Hide Hand" while zooming: the held item is simply not drawn. */
+    /**
+     * "Hide Hand" while zooming: the held item is simply not drawn. Called
+     * from render3dHud since 26.3 (from renderLevel before).
+     */
     @WrapWithCondition(
-            method = "renderLevel",
+            method = "render3dHud",
             at = @At(value = "INVOKE",
                     target = "Lnet/minecraft/client/renderer/GameRenderer;renderItemInHand("
                             + "Lnet/minecraft/client/renderer/state/level/CameraRenderState;"
-                            + "FLorg/joml/Matrix4fc;)V"))
+                            + "Lnet/minecraft/client/renderer/state/level/PlayerRenderState;"
+                            + "Lcom/mojang/renderpearl/api/textures/GpuTextureView;)V"))
     private boolean borderlesswindow$shouldRenderHand(GameRenderer instance, CameraRenderState cameraState,
-                                                      float partialTick, Matrix4fc modelViewMatrix) {
+                                                      PlayerRenderState playerState, GpuTextureView depthTextureView) {
         return !ZoomState.shouldHideHand();
     }
 }

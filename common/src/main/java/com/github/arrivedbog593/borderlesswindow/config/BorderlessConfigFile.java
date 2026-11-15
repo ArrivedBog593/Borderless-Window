@@ -27,20 +27,22 @@ import com.github.arrivedbog593.borderlesswindow.visual.SkyState;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import net.minecraft.client.Minecraft;
+import org.jspecify.annotations.Nullable;
 
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
 /**
- * Minimal persistence in config/borderlesswindow.json. Stores the current
- * screen mode, the F11 mode, the FPS overlay settings, the fog toggles,
+ * Minimal persistence in config/borderlesswindow.json. Stores the F11
+ * mode (the screen mode itself is vanilla's, in options.txt), the FPS
+ * overlay settings, the fog toggles,
  * the custom cloud height, the screen overlay toggles, the bobbing
  * settings and the enchantment numeral style so they can be restored at
  * game startup.
  * <p>
  * Deliberately fault-tolerant: if the file is missing, corrupt, or has
- * invalid or absent values, the defaults are used (Windowed / F11 ->
+ * invalid or absent values, the defaults are used (F11 ->
  * Borderless / FPS overlay off, top-left / no unfocused FPS cap / no idle FPS caps
  * / full volume while unfocused / rendering while minimized / all fog enabled / cloud height
  * default / water and fire overlays on, smart fire off / full camera and
@@ -64,7 +66,9 @@ public final class BorderlessConfigFile {
 
     /** JSON structure. Gson serializes/deserializes this directly. */
     private static class Data {
-        String screen_mode = ScreenMode.WINDOWED.name();
+        // Only read, from configs written before 26.3 (see
+        // BorderlessHandler.initializeFromConfig): null is never written.
+        String screen_mode = null;
         String f11_mode = F11Mode.BORDERLESS.name();
         String fps_overlay_mode = FpsOverlayMode.OFF.name();
         String fps_overlay_position = FpsOverlayPosition.TOP_LEFT.name();
@@ -113,7 +117,7 @@ public final class BorderlessConfigFile {
         boolean hud_held_item_name = true;
     }
 
-    public record LoadedConfig(ScreenMode screenMode, F11Mode f11Mode,
+    public record LoadedConfig(@Nullable ScreenMode legacyScreenMode, F11Mode f11Mode,
                                FpsOverlayMode fpsOverlayMode,
                                FpsOverlayPosition fpsOverlayPosition,
                                int unfocusedFpsLimit, int unfocusedVolume,
@@ -158,7 +162,7 @@ public final class BorderlessConfigFile {
             }
         }
         return new LoadedConfig(
-                parseOrDefault(ScreenMode.class, data.screen_mode, ScreenMode.WINDOWED),
+                parseOrDefault(ScreenMode.class, data.screen_mode, null),
                 parseOrDefault(F11Mode.class, data.f11_mode, F11Mode.BORDERLESS),
                 parseOrDefault(FpsOverlayMode.class, data.fps_overlay_mode, FpsOverlayMode.OFF),
                 parseOrDefault(FpsOverlayPosition.class, data.fps_overlay_position,
@@ -201,7 +205,6 @@ public final class BorderlessConfigFile {
      */
     public static void saveCurrent() {
         Data data = new Data();
-        data.screen_mode = BorderlessHandler.getCurrentMode().name();
         data.f11_mode = BorderlessHandler.getF11Target().name();
         data.fps_overlay_mode = FpsOverlayState.getMode().name();
         data.fps_overlay_position = FpsOverlayState.getPosition().name();
@@ -256,7 +259,7 @@ public final class BorderlessConfigFile {
         }
     }
 
-    private static <T extends Enum<T>> T parseOrDefault(Class<T> type, String value, T fallback) {
+    private static <T extends Enum<T>> T parseOrDefault(Class<T> type, String value, @Nullable T fallback) {
         if (value == null) {
             return fallback;
         }

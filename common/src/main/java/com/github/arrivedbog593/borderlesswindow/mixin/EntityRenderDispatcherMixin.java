@@ -41,7 +41,7 @@ public abstract class EntityRenderDispatcherMixin {
 
     @Inject(method = "shouldRender", at = @At("HEAD"), cancellable = true)
     private void borderlesswindow$cullByDistance(Entity entity, Frustum frustum,
-                                                 double camX, double camY, double camZ,
+                                                 double camX, double camY, double camZ, float partialTicks,
                                                  CallbackInfoReturnable<Boolean> cir) {
         int cap;
         switch (entity) {

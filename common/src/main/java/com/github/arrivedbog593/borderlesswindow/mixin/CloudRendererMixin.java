@@ -10,7 +10,8 @@ import org.spongepowered.asm.mixin.injection.ModifyVariable;
  * Overrides the height the cloud layer is drawn at, so the "Cloud Height"
  * option can raise or lower it. Since 1.21.11 the height is an
  * environment attribute (it can vary by biome) that LevelRenderer reads
- * every frame and hands to CloudRenderer.render; replacing that argument
+ * every frame and hands to CloudRenderer (prepare since 26.3, which
+ * places the cloud layer before render draws it); replacing that argument
  * moves the clouds and nothing else. Sodium only replaces how the cloud
  * mesh is built (buildMesh), so this covers both rendering paths -- the
  * feature works identically with and without Sodium.
@@ -31,12 +32,14 @@ import org.spongepowered.asm.mixin.injection.ModifyVariable;
  *    it ever gets here, so that holds by construction.
  * <p>
  * argsOnly + ordinal 0 = the first float parameter, the height
- * (partialTick is the second).
+ * (partialTick is the second). The descriptor is spelled out: CloudRenderer
+ * also has the resource reload listener's prepare.
  */
 @Mixin(CloudRenderer.class)
 public abstract class CloudRendererMixin {
 
-    @ModifyVariable(method = "render", at = @At("HEAD"), argsOnly = true, ordinal = 0)
+    @ModifyVariable(method = "prepare(ILnet/minecraft/client/CloudStatus;FILnet/minecraft/world/phys/Vec3;JF)V",
+            at = @At("HEAD"), argsOnly = true, ordinal = 0)
     private float borderlesswindow$overrideCloudHeight(float height) {
         if (!CloudState.isOverridden()) {
             return height;

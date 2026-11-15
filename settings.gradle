@@ -25,6 +25,9 @@ plugins {
 
 rootProject.name = 'Borderless Window'
 
+// The multiloader-common and multiloader-loader convention plugins.
+includeBuild('build-logic')
+
 // One module per loader, plus the code they share. common/ holds nearly
 // everything: state, mixins, config, both UIs. Each loader module adds only
 // its entry point and the glue to that loader's events.

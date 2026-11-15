@@ -8,8 +8,8 @@ import com.github.arrivedbog593.borderlesswindow.visual.ScreenEffectHandler;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.ModContainer;
 import net.neoforged.fml.common.Mod;
+import net.neoforged.neoforge.client.event.ExtractBlockScreenEffectEvent;
 import net.neoforged.neoforge.client.event.RegisterKeyMappingsEvent;
-import net.neoforged.neoforge.client.event.RenderBlockScreenEffectEvent;
 import net.neoforged.neoforge.client.event.RenderGuiEvent;
 import net.neoforged.neoforge.client.event.RenderGuiLayerEvent;
 import net.neoforged.neoforge.client.gui.IConfigScreenFactory;
@@ -17,9 +17,9 @@ import net.neoforged.neoforge.client.gui.VanillaGuiLayers;
 import net.neoforged.neoforge.common.NeoForge;
 
 /**
- * NeoForge entry point. Client-only mod that replaces Minecraft's exclusive
- * fullscreen with a 3-mode system (Windowed / Borderless / Fullscreen) and
- * adds a set of video and quality-of-life options. Every feature is
+ * NeoForge entry point. Client-only mod that turns Minecraft's fullscreen
+ * options into a 3-mode system (Windowed / Borderless / Fullscreen) with a
+ * configurable F11, and adds a set of video and quality-of-life options. Every feature is
  * integrated into Sodium's video settings menu when Sodium is present and
  * configurable from the Mods menu (Config button) when it is not.
  * <p>
@@ -41,7 +41,7 @@ public class BorderlessWindowNeoForge {
 
         // Game event bus (not the mod bus) for the per-frame events.
         NeoForge.EVENT_BUS.addListener(BorderlessWindowNeoForge::onRenderGui);
-        NeoForge.EVENT_BUS.addListener(BorderlessWindowNeoForge::onRenderBlockScreenEffect);
+        NeoForge.EVENT_BUS.addListener(BorderlessWindowNeoForge::onExtractBlockScreenEffect);
         NeoForge.EVENT_BUS.addListener(BorderlessWindowNeoForge::onRenderGuiLayer);
 
         // Registers the config screen shown by NeoForge's "Config" button
@@ -61,8 +61,8 @@ public class BorderlessWindowNeoForge {
         FpsOverlay.render(event.getGuiGraphics());
     }
 
-    /** Fires right before each view overlay is drawn; cancelling skips the draw. */
-    private static void onRenderBlockScreenEffect(RenderBlockScreenEffectEvent event) {
+    /** Fires as each view overlay is extracted for the frame; cancelling skips it. */
+    private static void onExtractBlockScreenEffect(ExtractBlockScreenEffectEvent event) {
         boolean hide = switch (event.getOverlayType()) {
             case WATER -> ScreenEffectHandler.shouldHideWater();
             case FIRE -> ScreenEffectHandler.shouldHideFire(event.getPlayer());

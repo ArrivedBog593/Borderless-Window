@@ -102,9 +102,9 @@ public class BorderlessConfigScreen extends Screen {
         // --- Window -------------------------------------------------
         list.addHeader(Component.translatable("config.borderlesswindow.section.window"));
 
-        // Screen mode selector. Applying it immediately resizes the game
-        // window, which re-inits this screen -- the list is then rebuilt
-        // with the current value, so it always stays consistent.
+        // Screen mode selector. Applying it resizes the game window (by the
+        // next frame), which re-inits this screen -- the list is then
+        // rebuilt with the current value, so it always stays consistent.
         list.addOption(
                 CycleButton.builder((ScreenMode mode) ->
                                 Component.translatable(mode.getTranslationKey()),
@@ -114,8 +114,7 @@ public class BorderlessConfigScreen extends Screen {
                                 Component.translatable("borderlesswindow.options.screen_mode.tooltip")))
                         .create(0, 0, OPTION_WIDTH, OPTION_HEIGHT,
                                 Component.translatable("borderlesswindow.options.screen_mode.name"),
-                                (button, mode) -> BorderlessHandler.setMode(
-                                        Minecraft.getInstance().getWindow(), mode)));
+                                (button, mode) -> BorderlessHandler.setMode(mode)));
 
         // F11 behavior selector. No window change involved, applies silently.
         list.addOption(

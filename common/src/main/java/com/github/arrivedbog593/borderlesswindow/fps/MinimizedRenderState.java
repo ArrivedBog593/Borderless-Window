@@ -2,7 +2,6 @@ package com.github.arrivedbog593.borderlesswindow.fps;
 
 import com.github.arrivedbog593.borderlesswindow.config.BorderlessConfigFile;
 import net.minecraft.client.Minecraft;
-import org.lwjgl.glfw.GLFW;
 
 /**
  * Holds the "skip rendering while minimized" toggle. MinecraftMixin and
@@ -27,9 +26,8 @@ import org.lwjgl.glfw.GLFW;
  * ticks per second the game expects; 10 leaves ample headroom. It is also
  * what vanilla uses for a minimized window.
  * <p>
- * Minimized is read straight from GLFW (GLFW_ICONIFIED) each frame rather
- * than tracked through an iconify callback: vanilla installs none, and
- * installing ours could silently replace another mod's.
+ * Minimized is read from the window each frame: since 26.3 it tracks that
+ * itself, from SDL's minimize and restore events.
  */
 public final class MinimizedRenderState {
 
@@ -54,12 +52,8 @@ public final class MinimizedRenderState {
         BorderlessConfigFile.saveCurrent();
     }
 
-    /** Whether this frame should skip drawing. The toggle is checked first, so the default never calls GLFW. */
+    /** Whether this frame should skip drawing. */
     public static boolean shouldSkipRendering() {
-        if (!enabled) {
-            return false;
-        }
-        long handle = Minecraft.getInstance().getWindow().handle();
-        return GLFW.glfwGetWindowAttrib(handle, GLFW.GLFW_ICONIFIED) == GLFW.GLFW_TRUE;
+        return enabled && Minecraft.getInstance().getWindow().isIconified();
     }
 }

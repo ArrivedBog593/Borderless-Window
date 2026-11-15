@@ -6,7 +6,6 @@ import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.resources.Identifier;
-import org.lwjgl.glfw.GLFW;
 
 /**
  * The zoom: its six settings, its key and its live state.
@@ -75,7 +74,7 @@ public final class ZoomState {
      * (RegisterKeyMappingsEvent on NeoForge, Fabric's key binding module).
      */
     public static final KeyMapping KEY = new KeyMapping("key.borderlesswindow.zoom",
-            InputConstants.Type.KEYSYM, GLFW.GLFW_KEY_C, CATEGORY);
+            InputConstants.Type.KEYBOARD, InputConstants.KEY_C, CATEGORY);
 
     // --- Settings -------------------------------------------------------
     private static ZoomMode mode = ZoomMode.HOLD;

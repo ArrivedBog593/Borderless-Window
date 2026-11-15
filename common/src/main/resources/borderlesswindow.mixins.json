@@ -19,6 +19,8 @@
     "HudMixin",
     "IrisHandRendererMixin",
     "KeyboardHandlerMixin",
+    "LevelExtractorMixin",
+    "LocalPlayerMixin",
     "MinecraftInitMixin",
     "MinecraftMixin",
     "MouseHandlerMixin",

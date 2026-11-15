@@ -6,14 +6,13 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.ScreenEffectRenderer;
 import net.minecraft.client.renderer.SubmitNodeCollector;
+import net.minecraft.client.renderer.state.level.PlayerRenderState;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
-import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 
 /**
- * Fabric's stand-in for NeoForge's RenderBlockScreenEffectEvent.
+ * Fabric's stand-in for NeoForge's ExtractBlockScreenEffectEvent.
  * <p>
  * submit (renderScreenEffect up to 26.1.2) calls one method per view
  * overlay; skipping a call is what cancelling the event does on NeoForge.
@@ -24,20 +23,21 @@ import org.spongepowered.asm.mixin.injection.At;
 @Mixin(ScreenEffectRenderer.class)
 public abstract class ScreenEffectRendererMixin {
 
-    @Shadow
-    @Final
-    private Minecraft minecraft;
-
     @WrapWithCondition(method = "submit",
             at = @At(value = "INVOKE",
                     target = "Lnet/minecraft/client/renderer/ScreenEffectRenderer;submitWater("
-                            + "Lnet/minecraft/client/Minecraft;Lcom/mojang/blaze3d/vertex/PoseStack;"
+                            + "Lnet/minecraft/client/renderer/state/level/PlayerRenderState$WaterOverlay;"
+                            + "Lcom/mojang/blaze3d/vertex/PoseStack;"
                             + "Lnet/minecraft/client/renderer/SubmitNodeCollector;)V"))
-    private boolean borderlesswindow$drawWater(Minecraft minecraft, PoseStack poseStack,
+    private boolean borderlesswindow$drawWater(PlayerRenderState.WaterOverlay waterOverlay, PoseStack poseStack,
                                                SubmitNodeCollector submitNodeCollector) {
         return !ScreenEffectHandler.shouldHideWater();
     }
 
+    /**
+     * The renderer keeps no Minecraft of its own since 26.3 (it draws from
+     * the frame's render state), so the player comes from the instance.
+     */
     @WrapWithCondition(method = "submit",
             at = @At(value = "INVOKE",
                     target = "Lnet/minecraft/client/renderer/ScreenEffectRenderer;submitFire("
@@ -45,6 +45,6 @@ public abstract class ScreenEffectRendererMixin {
                             + "Lnet/minecraft/client/renderer/texture/TextureAtlasSprite;)V"))
     private boolean borderlesswindow$drawFire(PoseStack poseStack, SubmitNodeCollector submitNodeCollector,
                                               TextureAtlasSprite sprite) {
-        return !ScreenEffectHandler.shouldHideFire(this.minecraft.player);
+        return !ScreenEffectHandler.shouldHideFire(Minecraft.getInstance().player);
     }
 }

@@ -63,10 +63,11 @@ public abstract class FramerateLimitTrackerMixin {
     /**
      * The option read at the top of getThrottleReason (its only
      * OptionInstance.get call). Reporting "Minimized" skips just the AFK
-     * branch: the minimized check comes before it and the no-world-menu
-     * check after it, both untouched. The option itself, its button and
-     * options.txt keep the player's choice -- this only changes what the
-     * tracker sees, and only while the mod's first idle stage is on.
+     * branch: the minimized check (since 26.3 also an unfocused exclusive
+     * Fullscreen) and the no-world-menu check stay untouched. The option
+     * itself, its button and options.txt keep the player's choice -- this
+     * only changes what the tracker sees, and only while the mod's first
+     * idle stage is on.
      * isHeavilyThrottled reads the same method; vanilla uses it only to
      * silence the F3 pie profiler's slow-frame warnings.
      */

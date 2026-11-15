@@ -24,7 +24,6 @@ import com.github.arrivedbog593.borderlesswindow.visual.CloudState;
 import com.github.arrivedbog593.borderlesswindow.visual.FogState;
 import com.github.arrivedbog593.borderlesswindow.visual.ScreenEffectState;
 import com.github.arrivedbog593.borderlesswindow.visual.SkyState;
-import com.mojang.blaze3d.platform.Window;
 import net.minecraft.client.Options;
 import net.minecraft.client.Minecraft;
 
@@ -978,8 +977,7 @@ public final class ScreenModeStorage {
         }
 
         if (this.screenModeDirty) {
-            Window window = Minecraft.getInstance().getWindow();
-            BorderlessHandler.setMode(window, this.pendingValue);
+            BorderlessHandler.setMode(this.pendingValue);
             this.screenModeDirty = false;
         }
     }
