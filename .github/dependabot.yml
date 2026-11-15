@@ -1,11 +1,18 @@
-# Keeps the workflow actions current on its own. Without this, action versions
-# silently rot until a runtime deprecation breaks a release.
+# Keeps the workflow actions and the Gradle wrapper current on their own.
+# Without this, action versions silently rot until a runtime deprecation
+# breaks a release.
 #
 # Dependabot reads this file from the default branch only, and without
 # target-branch it only updates the default branch. Every live branch has its
-# own workflows, so each needs its own entry here. Add one when a branch is
-# created (a future NeoFabric/26.3, for instance); this file does not need
+# own workflows and wrapper, so each needs its own entries here (one per
+# ecosystem). Add them when a branch is created; this file does not need
 # copying to the other branches.
+#
+# The gradle ecosystem is limited to the wrapper. Left open it would also
+# bump the plugins and libraries written in the build scripts (Loom,
+# ModDevGradle, sponge-mixin), which must match each branch's Minecraft
+# version and loaders. The versions in gradle.properties it does not read
+# at all.
 version: 2
 updates:
   - package-ecosystem: "github-actions"
@@ -51,3 +58,64 @@ updates:
     groups:
       actions:
         patterns: ["*"]
+
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    target-branch: "NeoFabric/26.3"
+    schedule:
+      interval: "monthly"
+    commit-message:
+      prefix: "chore"
+    groups:
+      actions:
+        patterns: ["*"]
+
+  - package-ecosystem: "gradle"
+    directory: "/"
+    target-branch: "NeoFabric/1.21.1"
+    schedule:
+      interval: "monthly"
+    commit-message:
+      prefix: "chore"
+    allow:
+      - dependency-name: "gradle-wrapper"
+
+  - package-ecosystem: "gradle"
+    directory: "/"
+    target-branch: "NeoFabric/1.21.11"
+    schedule:
+      interval: "monthly"
+    commit-message:
+      prefix: "chore"
+    allow:
+      - dependency-name: "gradle-wrapper"
+
+  - package-ecosystem: "gradle"
+    directory: "/"
+    target-branch: "NeoFabric/26.1.2"
+    schedule:
+      interval: "monthly"
+    commit-message:
+      prefix: "chore"
+    allow:
+      - dependency-name: "gradle-wrapper"
+
+  - package-ecosystem: "gradle"
+    directory: "/"
+    target-branch: "NeoFabric/26.2"
+    schedule:
+      interval: "monthly"
+    commit-message:
+      prefix: "chore"
+    allow:
+      - dependency-name: "gradle-wrapper"
+
+  - package-ecosystem: "gradle"
+    directory: "/"
+    target-branch: "NeoFabric/26.3"
+    schedule:
+      interval: "monthly"
+    commit-message:
+      prefix: "chore"
+    allow:
+      - dependency-name: "gradle-wrapper"
