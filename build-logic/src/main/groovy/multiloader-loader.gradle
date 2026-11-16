@@ -19,7 +19,11 @@ configurations {
 dependencies {
     // Lets the IDE see common/'s classes from the loader module. The
     // build itself compiles the sources below, not this jar.
-    compileOnly project(':common')
+    compileOnly(project(':common')) {
+        attributes {
+            attribute(Attribute.of('io.github.mcgradleconventions.loader', String), 'common')
+        }
+    }
     commonJava project(path: ':common', configuration: 'commonJava')
     commonResources project(path: ':common', configuration: 'commonResources')
 }
