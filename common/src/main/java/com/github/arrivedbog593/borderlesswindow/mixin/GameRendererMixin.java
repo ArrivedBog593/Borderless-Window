@@ -23,9 +23,8 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
-import org.spongepowered.asm.mixin.injection.ModifyArgs;
+import org.spongepowered.asm.mixin.injection.ModifyArg;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-import org.spongepowered.asm.mixin.injection.invoke.arg.Args;
 
 /**
  * Splits vanilla's single "View Bobbing" option into a camera setting
@@ -129,16 +128,16 @@ public abstract class GameRendererMixin {
     /**
      * Argument 0 of the translate is the lateral sway, argument 1 the
      * vertical bounce. VERTICAL_ONLY zeroes the first and leaves the
-     * second alone.
+     * second alone. ModifyArg, not ModifyArgs: only one argument changes,
+     * and ModifyArgs would build an Args object every frame.
      */
-    @ModifyArgs(
+    @ModifyArg(
             method = "bobView",
             at = @At(value = "INVOKE",
-                    target = "Lcom/mojang/blaze3d/vertex/PoseStack;translate(FFF)V"))
-    private void borderlesswindow$stripLateralSway(Args args) {
-        if (this.borderlesswindow$strippingCameraBob) {
-            args.set(0, 0.0F);
-        }
+                    target = "Lcom/mojang/blaze3d/vertex/PoseStack;translate(FFF)V"),
+            index = 0)
+    private float borderlesswindow$stripLateralSway(float lateralSway) {
+        return this.borderlesswindow$strippingCameraBob ? 0.0F : lateralSway;
     }
 
     /**

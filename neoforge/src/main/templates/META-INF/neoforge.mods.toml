@@ -2,7 +2,6 @@ modLoader="javafml"
 loaderVersion="${loader_version_range}"
 license="${mod_license}"
 issueTrackerURL="https://github.com/ArrivedBog593/Borderless-Window/issues"
-clientSideOnly=true
 
 [[mods]]
 modId="${mod_id}"
@@ -14,7 +13,6 @@ logoFile="assets/${mod_id}/icon.png"
 logoBlur=false
 authors="${mod_authors}"
 description='''${mod_description}'''
-displayTest="IGNORE_ALL_VERSION"
 
 [[mixins]]
 config="${mod_id}.mixins.json"
@@ -22,7 +20,7 @@ config="${mod_id}.mixins.json"
 [[dependencies.${mod_id}]]
 modId="neoforge"
 type="required"
-versionRange="[${neo_version},)"
+versionRange="${neo_version_range}"
 ordering="NONE"
 side="CLIENT"
 

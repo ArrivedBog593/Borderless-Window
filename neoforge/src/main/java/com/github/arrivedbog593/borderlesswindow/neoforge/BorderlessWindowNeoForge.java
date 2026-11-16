@@ -5,6 +5,7 @@ import com.github.arrivedbog593.borderlesswindow.config.BorderlessConfigScreen;
 import com.github.arrivedbog593.borderlesswindow.fps.FpsOverlay;
 import com.github.arrivedbog593.borderlesswindow.general.HudState;
 import com.github.arrivedbog593.borderlesswindow.visual.ScreenEffectHandler;
+import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.ModContainer;
 import net.neoforged.fml.common.Mod;
@@ -29,8 +30,13 @@ import net.neoforged.neoforge.common.NeoForge;
  * event handler just translates the event for the loader-neutral class
  * that decides. The saved settings are restored on the second frame (see
  * MinecraftInitMixin), not from client setup.
+ * <p>
+ * Client only: on a dedicated server (a server pack that kept the jar)
+ * NeoForge skips this class, and the mixins sit in the config's "client"
+ * list, so the mod loads and does nothing instead of reaching for client
+ * classes the server does not have.
  */
-@Mod(BorderlessWindowNeoForge.MOD_ID)
+@Mod(value = BorderlessWindowNeoForge.MOD_ID, dist = Dist.CLIENT)
 @SuppressWarnings("unused")
 public class BorderlessWindowNeoForge {
 

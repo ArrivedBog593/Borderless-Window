@@ -67,9 +67,9 @@
   "borderlesswindow.options.idle_fps_second_limit.name": "Second Idle FPS Limit",
   "borderlesswindow.options.idle_fps_second_limit.tooltip": "The frame rate cap applied once the second idle time has passed. If it is higher than the first idle cap, the lower one still wins.",
   "borderlesswindow.options.minimized_skip_render.name": "Pause Rendering When Minimized",
-  "borderlesswindow.options.minimized_skip_render.tooltip": "Stops drawing frames while the game window is minimized, and slows the game loop to 10 FPS. The game itself keeps running: the world, sounds, and multiplayer connections are unaffected; only the picture stops until you restore the window. Saves more GPU power than the unfocused FPS limit. Off keeps the vanilla behavior.",
+  "borderlesswindow.options.minimized_skip_render.tooltip": "Stops drawing frames while the game window is minimized, and slows the game loop to 10 FPS. Nothing else changes: sounds and multiplayer connections carry on, and a single-player world pauses just as it does without the mod; only the picture stops until you restore the window. Saves more GPU power than the unfocused FPS limit. Off keeps the vanilla behavior.",
   "borderlesswindow.options.unfocused_volume.name": "Unfocused Volume",
-  "borderlesswindow.options.unfocused_volume.tooltip": "Lowers the game volume while its window is not focused: after Alt+Tab, when it is minimized, or when you click another window or monitor. It is a share of your Master Volume; Muted silences the game entirely. 100% keeps the vanilla behavior. Full volume returns as soon as you click back into the game.",
+  "borderlesswindow.options.unfocused_volume.tooltip": "Lowers the game volume while its window is not focused: after Alt+Tab, when it is minimized, or when you click another window or monitor. It is a share of your Master Volume; Muted silences the game entirely. 100%% keeps the vanilla behavior. Full volume returns as soon as you click back into the game.",
   "borderlesswindow.options.unfocused_volume.muted": "Muted",
 
   "borderlesswindow.options.fog_terrain.name": "Terrain Fog",
@@ -81,7 +81,7 @@
   "borderlesswindow.options.fog_powder_snow.name": "Powder Snow Fog",
   "borderlesswindow.options.fog_powder_snow.tooltip": "The fog seen while inside powder snow. Turn Off to keep your view clear.",
   "borderlesswindow.options.fog_terrain_start.name": "Fog Start",
-  "borderlesswindow.options.fog_terrain_start.tooltip": "Where the distance fog begins, as a share of your render distance. Default is Minecraft's own: the fog only covers about the last tenth (around 90%). Lower values start it closer, for a softer and deeper haze; 95% pushes it to the very edge. The far end always stays at your render distance. Only the ordinary terrain fog moves: the Nether's thick fog, water, lava, and Blindness or Darkness are left alone.",
+  "borderlesswindow.options.fog_terrain_start.tooltip": "Where the distance fog begins, as a share of your render distance. Default is Minecraft's own: the fog only covers about the last tenth (around 90%%). Lower values start it closer, for a softer and deeper haze; 95%% pushes it to the very edge. The far end always stays at your render distance. Only the ordinary terrain fog moves: the Nether's thick fog, water, lava, and Blindness or Darkness are left alone.",
   "borderlesswindow.options.fog_terrain_start.default": "Default (~90%%)",
 
   "borderlesswindow.options.cloud_height.name": "Cloud Height",
@@ -123,21 +123,21 @@
   "borderlesswindow.options.vanilla_fov.tooltip": "Minecraft's own FOV Effects slider, which scales all four options below at once. Sodium's video settings leave it out, so this brings it back here. It is the same setting as the one in Accessibility Settings and is saved with Minecraft's options, not the mod's.",
 
   "borderlesswindow.options.fov_speed.name": "Speed FOV",
-  "borderlesswindow.options.fov_speed.tooltip": "How much the view widens as you move faster -- sprinting, Speed potions, anything that raises movement speed. 100% is vanilla. Minecraft has one slider for all four of these together; here they are separate. Requires Minecraft's own FOV Effects to be on.",
+  "borderlesswindow.options.fov_speed.tooltip": "How much the view widens as you move faster -- sprinting, Speed potions, anything that raises movement speed. 100%% is vanilla. Minecraft has one slider for all four of these together; here they are separate. Requires Minecraft's own FOV Effects to be on.",
   "borderlesswindow.options.fov_flying.name": "Flying FOV",
   "borderlesswindow.options.fov_flying.tooltip": "The extra widening while flying in creative. Elytra gliding is not affected -- that is not the same flying. It is a small 10%% pull, and sprint speed usually masks it. Requires Minecraft's own FOV Effects to be on.",
   "borderlesswindow.options.fov_bow.name": "Bow FOV",
-  "borderlesswindow.options.fov_bow.tooltip": "The zoom that builds up while you draw a bow. 100% is vanilla, 0% holds the view still. The spyglass is never affected: its zoom is what the item does, not a visual effect. Requires Minecraft's own FOV Effects to be on.",
+  "borderlesswindow.options.fov_bow.tooltip": "The zoom that builds up while you draw a bow. 100%% is vanilla, 0%% holds the view still. The spyglass is never affected: its zoom is what the item does, not a visual effect. Requires Minecraft's own FOV Effects to be on.",
   "borderlesswindow.options.fov_fluid.name": "Fluid FOV",
-  "borderlesswindow.options.fov_fluid.tooltip": "The squeeze applied while your head is in water or lava. 100% is vanilla. Requires Minecraft's own FOV Effects to be on.",
+  "borderlesswindow.options.fov_fluid.tooltip": "The squeeze applied while your head is in water or lava. 100%% is vanilla. Requires Minecraft's own FOV Effects to be on.",
 
   "borderlesswindow.options.vanilla_distortion.name": "Distortion Effects (Minecraft)",
   "borderlesswindow.options.vanilla_distortion.tooltip": "Minecraft's own Distortion Effects slider, which scales both options below at once. Sodium's video settings leave it out, so this brings it back here. It is the same setting as the one in Accessibility Settings and is saved with Minecraft's options, not the mod's. Lowering it also brings back the green nausea texture, which is Minecraft's replacement cue.",
 
   "borderlesswindow.options.distortion_portal.name": "Portal Distortion",
-  "borderlesswindow.options.distortion_portal.tooltip": "How much the view warps while you stand in a Nether portal. 100% is vanilla. Minecraft has one slider for this and for Nausea together; here they are separate. Sits under Minecraft's own Distortion Effects slider: with that at Off, nothing warps and this has no effect.",
+  "borderlesswindow.options.distortion_portal.tooltip": "How much the view warps while you stand in a Nether portal. 100%% is vanilla. Minecraft has one slider for this and for Nausea together; here they are separate. Sits under Minecraft's own Distortion Effects slider: with that at Off, nothing warps and this has no effect.",
   "borderlesswindow.options.distortion_nausea.name": "Nausea Distortion",
-  "borderlesswindow.options.distortion_nausea.tooltip": "How much the view warps while you have the Nausea effect, from a potion, a pufferfish or suspicious stew. 100% is vanilla. Sits under Minecraft's own Distortion Effects slider: with that at Off, nothing warps and this has no effect.",
+  "borderlesswindow.options.distortion_nausea.tooltip": "How much the view warps while you have the Nausea effect, from a potion, a pufferfish or suspicious stew. 100%% is vanilla. Sits under Minecraft's own Distortion Effects slider: with that at Off, nothing warps and this has no effect.",
   "borderlesswindow.options.distortion.percent": "%s%%",
   "borderlesswindow.options.distortion.off": "Off",
 
