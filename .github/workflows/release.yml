@@ -143,7 +143,9 @@ jobs:
       - name: Create GitHub Release
         uses: softprops/action-gh-release@8a0cd651e5b2365bd640854a3fa5dfc70e4875f3 # v3.0.4
         with:
-          name: Borderless Window v${{ needs.build.outputs.mod_version }} — Minecraft ${{ needs.build.outputs.mc_version }}
+          # As the CurseForge files are named (see build.yml), without the
+          # loader: the release carries both jars.
+          name: Borderless Window ${{ needs.build.outputs.mod_version }} for Minecraft ${{ needs.build.outputs.mc_version }}
           body_path: dist/release-notes.md
           prerelease: ${{ needs.build.outputs.prerelease }}
           files: dist/*.jar
