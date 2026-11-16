@@ -6,6 +6,7 @@ import com.github.arrivedbog593.borderlesswindow.camera.DistortionState;
 import com.github.arrivedbog593.borderlesswindow.camera.FovState;
 import com.github.arrivedbog593.borderlesswindow.camera.ZoomMode;
 import com.github.arrivedbog593.borderlesswindow.camera.ZoomState;
+import com.github.arrivedbog593.borderlesswindow.config.BorderlessConfigFile;
 import com.github.arrivedbog593.borderlesswindow.distance.DistanceState;
 import com.github.arrivedbog593.borderlesswindow.enchantment.EnchantmentLevelState;
 import com.github.arrivedbog593.borderlesswindow.enchantment.EnchantmentLevelStyle;
@@ -714,8 +715,15 @@ public final class ScreenModeStorage {
      * in the menu, applying any other option after using F11 reverted the
      * mode back to the stale cached value. The same rule protects every
      * option added since.
+     * <p>
+     * Each setter below saves the config on its own; the batch turns those
+     * saves into a single write at the end.
      */
     public void flush() {
+        BorderlessConfigFile.batch(this::applyChanges);
+    }
+
+    private void applyChanges() {
         if (this.f11TargetDirty) {
             BorderlessHandler.setF11Target(this.pendingF11Target);
             this.f11TargetDirty = false;

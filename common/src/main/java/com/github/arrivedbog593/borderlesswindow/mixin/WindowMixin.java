@@ -9,6 +9,7 @@ import com.llamalad7.mixinextras.injector.ModifyReturnValue;
 import com.mojang.blaze3d.platform.Window;
 import net.minecraft.util.Util;
 import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
@@ -28,6 +29,10 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 @Mixin(Window.class)
 public abstract class WindowMixin {
 
+    /** Set by setPreferredFullscreenVideoMode when the resolution changes. */
+    @Shadow
+    private boolean dirty;
+
     @Inject(method = "toggleFullScreen", at = @At("HEAD"), cancellable = true)
     private void borderlesswindow$onToggle(CallbackInfo ci) {
         ci.cancel();
@@ -46,6 +51,24 @@ public abstract class WindowMixin {
         // If Sodium's video settings menu is open right now, refresh its
         // controls so "Screen Mode" reflects the F11 change live.
         SodiumMenuRefresher.refreshIfSodiumMenuOpen();
+    }
+
+    /**
+     * Where the Fullscreen Resolution slider lands, vanilla's (on closing
+     * Video Settings) and Sodium's (on Apply). Vanilla only acts on it when
+     * its own fullscreen flag is set, which this mod never sets, so the
+     * slider used to do nothing; and when that flag is left over from a
+     * launch in fullscreen, vanilla would force exclusive fullscreen even
+     * in Borderless. The mod decides instead: Fullscreen is re-applied at
+     * the new resolution, the other modes keep it for later.
+     */
+    @Inject(method = "changeFullscreenVideoMode", at = @At("HEAD"), cancellable = true)
+    private void borderlesswindow$applyFullscreenResolution(CallbackInfo ci) {
+        ci.cancel();
+        if (this.dirty) {
+            this.dirty = false;
+            BorderlessHandler.applyFullscreenResolution((Window) (Object) this);
+        }
     }
 
     @Inject(method = "isFullscreen", at = @At("RETURN"), cancellable = true)

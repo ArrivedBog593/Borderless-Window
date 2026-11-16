@@ -684,16 +684,18 @@ public class BorderlessConfigScreen extends Screen {
         // The sliders apply in memory and persist on mouse release;
         // arrow-key changes never produce a release, so flush here too.
         // Redundant when nothing changed -- saveCurrent() writes the whole
-        // live state either way.
-        CloudState.persist();
-        FogState.persist();
-        DistortionState.persist();
-        FovState.persist();
-        UnfocusedFpsState.persist();
-        UnfocusedVolumeState.persist();
-        IdleFpsState.persist();
-        DistanceState.persist();
-        ZoomState.persist();
+        // live state either way. Batched: one write, not one per holder.
+        BorderlessConfigFile.batch(() -> {
+            CloudState.persist();
+            FogState.persist();
+            DistortionState.persist();
+            FovState.persist();
+            UnfocusedFpsState.persist();
+            UnfocusedVolumeState.persist();
+            IdleFpsState.persist();
+            DistanceState.persist();
+            ZoomState.persist();
+        });
 
         this.minecraft.gui.setScreen(this.parent);
     }

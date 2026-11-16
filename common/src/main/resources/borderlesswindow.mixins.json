@@ -1,9 +1,11 @@
 {
   "required": true,
+  "minVersion": "0.8",
   "package": "com.github.arrivedbog593.borderlesswindow.mixin",
   "plugin": "com.github.arrivedbog593.borderlesswindow.BorderlessMixinPlugin",
   "compatibilityLevel": "JAVA_21",
-  "mixins": [
+  "mixins": [],
+  "client": [
     "AbstractClientPlayerMixin",
     "CameraMixin",
     "ChannelMixin",
@@ -29,5 +31,8 @@
   ],
   "injectors": {
     "defaultRequire": 1
+  },
+  "overwrites": {
+    "requireAnnotations": true
   }
 }
