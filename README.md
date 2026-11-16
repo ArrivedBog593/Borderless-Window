@@ -11,7 +11,7 @@ A lightweight client-side mod for **NeoForge and Fabric 1.21.1** that adds **bor
 
 ### Window
 
-- **Three screen modes**: Windowed, Borderless, and Minecraft's regular exclusive Fullscreen.
+- **Three screen modes**: Windowed, Borderless, and Minecraft's regular exclusive Fullscreen, at the Fullscreen Resolution picked in the video settings.
 - **Configurable F11**: toggle Borderless, toggle exclusive Fullscreen, or **cycle through all three modes**.
 - **HDR-friendly**: avoids the black-screen flash and color profile switch that exclusive fullscreen (and naive borderless implementations) cause with Windows HDR enabled.
 - **Multi-monitor aware**: applies on the monitor the window is currently on, not always the primary one.
@@ -22,7 +22,7 @@ A lightweight client-side mod for **NeoForge and Fabric 1.21.1** that adds **bor
 - **Background options**: Minecraft 1.21.1 keeps running at full speed and full volume when nobody is looking. Four independent options fix that:
   - **Unfocused FPS limit**: cap the frame rate while the game is in the background (alt-tabbed, minimized, or behind another window), from 5 to 60 FPS.
   - **Idle FPS limit**: cap the frame rate after a few minutes with no keyboard or mouse input, even while the window is focused, with an optional second, lower cap after a longer wait. Any input lifts it at once.
-  - **Pause rendering when minimized**: stop drawing frames entirely while minimized. The game itself keeps running — only the picture stops.
+  - **Pause rendering when minimized**: stop drawing frames entirely while minimized. Nothing else changes — sounds and multiplayer carry on, and single player pauses just as it does without the mod; only the picture stops.
   - **Unfocused volume**: lower or mute the game while it is in the background, as a share of your Master Volume.
   - All four work alongside Dynamic FPS: the lower frame rate cap wins.
 - **Draw distances**: stop drawing dropped items, experience orbs, and armor stands past a distance you choose, and stop particles from spawning past one. Purely visual — items can still be picked up and orbs still reach you. Glowing entities and named armor stands (holograms, floating text) are always drawn.
@@ -66,7 +66,7 @@ Every setting defaults to vanilla behavior, so installing or updating the mod ne
 ## Requirements
 
 - Minecraft **1.21.1**
-- **NeoForge** 21.1.x, or **Fabric Loader** 0.16.0+ (Fabric API not required)
+- **NeoForge** 21.1.26+, or **Fabric Loader** 0.16.0+ (Fabric API not required)
 - (Optional) **Sodium 0.8.0+** for the video settings integration
 - (Optional, Fabric) **Mod Menu**, to also open the config from its mod list
 

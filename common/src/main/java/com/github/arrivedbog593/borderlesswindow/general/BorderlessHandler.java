@@ -16,6 +16,8 @@ import com.github.arrivedbog593.borderlesswindow.visual.CloudState;
 import com.github.arrivedbog593.borderlesswindow.visual.FogState;
 import com.github.arrivedbog593.borderlesswindow.visual.ScreenEffectState;
 import com.github.arrivedbog593.borderlesswindow.visual.SkyState;
+import com.mojang.blaze3d.platform.Monitor;
+import com.mojang.blaze3d.platform.VideoMode;
 import com.mojang.blaze3d.platform.Window;
 import net.minecraft.Util;
 import org.lwjgl.PointerBuffer;
@@ -28,11 +30,12 @@ import static org.lwjgl.glfw.GLFW.*;
  * <p>
  * - WINDOWED: normal decorated window, restored to its previous size.
  * - BORDERLESS: undecorated window stretched to the monitor size
- *   (+1 px of height, see applyBorderless), but it REMAINS a window
- *   (glfwSetWindowMonitor with monitor=NULL). Windows never changes the
- *   physical display mode, so there are no scaling/HDR conflicts.
+ *   (+1 px of height on Windows, see applyBorderless), but it REMAINS a
+ *   window (glfwSetWindowMonitor with monitor=NULL). Windows never changes
+ *   the physical display mode, so there are no scaling/HDR conflicts.
  * - FULLSCREEN: real EXCLUSIVE fullscreen, same as vanilla
- *   (glfwSetWindowMonitor with an actual monitor handle).
+ *   (glfwSetWindowMonitor with an actual monitor handle), at the
+ *   Fullscreen Resolution picked in the video settings, or the desktop's.
  */
 public final class BorderlessHandler {
 
@@ -192,7 +195,7 @@ public final class BorderlessHandler {
         boolean applied = switch (mode) {
             case WINDOWED -> applyWindowed(handle);
             case BORDERLESS -> applyBorderless(handle);
-            case FULLSCREEN -> applyExclusiveFullscreen(handle);
+            case FULLSCREEN -> applyExclusiveFullscreen(window, handle);
         };
 
         if (!applied) {
@@ -218,10 +221,27 @@ public final class BorderlessHandler {
         return true;
     }
 
+    /**
+     * Re-applies Fullscreen after the Fullscreen Resolution changed, from
+     * vanilla's video settings or Sodium's (both end in
+     * Window.changeFullscreenVideoMode, see WindowMixin). In the other
+     * modes there is nothing to redo: the new resolution is used the next
+     * time Fullscreen is entered.
+     */
+    public static void applyFullscreenResolution(Window window) {
+        if (!initialized || currentMode != ScreenMode.FULLSCREEN) {
+            return;
+        }
+        long handle = window.getWindow();
+        // Out of exclusive fullscreen first, so "Current" resolves to the
+        // desktop's resolution rather than the one being replaced.
+        leaveExclusiveFullscreen(handle);
+        applyExclusiveFullscreen(window, handle);
+    }
+
     private static boolean applyBorderless(long handle) {
         long monitor = findWindowMonitor(handle);
-        GLFWVidMode vidMode = glfwGetVideoMode(monitor);
-        if (vidMode == null) {
+        if (glfwGetVideoMode(monitor) == null) {
             // Monitor in an invalid state (e.g., being disconnected right
             // now). Better to leave the window as-is than to crash.
             return false;
@@ -230,6 +250,14 @@ public final class BorderlessHandler {
         glfwGetMonitorPos(monitor, monitorX, monitorY);
 
         glfwSetWindowAttrib(handle, GLFW_DECORATED, GLFW_FALSE);
+
+        // Coming from Fullscreen at a lower resolution, the monitor still
+        // reports that one until the window lets go of it.
+        leaveExclusiveFullscreen(handle);
+        GLFWVidMode vidMode = glfwGetVideoMode(monitor);
+        if (vidMode == null) {
+            return false;
+        }
 
         // ANTI-PROMOTION TRICK (+1 px of height):
         // If a borderless window covers the monitor EXACTLY, Windows and
@@ -241,24 +269,55 @@ public final class BorderlessHandler {
         // taller than the monitor defeats the detection; the extra pixel
         // hangs off-screen and is invisible. This is the same workaround
         // used by borderless tools such as Special K or Borderless Gaming.
+        // Windows only, like the promotion it defeats: elsewhere the row
+        // would just be lost below the screen (hasHiddenBottomRow keeps
+        // the frame aligned on Windows alone).
+        int extraRow = Util.getPlatform() == Util.OS.WINDOWS ? 1 : 0;
         glfwSetWindowMonitor(handle, 0L, monitorX[0], monitorY[0],
-                vidMode.width(), vidMode.height() + 1, GLFW_DONT_CARE);
+                vidMode.width(), vidMode.height() + extraRow, GLFW_DONT_CARE);
         return true;
     }
 
-    private static boolean applyExclusiveFullscreen(long handle) {
-        long monitor = findWindowMonitor(handle);
-        GLFWVidMode vidMode = glfwGetVideoMode(monitor);
-        if (vidMode == null) {
+    private static boolean applyExclusiveFullscreen(Window window, long handle) {
+        long monitor = glfwGetWindowMonitor(handle);
+        if (monitor == 0L) {
+            monitor = findWindowMonitor(handle);
+        }
+        if (glfwGetVideoMode(monitor) == null) {
             // Monitor in an invalid state: leave the window untouched.
             return false;
         }
 
+        // The resolution picked in the video settings (vanilla's or
+        // Sodium's, both stored in Window), matched against the monitor's
+        // modes the way vanilla does; "Current", or a mode this monitor
+        // lacks, falls back to its current one.
+        VideoMode videoMode = new Monitor(monitor)
+                .getPreferredVidMode(window.getPreferredFullscreenVideoMode());
+
         // Real exclusive fullscreen: an actual monitor handle is passed.
         // Decoration does not matter here, GLFW ignores it in exclusive mode.
         glfwSetWindowMonitor(handle, monitor, 0, 0,
-                vidMode.width(), vidMode.height(), vidMode.refreshRate());
+                videoMode.getWidth(), videoMode.getHeight(), videoMode.getRefreshRate());
         return true;
+    }
+
+    /**
+     * Takes the window out of exclusive fullscreen, if it is in it, which
+     * gives the monitor back its desktop resolution. Only a step towards
+     * another mode: the caller places the window right after.
+     */
+    private static void leaveExclusiveFullscreen(long handle) {
+        long monitor = glfwGetWindowMonitor(handle);
+        if (monitor == 0L) {
+            return;
+        }
+        int[] monitorX = new int[1], monitorY = new int[1];
+        int[] width = new int[1], height = new int[1];
+        glfwGetMonitorPos(monitor, monitorX, monitorY);
+        glfwGetWindowSize(handle, width, height);
+        glfwSetWindowMonitor(handle, 0L, monitorX[0], monitorY[0],
+                width[0], height[0], GLFW_DONT_CARE);
     }
 
     /**

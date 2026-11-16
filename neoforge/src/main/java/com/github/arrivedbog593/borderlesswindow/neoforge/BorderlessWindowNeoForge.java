@@ -8,6 +8,7 @@ import com.github.arrivedbog593.borderlesswindow.general.HudState;
 import com.github.arrivedbog593.borderlesswindow.visual.FogHandler;
 import com.github.arrivedbog593.borderlesswindow.visual.ScreenEffectHandler;
 import net.minecraft.client.Minecraft;
+import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.ModContainer;
 import net.neoforged.fml.common.Mod;
@@ -33,8 +34,13 @@ import net.neoforged.neoforge.common.NeoForge;
  * key, the four events common/ needs (HUD, fog, block screen overlays,
  * the held item name's HUD layer), and the Config button. Each event handler just translates the event for the
  * loader-neutral class that decides.
+ * <p>
+ * Client only: on a dedicated server (a server pack that kept the jar)
+ * NeoForge skips this class, and the mixins sit in the config's "client"
+ * list, so the mod loads and does nothing instead of reaching for client
+ * classes the server does not have.
  */
-@Mod(BorderlessWindowNeoForge.MOD_ID)
+@Mod(value = BorderlessWindowNeoForge.MOD_ID, dist = Dist.CLIENT)
 @SuppressWarnings("unused")
 public class BorderlessWindowNeoForge {
 

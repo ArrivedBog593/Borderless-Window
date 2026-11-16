@@ -106,6 +106,9 @@ public final class ZoomState {
         mode = newMode;
         // A toggled zoom must not stay stuck on after switching to hold.
         active = false;
+        // Nor may presses made in the other mode carry over: toggle would
+        // replay them all on its first frame.
+        drainClicks();
         persist();
     }
 
@@ -163,6 +166,18 @@ public final class ZoomState {
         BorderlessConfigFile.saveCurrent();
     }
 
+    /**
+     * KeyMapping counts every press until consumed, one at a time, and
+     * has no public way to clear the count: consumeClick() takes one off
+     * and says whether there was one, so the condition does all the work.
+     */
+    @SuppressWarnings("StatementWithEmptyBody")
+    private static void drainClicks() {
+        while (KEY.consumeClick()) {
+            // Each call already discards one press.
+        }
+    }
+
     // --- Per frame ------------------------------------------------------
 
     /**
@@ -180,13 +195,16 @@ public final class ZoomState {
             // Left the world: start the next one unzoomed.
             active = false;
             multiplier = 1.0D;
-            KEY.consumeClick();
+            drainClicks();
             return;
         }
 
         boolean wasActive = active;
         if (mode == ZoomMode.HOLD) {
             active = KEY.isDown();
+            // Hold reads the key's state, never its presses, so they would
+            // pile up for toggle to replay after a mode switch.
+            drainClicks();
         } else {
             while (KEY.consumeClick()) {
                 active = !active;
@@ -216,6 +234,7 @@ public final class ZoomState {
     }
 
     /** Whether the hand should be skipped this frame. */
+    @SuppressWarnings("BooleanMethodIsAlwaysInverted")
     public static boolean shouldHideHand() {
         return hideHand && isZooming(Minecraft.getInstance().player);
     }

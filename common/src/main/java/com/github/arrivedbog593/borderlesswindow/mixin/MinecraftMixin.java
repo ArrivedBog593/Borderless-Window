@@ -45,7 +45,7 @@ public abstract class MinecraftMixin {
     @Inject(method = "getFramerateLimit", at = @At("RETURN"), cancellable = true)
     private void borderlesswindow$limitInBackground(CallbackInfoReturnable<Integer> cir) {
         int limit = cir.getReturnValueI();
-        if (MinimizedRenderState.shouldSkipRendering()) {
+        if (MinimizedRenderState.shouldCapFrameRate()) {
             limit = Math.min(limit, MinimizedRenderState.MINIMIZED_FPS);
         }
         if (UnfocusedFpsState.isEnabled() && !this.isWindowActive()) {

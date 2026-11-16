@@ -5,15 +5,15 @@
 
 *[English](README.md)*
 
-Un mod ligero client-side para **NeoForge y Fabric 1.21.1** que agrega **pantalla completa sin bordes** a Minecraft, reemplazando el fullscreen exclusivo con un sistema de 3 modos — más un conjunto de opciones de video y de calidad de vida que Minecraft no ofrece.
+Un mod ligero client-side para **NeoForge y Fabric 1.21.1** que agrega **pantalla completa sin bordes** a Minecraft, reemplazando la pantalla completa exclusiva con un sistema de 3 modos — más un conjunto de opciones de video y de calidad de vida que Minecraft no ofrece.
 
 ## Características
 
 ### Ventana
 
-- **Tres modos de pantalla**: Ventana, Sin bordes, y la Pantalla completa exclusiva normal de Minecraft.
+- **Tres modos de pantalla**: Ventana, Sin bordes, y la Pantalla completa exclusiva normal de Minecraft, a la Resolución de pantalla completa que elijas en los ajustes de video.
 - **F11 configurable**: alternar Sin bordes, alternar Pantalla completa exclusiva, o **ciclar entre los tres modos**.
-- **Compatible con HDR**: evita el parpadeo de pantalla negra y el cambio de perfil de color que el fullscreen exclusivo (y los borderless mal implementados) causan con el HDR de Windows activado.
+- **Compatible con HDR**: evita el parpadeo de pantalla negra y el cambio de perfil de color que la pantalla completa exclusiva (y los borderless mal implementados) causan con el HDR de Windows activado.
 - **Soporte multi-monitor**: se aplica en el monitor donde está la ventana, no siempre en el primario.
 
 ### Video y calidad de vida
@@ -22,7 +22,7 @@ Un mod ligero client-side para **NeoForge y Fabric 1.21.1** que agrega **pantall
 - **Opciones de segundo plano**: Minecraft 1.21.1 sigue corriendo a toda velocidad y a todo volumen cuando nadie lo está viendo. Cuatro opciones independientes lo arreglan:
   - **Límite de FPS sin foco**: limita los FPS mientras el juego está en segundo plano (con Alt+Tab, minimizado o detrás de otra ventana), de 5 a 60 FPS.
   - **Límite por inactividad**: limita los FPS tras unos minutos sin usar el teclado ni el mouse, aunque la ventana esté enfocada, con un segundo límite opcional, más bajo, tras una espera más larga. Cualquier input lo quita al instante.
-  - **Pausar render al minimizar**: deja de dibujar por completo mientras está minimizado. El juego sigue corriendo — solo se detiene la imagen.
+  - **Pausar render al minimizar**: deja de dibujar por completo mientras está minimizado. Nada más cambia — los sonidos y el multijugador siguen, y un mundo de un jugador se pausa igual que sin el mod; solo se detiene la imagen.
   - **Volumen sin foco**: baja o silencia el juego mientras está en segundo plano, como proporción de tu Volumen general.
   - Las cuatro funcionan junto con Dynamic FPS: gana el límite de FPS más bajo.
 - **Distancias de dibujado**: deja de dibujar objetos tirados, orbes de experiencia y soportes para armadura más allá de la distancia que elijas, y evita que aparezcan partículas más lejos de otra. Es puramente visual — los objetos se pueden seguir recogiendo y los orbes te siguen llegando. Las entidades brillantes y los soportes con nombre (hologramas, texto flotante) siempre se dibujan.
@@ -32,12 +32,12 @@ Un mod ligero client-side para **NeoForge y Fabric 1.21.1** que agrega **pantall
 - **Nombre del objeto en mano**: quita el nombre del objeto que aparece sobre la barra al cambiar de casilla.
 - **Overlays de pantalla**: quita la textura de agua que se dibuja sobre tu vista al nadar y las llamas que aparecen mientras te quemas. El fuego además tiene un modo inteligente que oculta las llamas solo mientras tengas Resistencia al Fuego. El overlay de asfixia dentro de bloques sólidos nunca se toca.
 - **Overlays de cámara**: quita el difuminado de la calabaza, el borde de escarcha de la nieve polvo, la distorsión morada del portal del Nether y la mira del catalejo. El zoom del catalejo no cambia — solo se va el marco. La viñeta se deja en paz a propósito: también sirve de aviso del borde del mundo.
-- **Campo de visión separado**: Minecraft tiene un solo slider de Efectos de FOV para todas las fuentes a la vez. Aquí Velocidad, Vuelo, Arco y Líquidos son cuatro sliders, así que puedes calmar el vaivén constante del FOV con pociones de Rapidez sin perder el acercamiento del arco.
+- **Campo de visión separado**: Minecraft tiene un solo slider de Efectos de FOV para todas las fuentes a la vez. Aquí Velocidad, Vuelo, Arco y Líquidos son cuatro sliders, así que puedes calmar el vaivén constante del FOV con pociones de Velocidad sin perder el acercamiento del arco.
 - **Distorsión separada**: la misma idea con el slider de Efectos de distorsión — el portal del Nether y el efecto de Náuseas tienen un slider cada uno, bien diferenciados incluso cuando pasan los dos a la vez.
 - **Balanceo separado**: Minecraft enciende o apaga el balanceo entero de una vez. Aquí la cámara y el objeto en la mano van por separado, y la cámara suma un modo **Solo vertical** que conserva el rebote de arriba a abajo, pero quita el vaivén y la inclinación — el horizonte queda nivelado, que es justo la parte que marea a la mayoría.
 - **Zoom**: presiona **C** (se cambia en Controles) para acercar la vista, 4× por defecto. Mantener o alternar, la rueda del mouse para ir de 1× a 50×, suave o instantáneo, y opcionalmente ocultar la mano y el HUD mientras haces zoom. El mouse gira más lento en la misma proporción, así que apuntar se siente igual. Solo cierra el campo de visión — nada se dibuja más lejos — y se hace a un lado mientras usas un catalejo.
 - **Números de encantamientos**: Minecraft solo tiene números romanos hasta el X y arriba de eso muestra texto crudo como `enchantment.level.11` — los niveles llegan legalmente hasta 255. Esto lo arregla y además te deja elegir el estilo: romanos hasta el X y números normales después, siempre romanos, o siempre números. Los resource packs que sí traducen niveles altos siguen funcionando.
-- **Los sliders escondidos de Minecraft**: los ajustes de video de Sodium dejan fuera varios sliders del propio Minecraft. El mod recupera Efectos de distorsión, Efectos de FOV, Velocidad del brillo, Intensidad del brillo y Desenfoque de menús, cada uno junto a las opciones con las que se relaciona.
+- **Los sliders escondidos de Minecraft**: los ajustes de video de Sodium dejan fuera varios sliders del propio Minecraft. El mod recupera Efectos de distorsión, Efectos de FOV, Velocidad de brillo, Intensidad de brillo y Desenfoque de fondo, cada uno junto a las opciones con las que se relaciona.
 
 ### Configuración y compatibilidad
 
@@ -51,7 +51,7 @@ Un mod ligero client-side para **NeoForge y Fabric 1.21.1** que agrega **pantall
 
 ## ¿Por qué sin bordes?
 
-El fullscreen exclusivo cambia el modo de video real del monitor, lo que causa alt-tabs lentos, parpadeos negros con HDR, bugs de desincronización de resolución y estados de ventana rotos al reiniciar el juego. La pantalla sin bordes es solo una ventana del tamaño del monitor sin decoración: se ve idéntica, pero el alt-tab es instantáneo y nada se desincroniza.
+La pantalla completa exclusiva cambia el modo de video real del monitor, lo que causa alt-tabs lentos, parpadeos negros con HDR, bugs de desincronización de resolución y estados de ventana rotos al reiniciar el juego. La pantalla sin bordes es solo una ventana del tamaño del monitor sin decoración: se ve idéntica, pero el alt-tab es instantáneo y nada se desincroniza.
 
 ## Configuración
 
@@ -66,7 +66,7 @@ Todos los ajustes vienen por defecto en el comportamiento normal del juego, así
 ## Requisitos
 
 - Minecraft **1.21.1**
-- **NeoForge** 21.1.x, o **Fabric Loader** 0.16.0+ (no requiere Fabric API)
+- **NeoForge** 21.1.26+, o **Fabric Loader** 0.16.0+ (no requiere Fabric API)
 - (Opcional) **Sodium 0.8.0+** para la integración con el menú de video
 - (Opcional, Fabric) **Mod Menu**, para abrir también la configuración desde su lista de mods
 

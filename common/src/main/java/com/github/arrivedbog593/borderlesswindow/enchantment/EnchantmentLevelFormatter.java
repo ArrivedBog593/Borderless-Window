@@ -1,6 +1,6 @@
 package com.github.arrivedbog593.borderlesswindow.enchantment;
 
-import net.minecraft.client.resources.language.I18n;
+import net.minecraft.locale.Language;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import org.jetbrains.annotations.Nullable;
@@ -46,8 +46,10 @@ public final class EnchantmentLevelFormatter {
             // Only step in where vanilla would show a raw key. Resource
             // packs and mods that DO define high levels win over us:
             // fixing a missing translation must not overwrite an
-            // existing one.
-            case MIXED -> (level > VANILLA_MAX_KEY && !I18n.exists(translationKey))
+            // existing one. Language rather than the client-only I18n
+            // (same lookup): EnchantmentMixin targets a class the server
+            // has too.
+            case MIXED -> (level > VANILLA_MAX_KEY && !Language.getInstance().has(translationKey))
                     ? Component.literal(Integer.toString(level))
                     : null;
 
