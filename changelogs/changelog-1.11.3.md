@@ -25,7 +25,8 @@
 - Borderless only adds its extra row of height on Windows, where the trick is needed; elsewhere the window matches the monitor
 - Closing the config screen or applying Sodium's page writes the config once instead of once per option
 - "Vertical Only" bobbing uses a lighter hook (`ModifyArg` instead of `ModifyArgs`)
-- The build compiles against the oldest MixinExtras the jar can meet, and the release workflows run with fewer permissions
+- The build compiles against the oldest Mixin and MixinExtras the jar can meet, keeps its shared build logic in an included build (`build-logic`) as the MultiLoader template does, and the release workflows run with fewer permissions
+- The mixin configs declare Java 25, the version Minecraft 26.1 runs on
 
 ## 📦 Dependencies
 
@@ -60,7 +61,8 @@
 - Sin bordes solo agrega su fila de altura extra en Windows, donde hace falta el truco; en los demás sistemas la ventana mide lo mismo que el monitor
 - Cerrar la pantalla de config o aplicar la página de Sodium escribe la config una vez en lugar de una por opción
 - El balanceo "Solo vertical" usa un hook más ligero (`ModifyArg` en vez de `ModifyArgs`)
-- El build compila contra el MixinExtras más viejo con el que puede encontrarse el jar, y los workflows de publicación corren con menos permisos
+- El build compila contra el Mixin y el MixinExtras más viejos con los que puede encontrarse el jar, guarda su lógica compartida en un build incluido (`build-logic`) como hace la plantilla MultiLoader, y los workflows de publicación corren con menos permisos
+- Las configuraciones de mixins declaran Java 25, la versión con la que corre Minecraft 26.1
 
 ## 📦 Dependencias
 

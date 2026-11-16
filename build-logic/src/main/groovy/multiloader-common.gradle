@@ -37,16 +37,6 @@ repositories {
         // Subgroups too: Fabric API lives in net.fabricmc.fabric-api.
         filter { includeGroupAndSubgroups('net.fabricmc') }
     }
-    // ModDevGradle adds this one by itself; Loom (fabric/) needs it declared.
-    exclusiveContent {
-        forRepository {
-            maven {
-                name = 'ParchmentMC'
-                url = 'https://maven.parchmentmc.org'
-            }
-        }
-        filter { includeGroup('org.parchmentmc.data') }
-    }
     exclusiveContent {
         forRepository {
             maven {
