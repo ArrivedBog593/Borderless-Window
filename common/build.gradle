@@ -12,8 +12,9 @@ neoForge {
 
 dependencies {
     // Each loader brings its own Mixin and MixinExtras at runtime; common/
-    // only needs their annotations to compile.
-    compileOnly 'net.fabricmc:sponge-mixin:0.17.4+mixin.0.8.7'
+    // only needs their annotations to compile (see gradle.properties for
+    // the versions).
+    compileOnly "net.fabricmc:sponge-mixin:${mixin_version}"
     compileOnly "io.github.llamalad7:mixinextras-common:${mixin_extras_version}"
 
     // Not transitive: the jar's metadata points at NeoForge itself, which
@@ -38,4 +39,25 @@ configurations {
 artifacts {
     commonJava sourceSets.main.java.sourceDirectories.singleFile
     commonResources sourceSets.main.resources.sourceDirectories.singleFile
+}
+
+// The mcgradleconventions loader attribute, as in the MultiLoader template:
+// tells which loader each variant and classpath is for, so Gradle never
+// picks another loader's variant of a dependency.
+def loaderAttribute = Attribute.of('io.github.mcgradleconventions.loader', String)
+['apiElements', 'runtimeElements'].each { variant ->
+    configurations.named(variant) {
+        attributes {
+            attribute(loaderAttribute, 'common')
+        }
+    }
+}
+sourceSets.configureEach {
+    [it.compileClasspathConfigurationName, it.runtimeClasspathConfigurationName].each { variant ->
+        configurations.named(variant) {
+            attributes {
+                attribute(loaderAttribute, 'common')
+            }
+        }
+    }
 }
