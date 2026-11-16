@@ -203,9 +203,10 @@ jobs:
           fi
 
           jar="dist/borderlesswindow-$LOADER-$MOD_VERSION+mc$MC.jar"
-          # "Borderless Window NeoForge 1.21.1-1.9.0": loader and Minecraft version up front, so every file is unique
-          # across releases and branches -- each branch uploads the same mod version for its own Minecraft version.
-          name="Borderless Window $LOADER_NAME $MC-$MOD_VERSION"
+          # "Borderless Window 1.11.4 for NeoForge 1.21.1", as Sodium names its files: the mod version first, then
+          # what it runs on. The loader and Minecraft version keep every name unique across branches, which upload
+          # the same mod version each for its own Minecraft version.
+          name="Borderless Window $MOD_VERSION for $LOADER_NAME $MC"
 
           # Client only: the mod has no server side, so "Server" is deliberately not listed. The Java tag comes from
           # java_version, so a branch on a newer Java (26.x needs 25) is tagged right without editing this file.
