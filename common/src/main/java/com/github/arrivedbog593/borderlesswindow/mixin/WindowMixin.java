@@ -6,6 +6,8 @@ import com.github.arrivedbog593.borderlesswindow.general.BorderlessHandler;
 import com.github.arrivedbog593.borderlesswindow.general.ScreenMode;
 import com.github.arrivedbog593.borderlesswindow.sodium.SodiumMenuRefresher;
 import com.mojang.blaze3d.platform.Window;
+import com.mojang.blaze3d.platform.WindowEventHandler;
+import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
@@ -35,6 +37,10 @@ public abstract class WindowMixin {
     @Shadow
     private boolean dirty;
 
+    @Shadow
+    @Final
+    private WindowEventHandler eventHandler;
+
     @Inject(method = "toggleFullScreen", at = @At("HEAD"), cancellable = true)
     private void borderlesswindow$onToggle(CallbackInfo ci) {
         ci.cancel();
@@ -62,7 +68,8 @@ public abstract class WindowMixin {
      * slider used to do nothing; and when that flag is left over from a
      * launch in fullscreen, vanilla would force exclusive fullscreen even
      * in Borderless. The mod decides instead: Fullscreen is re-applied at
-     * the new resolution, the other modes keep it for later.
+     * the new resolution, the other modes keep it for later. Then, like
+     * vanilla, the game resizes to the window's new size.
      */
     @Inject(method = "changeFullscreenVideoMode", at = @At("HEAD"), cancellable = true)
     private void borderlesswindow$applyFullscreenResolution(CallbackInfo ci) {
@@ -70,6 +77,7 @@ public abstract class WindowMixin {
         if (this.dirty) {
             this.dirty = false;
             BorderlessHandler.applyFullscreenResolution((Window) (Object) this);
+            this.eventHandler.resizeGui();
         }
     }
 

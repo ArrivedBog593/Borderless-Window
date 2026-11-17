@@ -66,6 +66,16 @@ public abstract class VideoSettingsScreenMixin extends OptionsSubScreen {
      * repositionElements to only re-lay them out, unlike a plain Screen.
      * Checked every tick, so any outside change shows within 1/20 s.
      * <p>
+     * Both the button and the option behind it are updated. The button
+     * only shows its own value; on a click it hands the next one to
+     * OptionInstance.set, which does nothing if that equals the option's
+     * stored value. Updating only the button, as this used to, left the
+     * option on the old mode, so after F11 one click in the cycle was
+     * swallowed: F11 to Windowed from Borderless, then a click to
+     * Borderless, matched the stale value and never reached setMode.
+     * Setting the option here runs its callback, setMode, with the mode
+     * already active, which returns at once.
+     * <p>
      * An injection and not an override: in 1.21.11 vanilla's screen has a
      * tick() of its own (it greys out the anisotropy slider), and a plain
      * method here would replace it.
@@ -77,6 +87,7 @@ public abstract class VideoSettingsScreenMixin extends OptionsSubScreen {
                 && button.getValue() != BorderlessHandler.getCurrentMode()) {
             @SuppressWarnings("unchecked")
             CycleButton<ScreenMode> modeButton = (CycleButton<ScreenMode>) button;
+            this.borderlesswindow$screenMode.set(BorderlessHandler.getCurrentMode());
             modeButton.setValue(BorderlessHandler.getCurrentMode());
         }
         borderlesswindow$updateResolution();
