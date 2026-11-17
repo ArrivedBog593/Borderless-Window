@@ -1,6 +1,6 @@
 # Borderless Window 1.11.1
 
-*NeoForge · Fabric 26.2 · 2026-11-16*
+*NeoForge · Fabric 26.2 · 2026-11-17*
 
 > **A round of fixes.** Fullscreen Resolution now works, a resource reload no longer waits for a minimized window, the config is always saved, and the jar no longer breaks a dedicated server that has it.
 
@@ -9,7 +9,7 @@
 - Every setting stays as it was
 - When updating, delete the 1.11.0 jar from your mods folder
 - On NeoForge it now needs 26.2.0.57, the first stable build, or newer: the betas before it are no longer accepted
-- Fullscreen now uses the Fullscreen Resolution set in the video settings. If it was ever moved off Current, Fullscreen switches to that resolution after updating; set it back to Current to keep the desktop's
+- Fullscreen now uses the Fullscreen Resolution set in the video settings. If it was ever moved off Current, Fullscreen switches to that resolution after updating; set it back to Current to keep the desktop's. With Vulkan this matters for HDR too: Fullscreen is only non-exclusive at Current, since any other resolution has to switch the monitor's display mode
 
 ## 🐛 Fixes
 
@@ -18,6 +18,7 @@
 - **The config is always saved.** On a fresh Fabric instance without a `config` folder, no setting was ever remembered. The file is now also written safely (a crash mid-save can no longer cut it short), a damaged file is kept as `borderlesswindow.json.bak` instead of being overwritten, and both cases are reported in the log
 - **Dedicated servers.** A NeoForge server pack that kept the jar could fail to start or crash later; the mod now just stays idle on a server
 - **Zoom.** Presses of the zoom key in Hold mode piled up and were replayed on switching to Toggle, which could turn the zoom on by itself
+- **Screen Mode in Minecraft's video settings after F11.** With the video settings open (without Sodium), pressing F11 updated the selector, but the next click on it could do nothing until the screen was reopened. It now always switches
 - **Translations.** The Spanish texts use the names Minecraft shows for its own options and effects in each variant (for example Velocidad de destello and Cuerpo ignífugo in Spain), and the two distortion tooltips match the rest
 
 ## 🔧 Technical Changes
@@ -25,7 +26,7 @@
 - Borderless only adds its extra row of height on Windows, where the trick is needed; elsewhere the window matches the monitor
 - Closing the config screen or applying Sodium's page writes the config once instead of once per option
 - "Vertical Only" bobbing uses a lighter hook (`ModifyArg` instead of `ModifyArgs`)
-- The build compiles against the oldest Mixin and MixinExtras the jar can meet, keeps its shared build logic in an included build (`build-logic`) as the MultiLoader template does, and the release workflows run with fewer permissions
+- The build compiles against the oldest Mixin and MixinExtras the jar can meet, keeps its shared build logic in an included build (`build-logic`) as the MultiLoader template does, and the release workflows run with fewer permissions. Releases are now named "Borderless Window 1.11.1 for NeoForge 26.2" on CurseForge and "Borderless Window 1.11.1 for Minecraft 26.2" on GitHub
 - The mixin configs declare Java 25, the version Minecraft 26.2 runs on
 
 ## 📦 Dependencies
@@ -45,7 +46,7 @@
 - Los ajustes se quedan como estaban
 - Al actualizar, borra el jar de la 1.11.0 de tu carpeta de mods
 - En NeoForge ahora pide la 26.2.0.57, la primera estable, o más nueva: ya no se aceptan las betas anteriores
-- La Pantalla completa ahora usa la Resolución de pantalla completa de los ajustes de video. Si alguna vez se movió de Actual, al actualizar la Pantalla completa cambia a esa resolución; regrésala a Actual para conservar la del escritorio
+- La Pantalla completa ahora usa la Resolución de pantalla completa de los ajustes de video. Si alguna vez se movió de Actual, al actualizar la Pantalla completa cambia a esa resolución; regrésala a Actual para conservar la del escritorio. Con Vulkan esto también importa para el HDR: la Pantalla completa solo deja de ser exclusiva en Actual, porque cualquier otra resolución tiene que cambiar el modo de pantalla del monitor
 
 ## 🐛 Arreglos
 
@@ -54,6 +55,7 @@
 - **La config siempre se guarda.** En una instancia nueva de Fabric sin carpeta `config`, ningún ajuste se recordaba. Además, el archivo ahora se escribe de forma segura (un cierre a media escritura ya no lo deja cortado), un archivo dañado se conserva como `borderlesswindow.json.bak` en vez de sobrescribirse, y los dos casos quedan en el log
 - **Servidores dedicados.** Un server pack de NeoForge que conservaba el jar podía no arrancar o tronar después; ahora el mod simplemente no hace nada en un servidor
 - **Zoom.** Las pulsaciones de la tecla de zoom en modo Mantener se acumulaban y se repetían al cambiar a Alternar, lo que podía activar el zoom solo
+- **Modo de pantalla en los ajustes de video de Minecraft después de F11.** Con los ajustes de video abiertos (sin Sodium), F11 actualizaba el selector, pero el siguiente clic en él podía no hacer nada hasta volver a abrir la pantalla. Ahora siempre cambia
 - **Traducciones.** Los textos en español usan los nombres que Minecraft muestra para sus propias opciones y efectos en cada variante (por ejemplo Velocidad de destello y Cuerpo ignífugo en España), y los dos tooltips de distorsión quedan como los demás
 
 ## 🔧 Cambios Técnicos
@@ -61,7 +63,7 @@
 - Sin bordes solo agrega su fila de altura extra en Windows, donde hace falta el truco; en los demás sistemas la ventana mide lo mismo que el monitor
 - Cerrar la pantalla de config o aplicar la página de Sodium escribe la config una vez en lugar de una por opción
 - El balanceo "Solo vertical" usa un hook más ligero (`ModifyArg` en vez de `ModifyArgs`)
-- El build compila contra el Mixin y el MixinExtras más viejos con los que puede encontrarse el jar, guarda su lógica compartida en un build incluido (`build-logic`) como hace la plantilla MultiLoader, y los workflows de publicación corren con menos permisos
+- El build compila contra el Mixin y el MixinExtras más viejos con los que puede encontrarse el jar, guarda su lógica compartida en un build incluido (`build-logic`) como hace la plantilla MultiLoader, y los workflows de publicación corren con menos permisos. Las versiones ahora se llaman "Borderless Window 1.11.1 for NeoForge 26.2" en CurseForge y "Borderless Window 1.11.1 for Minecraft 26.2" en GitHub
 - Las configuraciones de mixins declaran Java 25, la versión con la que corre Minecraft 26.2
 
 ## 📦 Dependencias

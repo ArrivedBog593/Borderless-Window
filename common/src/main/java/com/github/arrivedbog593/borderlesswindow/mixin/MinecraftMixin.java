@@ -1,15 +1,20 @@
 package com.github.arrivedbog593.borderlesswindow.mixin;
 
 import com.github.arrivedbog593.borderlesswindow.fps.MinimizedRenderState;
+import com.github.arrivedbog593.borderlesswindow.general.BorderlessHandler;
+import com.mojang.blaze3d.platform.Window;
 import com.llamalad7.mixinextras.injector.v2.WrapWithCondition;
 import net.minecraft.client.DeltaTracker;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.GameRenderer;
 import org.lwjgl.glfw.GLFW;
 import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.ModifyArg;
+import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 /**
  * Makes the Fullscreen screen mode always exclusive, and skips drawing
@@ -38,6 +43,19 @@ import org.spongepowered.asm.mixin.injection.ModifyArg;
  */
 @Mixin(Minecraft.class)
 public abstract class MinecraftMixin {
+
+    @Shadow
+    public abstract Window getWindow();
+
+    /**
+     * Once per frame, after the previous frame's window events were
+     * handled: Windows may have undone a Fullscreen resolution change in
+     * between (see BorderlessHandler.checkFullscreenMode).
+     */
+    @Inject(method = "runTick", at = @At("HEAD"))
+    private void borderlesswindow$checkFullscreenMode(boolean advanceGameTime, CallbackInfo ci) {
+        BorderlessHandler.checkFullscreenMode(this.getWindow());
+    }
 
     @Unique
     private boolean borderlesswindow$skipFrame;

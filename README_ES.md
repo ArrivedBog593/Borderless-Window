@@ -11,7 +11,7 @@ Un mod ligero client-side para **NeoForge y Fabric 26.2** que agrega **pantalla 
 
 ### Ventana
 
-- **Tres modos de pantalla**: Ventana, Sin bordes, y Pantalla completa, que siempre es exclusiva con OpenGL (la opción "Pantalla completa exclusiva" de Minecraft ya no hace falta), a la Resolución de pantalla completa que elijas en los ajustes de video. Con Vulkan, la otra API gráfica de Minecraft 26.2, su pantalla completa nunca es exclusiva, así que ahí no choca con el HDR.
+- **Tres modos de pantalla**: Ventana, Sin bordes, y Pantalla completa, que siempre es exclusiva con OpenGL (la opción "Pantalla completa exclusiva" de Minecraft ya no hace falta), a la Resolución de pantalla completa que elijas en los ajustes de video. Con Vulkan, la otra API gráfica de Minecraft 26.2, la Pantalla completa a la resolución del escritorio (Actual) no es exclusiva, así que ahí no choca con el HDR; cualquier otra resolución tiene que cambiar el modo de pantalla del monitor, y eso se comporta como pantalla completa exclusiva con cualquiera de las dos API.
 - **F11 configurable**: alternar Sin bordes, alternar Pantalla completa exclusiva, o **ciclar entre los tres modos**.
 - **Compatible con HDR**: evita el parpadeo de pantalla negra y el cambio de perfil de color que la pantalla completa exclusiva (y los borderless mal implementados) causan con el HDR de Windows activado.
 - **Soporte multi-monitor**: se aplica en el monitor donde está la ventana, no siempre en el primario.
@@ -44,7 +44,7 @@ Un mod ligero client-side para **NeoForge y Fabric 26.2** que agrega **pantalla 
 - **NeoForge y Fabric**: el mismo mod, con todas sus funciones, en los dos loaders. Incluso comparten el mismo archivo de configuración.
 - **Integrado en los menús del propio Minecraft**: sin Sodium, el interruptor de "Pantalla completa" de los Ajustes de video se convierte en un selector de "Modo de pantalla" (el interruptor de "Pantalla completa exclusiva" de Minecraft se oculta), y un botón "Borderless Window..." ahí mismo abre la pantalla de configuración completa. No requiere ningún otro mod en ninguno de los dos loaders.
 - **Integración con Sodium** (opcional): con [Sodium](https://www.curseforge.com/minecraft/mc-mods/sodium) 0.9.0 o más nuevo instalado, el selector "Fullscreen Mode" de su menú de video se reemplaza por un selector de "Modo de pantalla", y el mod obtiene su propia sección con seis páginas. Construido completamente sobre la Config API oficial de Sodium — sin mixins frágiles a sus clases internas. También funciona bien con Reese's Sodium Options.
-- **Shaders de Iris**: con un shaderpack activo, Iris dibuja la mano por su cuenta; Ocultar mano al hacer zoom y el Balanceo de la mano por separado también funcionan ahí.
+- **Shaders de Iris**: con un shaderpack activo, Iris dibuja la mano y pasa el balanceo de la vista y el giro de la distorsión a sus propias matrices; Ocultar mano al hacer zoom, los dos ajustes de balanceo y los sliders de Distorsión de portal y de náuseas también funcionan ahí.
 - **Nada más que instalar**: funciona con o sin Sodium. En Fabric no requiere Fabric API — las dos piezas pequeñas que usa, para cargar sus traducciones y para agregar la tecla de zoom a Controles, vienen dentro del jar, igual que hace Sodium. Mod Menu es opcional.
 - **Persistente**: todos los ajustes se recuerdan entre sesiones (`config/borderlesswindow.json`).
 - **Traducible**: todos los textos viven en lang files estándar (`en_us`, `es_mx`, `es_es` incluidos — se aceptan contribuciones).
@@ -72,7 +72,7 @@ Todos los ajustes vienen por defecto en el comportamiento normal del juego, así
 
 Descarga el jar de tu loader: `borderlesswindow-neoforge-…` o `borderlesswindow-fabric-…`.
 
-**Vulkan en NeoForge:** la pantalla de carga temprana de NeoForge 26.2.0.93 siempre abre una ventana OpenGL, así que con la API gráfica en Vulkan el juego se detiene al arrancar con "GLFW error 65540". Mientras NeoForge lo arregla, pon `earlyWindowControl = false` en `config/fml.toml`. A Fabric no le pasa.
+**Vulkan en NeoForge:** la pantalla de carga temprana de NeoForge 26.2 (sigue en 26.2.0.95) siempre abre una ventana OpenGL, así que con la API gráfica en Vulkan el juego se detiene al arrancar con "GLFW error 65540". Mientras NeoForge lo arregla, pon `earlyWindowControl = false` en `config/fml.toml`. A Fabric no le pasa.
 
 ## Licencia
 
