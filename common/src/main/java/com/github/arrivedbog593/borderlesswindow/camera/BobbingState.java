@@ -55,4 +55,21 @@ public final class BobbingState {
         handBob = enabled;
         BorderlessConfigFile.saveCurrent();
     }
+
+    /**
+     * Raised while bobView runs for the held item, by vanilla's
+     * renderItemInHand (GameRendererMixin) or Iris's hand pass
+     * (IrisHandRendererMixin): bobView cannot tell who called it, and the
+     * camera setting must leave the hand alone. Render thread only.
+     */
+    private static boolean bobbingHand;
+
+    @SuppressWarnings("BooleanMethodIsAlwaysInverted")
+    public static boolean isBobbingHand() {
+        return bobbingHand;
+    }
+
+    public static void setBobbingHand(boolean hand) {
+        bobbingHand = hand;
+    }
 }

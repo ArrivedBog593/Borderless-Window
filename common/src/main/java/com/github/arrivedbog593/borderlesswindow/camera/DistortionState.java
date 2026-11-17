@@ -135,6 +135,21 @@ public final class DistortionState {
         return inPortal;
     }
 
+    /**
+     * Raised while Iris redoes the spin under a shaderpack (see
+     * GameRendererMixin.scaleIrisDistortion), so LivingEntityMixin scales
+     * the Nausea blend factor Iris reads. Render thread only.
+     */
+    private static boolean scalingIrisSpin;
+
+    public static boolean isScalingIrisSpin() {
+        return scalingIrisSpin;
+    }
+
+    public static void setScalingIrisSpin(boolean scaling) {
+        scalingIrisSpin = scaling;
+    }
+
     /** Called by EntityMixin whenever the player touches a Nether portal. */
     public static void markTouchingPortal() {
         touchingPortal = true;

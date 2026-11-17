@@ -41,6 +41,14 @@ public final class BorderlessHandler {
 
     private static ScreenMode currentMode = ScreenMode.WINDOWED;
 
+    // Watch over the Fullscreen resolution right after it is applied, see
+    // checkFullscreenMode. The fallback was seen within half a second.
+    private static final long FULLSCREEN_CHECK_MILLIS = 2000L;
+    private static final int FULLSCREEN_MAX_RETRIES = 2;
+    private static VideoMode appliedFullscreenMode;
+    private static long fullscreenCheckDeadline;
+    private static int fullscreenRetriesLeft;
+
     // False until initializeFromConfig() has loaded the saved config.
     // Vanilla's Minecraft constructor calls toggleFullScreen() during early
     // boot (to reconcile options.txt's fullscreen flag) -- long before our
@@ -232,11 +240,10 @@ public final class BorderlessHandler {
         if (!initialized || currentMode != ScreenMode.FULLSCREEN) {
             return;
         }
-        long handle = window.handle();
-        // Out of exclusive fullscreen first, so "Current" resolves to the
-        // desktop's resolution rather than the one being replaced.
-        leaveExclusiveFullscreen(handle);
-        applyExclusiveFullscreen(window, handle);
+        // Straight from one mode to the other, like vanilla: no detour
+        // through the desktop's mode, so one display mode change instead of
+        // two. Windows may still undo it, which checkFullscreenMode catches.
+        applyExclusiveFullscreen(window, window.handle());
     }
 
     private static boolean applyBorderless(long handle) {
@@ -280,7 +287,8 @@ public final class BorderlessHandler {
 
     private static boolean applyExclusiveFullscreen(Window window, long handle) {
         long monitor = glfwGetWindowMonitor(handle);
-        if (monitor == 0L) {
+        boolean alreadyExclusive = monitor != 0L;
+        if (!alreadyExclusive) {
             monitor = findWindowMonitor(handle);
         }
         if (glfwGetVideoMode(monitor) == null) {
@@ -291,15 +299,77 @@ public final class BorderlessHandler {
         // The resolution picked in the video settings (vanilla's or
         // Sodium's, both stored in Window), matched against the monitor's
         // modes the way vanilla does; "Current", or a mode this monitor
-        // lacks, falls back to its current one.
-        VideoMode videoMode = new Monitor(monitor)
+        // lacks, falls back to the desktop's.
+        VideoMode videoMode = desktopMonitor(window, monitor, alreadyExclusive)
                 .getPreferredVidMode(window.getPreferredFullscreenVideoMode());
 
         // Real exclusive fullscreen: an actual monitor handle is passed.
         // Decoration does not matter here, GLFW ignores it in exclusive mode.
         glfwSetWindowMonitor(handle, monitor, 0, 0,
                 videoMode.getWidth(), videoMode.getHeight(), videoMode.getRefreshRate());
+
+        appliedFullscreenMode = videoMode;
+        fullscreenCheckDeadline = Util.getMillis() + FULLSCREEN_CHECK_MILLIS;
+        fullscreenRetriesLeft = FULLSCREEN_MAX_RETRIES;
         return true;
+    }
+
+    /**
+     * Called every frame (MinecraftMixin). For a short while after
+     * Fullscreen is applied, re-applies it if the monitor fell back to
+     * another mode. Going from one non-desktop resolution straight to
+     * another, Windows sets the new mode and, before the next frame, puts
+     * the desktop's back (seen on NVIDIA, with and without HDR, logged
+     * with GLFW's own glfwGetVideoMode). From the desktop's mode the same
+     * call sticks, so one retry is normally enough. Alt+Tab used to be
+     * the workaround: GLFW sets the mode again when the window comes back.
+     */
+    public static void checkFullscreenMode(Window window) {
+        if (appliedFullscreenMode == null) {
+            return;
+        }
+        long handle = window.handle();
+        long monitor = glfwGetWindowMonitor(handle);
+        if (currentMode != ScreenMode.FULLSCREEN || monitor == 0L
+                || glfwGetWindowAttrib(handle, GLFW_ICONIFIED) == GLFW_TRUE
+                || Util.getMillis() > fullscreenCheckDeadline) {
+            // Left Fullscreen, minimized (GLFW gives the desktop its mode
+            // back on purpose) or settled: stop watching.
+            appliedFullscreenMode = null;
+            return;
+        }
+
+        GLFWVidMode actual = glfwGetVideoMode(monitor);
+        VideoMode wanted = appliedFullscreenMode;
+        if (actual == null
+                || (actual.width() == wanted.getWidth() && actual.height() == wanted.getHeight())) {
+            return;
+        }
+        if (fullscreenRetriesLeft-- <= 0) {
+            appliedFullscreenMode = null;
+            return;
+        }
+        glfwSetWindowMonitor(handle, monitor, 0, 0,
+                wanted.getWidth(), wanted.getHeight(), wanted.getRefreshRate());
+    }
+
+    /**
+     * The monitor's video modes, with the desktop's as its current one
+     * (what "Current" means). Outside exclusive fullscreen a fresh query
+     * gives exactly that. Inside it, the monitor reports the mode the game
+     * set, so this takes vanilla's own Monitor instead (ScreenManager,
+     * read when the monitor was connected): the one vanilla's slider lists
+     * and resolves "Current" against.
+     */
+    private static Monitor desktopMonitor(Window window, long monitor, boolean exclusive) {
+        if (exclusive) {
+            // In exclusive fullscreen this is the window's own monitor.
+            Monitor known = window.findBestMonitor();
+            if (known != null && known.getMonitor() == monitor) {
+                return known;
+            }
+        }
+        return new Monitor(monitor);
     }
 
     /**

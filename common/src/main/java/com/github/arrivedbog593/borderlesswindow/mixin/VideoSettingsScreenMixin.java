@@ -64,6 +64,16 @@ public abstract class VideoSettingsScreenMixin extends OptionsSubScreen {
      * repositionElements to only re-lay them out, unlike a plain Screen.
      * Checked every tick, so any outside change shows within 1/20 s.
      * <p>
+     * Both the button and the option behind it are updated. The button
+     * only shows its own value; on a click it hands the next one to
+     * OptionInstance.set, which does nothing if that equals the option's
+     * stored value. Updating only the button, as this used to, left the
+     * option on the old mode, so after F11 one click in the cycle was
+     * swallowed: F11 to Windowed from Borderless, then a click to
+     * Borderless, matched the stale value and never reached setMode.
+     * Setting the option here runs its callback, setMode, with the mode
+     * already active, which returns at once.
+     * <p>
      * An injection and not an override: in 1.21.11 vanilla's screen has a
      * tick() of its own (it greys out the anisotropy slider), and a plain
      * method here would replace it.
@@ -75,6 +85,7 @@ public abstract class VideoSettingsScreenMixin extends OptionsSubScreen {
                 && button.getValue() != BorderlessHandler.getCurrentMode()) {
             @SuppressWarnings("unchecked")
             CycleButton<ScreenMode> modeButton = (CycleButton<ScreenMode>) button;
+            this.borderlesswindow$screenMode.set(BorderlessHandler.getCurrentMode());
             modeButton.setValue(BorderlessHandler.getCurrentMode());
         }
         borderlesswindow$updateResolution();
@@ -109,16 +120,23 @@ public abstract class VideoSettingsScreenMixin extends OptionsSubScreen {
      * Swaps vanilla's Fullscreen toggle for the Screen Mode selector, in
      * place, so it keeps its spot in the grid. Vanilla builds the small
      * options as one array and hands it to addSmall.
+     * <p>
+     * The copy is built element by element on purpose: smallOptions.clone()
+     * is a method call on an array type, which Mixin 0.15.0 (Fabric Loader
+     * 0.16.0) cannot transform. It crashed with a NullPointerException in
+     * MixinTargetContext.transformMethodRef as soon as the class loaded.
      */
     @ModifyArg(method = "addOptions",
             at = @At(value = "INVOKE",
                     target = "Lnet/minecraft/client/gui/components/OptionsList;addSmall([Lnet/minecraft/client/OptionInstance;)V"))
     private OptionInstance<?>[] borderlesswindow$replaceFullscreen(OptionInstance<?>[] smallOptions) {
-        OptionInstance<?>[] replaced = smallOptions.clone();
-        for (int i = 0; i < replaced.length; i++) {
-            if (replaced[i] == this.options.fullscreen()) {
+        OptionInstance<?>[] replaced = new OptionInstance<?>[smallOptions.length];
+        for (int i = 0; i < smallOptions.length; i++) {
+            if (smallOptions[i] == this.options.fullscreen()) {
                 this.borderlesswindow$screenMode = borderlesswindow$screenModeOption();
                 replaced[i] = this.borderlesswindow$screenMode;
+            } else {
+                replaced[i] = smallOptions[i];
             }
         }
         return replaced;
