@@ -1,8 +1,8 @@
 # Borderless Window 1.11.4
 
-*NeoForge · Fabric 1.21.1 · 2026-11-15*
+*NeoForge · Fabric 1.21.1 · 2026-11-16*
 
-> **A round of fixes.** Fullscreen Resolution now works, a minimized single-player world pauses again with Pause Rendering When Minimized, the config is always saved, and the jar no longer breaks a dedicated server that has it.
+> **A round of fixes.** Fullscreen Resolution now works, a minimized single-player world pauses again with Pause Rendering When Minimized, the config is always saved, Camera Bobbing and the distortion sliders work under Iris shaders, and the jar no longer breaks a dedicated server that has it.
 
 ## ⚠️ Important Notes
 
@@ -18,6 +18,8 @@
 - **The config is always saved.** On a fresh Fabric instance without a `config` folder, no setting was ever remembered. The file is now also written safely (a crash mid-save can no longer cut it short), a damaged file is kept as `borderlesswindow.json.bak` instead of being overwritten, and both cases are reported in the log
 - **Dedicated servers.** A NeoForge server pack that kept the jar could fail to start or crash later; the mod now just stays idle on a server
 - **Zoom.** Presses of the zoom key in Hold mode piled up and were replayed on switching to Toggle, which could turn the zoom on by itself
+- **Camera bobbing and distortion with shaders.** With an Iris shaderpack on, Camera Bobbing and the Portal and Nausea Distortion sliders did nothing, because Iris applies the bobbing and the spin itself. They now work with and without shaders
+- **Older Fabric Loaders.** With Fabric Loader 0.16.0, the oldest the mod accepts, opening the options menu crashed the game; it now opens normally
 - **Translations.** The Spanish texts use the names Minecraft shows for its own options and effects in each variant (for example Velocidad de destello and Cuerpo ignífugo in Spain), and the two distortion tooltips match the rest
 
 ## 🔧 Technical Changes
@@ -25,7 +27,7 @@
 - Borderless only adds its extra row of height on Windows, where the trick is needed; elsewhere the window matches the monitor
 - Closing the config screen or applying Sodium's page writes the config once instead of once per option
 - "Vertical Only" bobbing uses a lighter hook (`ModifyArg` instead of `ModifyArgs`)
-- The build compiles against the oldest Mixin and MixinExtras the jar can meet, keeps its shared build logic in an included build (`build-logic`) as the MultiLoader template does, and the release workflows run with fewer permissions
+- The build compiles against the oldest Mixin and MixinExtras the jar can meet, keeps its shared build logic in an included build (`build-logic`) as the MultiLoader template does, and the release workflows run with fewer permissions. Releases are now named "Borderless Window 1.11.4 for NeoForge 1.21.1" on CurseForge and "Borderless Window 1.11.4 for Minecraft 1.21.1" on GitHub
 
 ## 📦 Dependencies
 
@@ -37,7 +39,7 @@
 <details>
 <summary><b>🇪🇸 Leer en español</b></summary>
 
-> **Una ronda de arreglos.** La Resolución de pantalla completa ya funciona, un mundo de un jugador minimizado vuelve a pausarse con Pausar render al minimizar, la config siempre se guarda y el jar ya no rompe un servidor dedicado que lo tenga.
+> **Una ronda de arreglos.** La Resolución de pantalla completa ya funciona, un mundo de un jugador minimizado vuelve a pausarse con Pausar render al minimizar, la config siempre se guarda, el Balanceo de la cámara y los sliders de distorsión funcionan con shaders de Iris, y el jar ya no rompe un servidor dedicado que lo tenga.
 
 ## ⚠️ Notas Importantes
 
@@ -53,6 +55,8 @@
 - **La config siempre se guarda.** En una instancia nueva de Fabric sin carpeta `config`, ningún ajuste se recordaba. Además, el archivo ahora se escribe de forma segura (un cierre a media escritura ya no lo deja cortado), un archivo dañado se conserva como `borderlesswindow.json.bak` en vez de sobrescribirse, y los dos casos quedan en el log
 - **Servidores dedicados.** Un server pack de NeoForge que conservaba el jar podía no arrancar o tronar después; ahora el mod simplemente no hace nada en un servidor
 - **Zoom.** Las pulsaciones de la tecla de zoom en modo Mantener se acumulaban y se repetían al cambiar a Alternar, lo que podía activar el zoom solo
+- **Balanceo de la cámara y distorsión con shaders.** Con un shaderpack de Iris activo, el Balanceo de la cámara y los sliders de Distorsión de portal y de náuseas no hacían nada, porque Iris aplica el balanceo y el giro por su cuenta. Ahora funcionan con y sin shaders
+- **Fabric Loader antiguos.** Con Fabric Loader 0.16.0, el más viejo que acepta el mod, abrir el menú de opciones crasheaba el juego; ahora abre normal
 - **Traducciones.** Los textos en español usan los nombres que Minecraft muestra para sus propias opciones y efectos en cada variante (por ejemplo Velocidad de destello y Cuerpo ignífugo en España), y los dos tooltips de distorsión quedan como los demás
 
 ## 🔧 Cambios Técnicos
@@ -60,7 +64,7 @@
 - Sin bordes solo agrega su fila de altura extra en Windows, donde hace falta el truco; en los demás sistemas la ventana mide lo mismo que el monitor
 - Cerrar la pantalla de config o aplicar la página de Sodium escribe la config una vez en lugar de una por opción
 - El balanceo "Solo vertical" usa un hook más ligero (`ModifyArg` en vez de `ModifyArgs`)
-- El build compila contra el Mixin y el MixinExtras más viejos con los que puede encontrarse el jar, guarda su lógica compartida en un build incluido (`build-logic`) como hace la plantilla MultiLoader, y los workflows de publicación corren con menos permisos
+- El build compila contra el Mixin y el MixinExtras más viejos con los que puede encontrarse el jar, guarda su lógica compartida en un build incluido (`build-logic`) como hace la plantilla MultiLoader, y los workflows de publicación corren con menos permisos. Las versiones ahora se llaman "Borderless Window 1.11.4 for NeoForge 1.21.1" en CurseForge y "Borderless Window 1.11.4 for Minecraft 1.21.1" en GitHub
 
 ## 📦 Dependencias
 

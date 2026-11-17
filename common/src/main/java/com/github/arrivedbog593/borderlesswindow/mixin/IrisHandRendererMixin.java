@@ -7,6 +7,8 @@ import com.llamalad7.mixinextras.injector.ModifyReturnValue;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Pseudo;
 import org.spongepowered.asm.mixin.injection.At;
+import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 /**
  * Iris compatibility: with a shaderpack on, Iris skips vanilla's
@@ -53,5 +55,21 @@ public abstract class IrisHandRendererMixin {
             require = 0)
     private boolean borderlesswindow$shouldBobHand(boolean original) {
         return original && BobbingState.isHandBobEnabled();
+    }
+
+    /**
+     * Marks setupGlState's bobView call as the hand's, so the camera
+     * setting (applied inside bobView, see GameRendererMixin) leaves it
+     * alone. setupGlState has a single return, and bobView is its last
+     * call.
+     */
+    @Inject(method = "setupGlState", at = @At("HEAD"), require = 0)
+    private void borderlesswindow$beginHandBob(CallbackInfoReturnable<?> cir) {
+        BobbingState.setBobbingHand(true);
+    }
+
+    @Inject(method = "setupGlState", at = @At("RETURN"), require = 0)
+    private void borderlesswindow$endHandBob(CallbackInfoReturnable<?> cir) {
+        BobbingState.setBobbingHand(false);
     }
 }

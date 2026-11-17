@@ -1,6 +1,8 @@
 package com.github.arrivedbog593.borderlesswindow.mixin;
 
 import com.github.arrivedbog593.borderlesswindow.fps.IdleFpsState;
+import com.github.arrivedbog593.borderlesswindow.general.BorderlessHandler;
+import com.mojang.blaze3d.platform.Window;
 import com.github.arrivedbog593.borderlesswindow.fps.MinimizedRenderState;
 import com.github.arrivedbog593.borderlesswindow.fps.UnfocusedFpsState;
 import com.github.arrivedbog593.borderlesswindow.fps.UnfocusedVolumeState;
@@ -41,6 +43,19 @@ public abstract class MinecraftMixin {
 
     @Shadow
     public abstract boolean isWindowActive();
+
+    @Shadow
+    public abstract Window getWindow();
+
+    /**
+     * Once per frame, after the previous frame's window events were
+     * handled: Windows may have undone a Fullscreen resolution change in
+     * between (see BorderlessHandler.checkFullscreenMode).
+     */
+    @Inject(method = "runTick", at = @At("HEAD"))
+    private void borderlesswindow$checkFullscreenMode(boolean renderLevel, CallbackInfo ci) {
+        BorderlessHandler.checkFullscreenMode(this.getWindow());
+    }
 
     @Inject(method = "getFramerateLimit", at = @At("RETURN"), cancellable = true)
     private void borderlesswindow$limitInBackground(CallbackInfoReturnable<Integer> cir) {

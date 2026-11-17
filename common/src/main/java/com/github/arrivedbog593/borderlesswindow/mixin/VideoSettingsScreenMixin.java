@@ -106,16 +106,23 @@ public abstract class VideoSettingsScreenMixin extends OptionsSubScreen {
      * Swaps vanilla's Fullscreen toggle for the Screen Mode selector, in
      * place, so it keeps its spot in the grid. Vanilla builds the small
      * options as one array and hands it to addSmall.
+     * <p>
+     * The copy is built element by element on purpose: smallOptions.clone()
+     * is a method call on an array type, which Mixin 0.15.0 (Fabric Loader
+     * 0.16.0) cannot transform. It crashed with a NullPointerException in
+     * MixinTargetContext.transformMethodRef as soon as the class loaded.
      */
     @ModifyArg(method = "addOptions",
             at = @At(value = "INVOKE",
                     target = "Lnet/minecraft/client/gui/components/OptionsList;addSmall([Lnet/minecraft/client/OptionInstance;)V"))
     private OptionInstance<?>[] borderlesswindow$replaceFullscreen(OptionInstance<?>[] smallOptions) {
-        OptionInstance<?>[] replaced = smallOptions.clone();
-        for (int i = 0; i < replaced.length; i++) {
-            if (replaced[i] == this.options.fullscreen()) {
+        OptionInstance<?>[] replaced = new OptionInstance<?>[smallOptions.length];
+        for (int i = 0; i < smallOptions.length; i++) {
+            if (smallOptions[i] == this.options.fullscreen()) {
                 this.borderlesswindow$screenMode = borderlesswindow$screenModeOption();
                 replaced[i] = this.borderlesswindow$screenMode;
+            } else {
+                replaced[i] = smallOptions[i];
             }
         }
         return replaced;

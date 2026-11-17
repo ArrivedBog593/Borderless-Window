@@ -18,10 +18,12 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.Options;
 import net.minecraft.client.gui.Gui;
 import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.util.Mth;
 import org.joml.Matrix4f;
 import org.joml.Quaternionf;
+import org.joml.Quaternionfc;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
@@ -33,25 +35,24 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
  * Splits vanilla's single "View Bobbing" option into a camera setting
  * and a hand setting, and adds a middle ground for the camera.
  * <p>
- * WHY FOUR INJECTIONS. GameRenderer.bobView applies four transforms in
- * one method -- lateral sway and vertical bounce (a single translate),
- * a Z rotation that rolls the horizon, and an X rotation that pitches
- * the view. Vanilla calls that one method from two places, both behind
+ * GameRenderer.bobView applies four transforms in one method -- lateral
+ * sway and vertical bounce (a single translate), a Z rotation that rolls
+ * the horizon, and an X rotation that pitches the view. It is called for
+ * the world camera and for the held item, always behind
  * options.bobView():
  * <p>
- * - renderLevel, for the world camera
- * - renderItemInHand, for the held item
+ * - camera: from renderLevel, or, with an Iris shaderpack on, from the
+ *   model-view matrix Iris builds itself (Iris turns renderLevel's own
+ *   call into a no-op then, so a hook on that call site never sees it)
+ * - hand: from renderItemInHand, or, under Iris shaders, from Iris's
+ *   HandRenderer (see IrisHandRendererMixin)
  * <p>
- * Turning a call site off entirely is easy: wrap the invocation. But
- * VERTICAL_ONLY needs to suppress three of the four transforms INSIDE
- * bobView, and only when it was entered from the camera path -- the
- * hand must keep its full motion. Since bobView itself carries no
- * indication of who called it, the camera wrapper raises a flag for the
- * duration of that one call and the two inner injections read it.
- * <p>
- * The flag is safe as plain state: all of this runs on the render
- * thread, the camera call completes before renderItemInHand is reached,
- * and the try/finally guarantees it is lowered even if rendering throws.
+ * So the camera setting is applied INSIDE bobView, the one place every
+ * camera path goes through, and the hand calls are told apart instead:
+ * both hand paths raise BobbingState's "bobbing hand" flag around their
+ * call, and the injections below leave those calls alone. Any other
+ * caller counts as the camera. The hand setting stays on the hand call
+ * sites, which skip the call entirely when it is off.
  * <p>
  * WHY MIXINEXTRAS AND NOT @Redirect. @Redirect claims a call site
  * exclusively -- a second mod redirecting the same invocation is a hard
@@ -67,63 +68,51 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 public abstract class GameRendererMixin {
 
     /**
-     * Raised only while the CAMERA call to bobView is executing, so the
-     * two injections below know to strip transforms. Never set during
-     * the hand's call.
-     */
-    @Unique
-    private boolean borderlesswindow$strippingCameraBob = false;
-
-    /**
      * The held item's bobbing, toggled independently. Skipping the call
      * leaves the pose stack untouched, exactly as if vanilla's option
-     * were off -- but only for the hand.
+     * were off -- but only for the hand. When it runs, the flag tells the
+     * camera injections below to keep out.
      */
-    @WrapWithCondition(
+    @WrapOperation(
             method = "renderItemInHand",
             at = @At(value = "INVOKE",
                     target = "Lnet/minecraft/client/renderer/GameRenderer;bobView(Lcom/mojang/blaze3d/vertex/PoseStack;F)V"))
-    private boolean borderlesswindow$shouldBobHand(GameRenderer instance,
-                                                   PoseStack poseStack,
-                                                   float partialTicks) {
-        return BobbingState.isHandBobEnabled();
-    }
-
-    /**
-     * The world camera's bobbing. FULL delegates to vanilla untouched,
-     * OFF skips it, and VERTICAL_ONLY delegates with the flag raised so
-     * the inner injections drop the sway and both rotations.
-     * <p>
-     * Delegating rather than reimplementing matters: the actual bob
-     * curve (walkDist, the oBob/bob interpolation, the magic factors)
-     * stays vanilla's, so a future change to that formula carries over
-     * instead of silently drifting from a copy kept here.
-     */
-    @WrapOperation(
-            method = "renderLevel",
-            at = @At(value = "INVOKE",
-                    target = "Lnet/minecraft/client/renderer/GameRenderer;bobView(Lcom/mojang/blaze3d/vertex/PoseStack;F)V"))
-    private void borderlesswindow$wrapCameraBob(GameRenderer instance,
-                                                PoseStack poseStack,
-                                                float partialTicks,
-                                                Operation<Void> original) {
-        CameraBobMode mode = BobbingState.getCameraBobMode();
-
-        if (mode == CameraBobMode.OFF) {
+    private void borderlesswindow$bobHand(GameRenderer instance,
+                                          PoseStack poseStack,
+                                          float partialTicks,
+                                          Operation<Void> original) {
+        if (!BobbingState.isHandBobEnabled()) {
             return;
         }
-
-        if (mode == CameraBobMode.FULL) {
-            original.call(instance, poseStack, partialTicks);
-            return;
-        }
-
-        this.borderlesswindow$strippingCameraBob = true;
+        BobbingState.setBobbingHand(true);
         try {
             original.call(instance, poseStack, partialTicks);
         } finally {
-            this.borderlesswindow$strippingCameraBob = false;
+            BobbingState.setBobbingHand(false);
         }
+    }
+
+    /**
+     * The camera's bobbing, OFF: the call does nothing. FULL and
+     * VERTICAL_ONLY run vanilla's own bobView, so the bob curve (walkDist,
+     * the oBob/bob interpolation, the magic factors) stays vanilla's and a
+     * future change to it carries over; VERTICAL_ONLY only drops parts of
+     * it, below.
+     */
+    @Inject(method = "bobView", at = @At("HEAD"), cancellable = true)
+    private void borderlesswindow$skipCameraBob(PoseStack poseStack, float partialTicks,
+                                                CallbackInfo ci) {
+        if (!BobbingState.isBobbingHand()
+                && BobbingState.getCameraBobMode() == CameraBobMode.OFF) {
+            ci.cancel();
+        }
+    }
+
+    /** VERTICAL_ONLY, on a camera call (not the hand's). */
+    @Unique
+    private static boolean borderlesswindow$keepVerticalOnly() {
+        return !BobbingState.isBobbingHand()
+                && BobbingState.getCameraBobMode() == CameraBobMode.VERTICAL_ONLY;
     }
 
     /**
@@ -138,7 +127,7 @@ public abstract class GameRendererMixin {
                     target = "Lcom/mojang/blaze3d/vertex/PoseStack;translate(FFF)V"),
             index = 0)
     private float borderlesswindow$stripLateralSway(float lateralSway) {
-        return this.borderlesswindow$strippingCameraBob ? 0.0F : lateralSway;
+        return borderlesswindow$keepVerticalOnly() ? 0.0F : lateralSway;
     }
 
     /**
@@ -153,7 +142,7 @@ public abstract class GameRendererMixin {
                     target = "Lcom/mojang/blaze3d/vertex/PoseStack;mulPose(Lorg/joml/Quaternionf;)V"))
     private boolean borderlesswindow$shouldApplyBobRotation(PoseStack instance,
                                                             Quaternionf rotation) {
-        return !this.borderlesswindow$strippingCameraBob;
+        return !borderlesswindow$keepVerticalOnly();
     }
 
     /**
@@ -190,6 +179,43 @@ public abstract class GameRendererMixin {
         }
         float factor = DistortionState.getActiveFactor();
         return original * factor * factor;
+    }
+
+    /**
+     * The same sliders under an Iris shaderpack. Iris zeroes the spin
+     * above and redoes it, with its own copy of vanilla's formula, inside
+     * the redirect it puts on this rotation call (Iris's
+     * MixinModelViewBobbing, which moves bobbing and the spin from the
+     * projection to the model-view matrix). That copy cannot be hooked, so
+     * the two values it lerps between are scaled for the duration of the
+     * call and put back right after. The lerp is linear, so scaling both
+     * ends scales the result exactly as the hook above does.
+     * <p>
+     * Without Iris, or with Iris but no shaderpack, nothing reads them
+     * during this call: vanilla's rotation is plain matrix math.
+     */
+    @WrapOperation(
+            method = "renderLevel",
+            at = @At(value = "INVOKE",
+                    target = "Lorg/joml/Matrix4f;rotation(Lorg/joml/Quaternionfc;)Lorg/joml/Matrix4f;",
+                    remap = false))
+    private Matrix4f borderlesswindow$scaleIrisDistortion(Matrix4f matrix, Quaternionfc rotation,
+                                                          Operation<Matrix4f> original) {
+        LocalPlayer player = Minecraft.getInstance().player;
+        float factor = DistortionState.getActiveFactor();
+        if (player == null || factor >= 1.0F) {
+            return original.call(matrix, rotation);
+        }
+        float spin = player.spinningEffectIntensity;
+        float oldSpin = player.oSpinningEffectIntensity;
+        player.spinningEffectIntensity = spin * factor * factor;
+        player.oSpinningEffectIntensity = oldSpin * factor * factor;
+        try {
+            return original.call(matrix, rotation);
+        } finally {
+            player.spinningEffectIntensity = spin;
+            player.oSpinningEffectIntensity = oldSpin;
+        }
     }
 
     /**
