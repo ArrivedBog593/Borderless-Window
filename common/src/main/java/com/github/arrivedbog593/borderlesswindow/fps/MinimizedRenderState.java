@@ -19,7 +19,9 @@ import net.minecraft.client.Minecraft;
  * so the frame rate is capped too. Skipping only the draw keeps everything
  * else in runTick running: client ticks, network packets, sound, the
  * integrated server. Only the picture stops, and it resumes on the first
- * frame after the window is restored.
+ * frame after the window is restored. Vanilla's pause on losing focus
+ * runs too: since 26.1 it sits at the top of renderFrame, before the
+ * steps MinecraftMixin skips, so a single-player world pauses as usual.
  * <p>
  * WHY 10 FPS. runTick runs at most 10 client ticks per frame and drops the
  * rest, so the loop needs at least 2 frames per second to keep the 20
@@ -52,8 +54,21 @@ public final class MinimizedRenderState {
         BorderlessConfigFile.saveCurrent();
     }
 
-    /** Whether this frame should skip drawing. */
-    public static boolean shouldSkipRendering() {
+    /**
+     * Whether the loop should be capped at {@link #MINIMIZED_FPS}: while the
+     * window is minimized.
+     */
+    public static boolean shouldCapFrameRate() {
         return enabled && Minecraft.getInstance().getWindow().isIconified();
+    }
+
+    /**
+     * Whether this frame should skip drawing: while minimized, except while
+     * a loading overlay is up. A resource reload finishes in the
+     * LoadingOverlay's extractRenderState, the extract step that is
+     * skipped, so it would otherwise wait for the window to be restored.
+     */
+    public static boolean shouldSkipRendering() {
+        return shouldCapFrameRate() && Minecraft.getInstance().gui.overlay() == null;
     }
 }

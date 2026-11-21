@@ -34,9 +34,9 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
  * lowest wins -- except vanilla's AFK mode, which the mod's idle caps
  * replace while they are on (see IdleFpsState).
  * <p>
- * Focus comes from Minecraft.windowActive, which vanilla updates from the
- * GLFW focus callback. Sodium does not touch this path, so the cap works
- * the same with and without it.
+ * Focus comes from Minecraft.isWindowActive, which since 26.3 asks the
+ * window, updated from SDL's focus events. Sodium does not touch this
+ * path, so the cap works the same with and without it.
  */
 @Mixin(FramerateLimitTracker.class)
 public abstract class FramerateLimitTrackerMixin {
@@ -48,7 +48,7 @@ public abstract class FramerateLimitTrackerMixin {
     @Inject(method = "getFramerateLimit", at = @At("RETURN"), cancellable = true)
     private void borderlesswindow$limitInBackground(CallbackInfoReturnable<Integer> cir) {
         int limit = cir.getReturnValueI();
-        if (MinimizedRenderState.shouldSkipRendering()) {
+        if (MinimizedRenderState.shouldCapFrameRate()) {
             limit = Math.min(limit, MinimizedRenderState.MINIMIZED_FPS);
         }
         if (UnfocusedFpsState.isEnabled() && !this.minecraft.isWindowActive()) {

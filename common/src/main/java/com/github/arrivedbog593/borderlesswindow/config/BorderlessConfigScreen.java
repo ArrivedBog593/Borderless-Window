@@ -24,7 +24,6 @@ import com.github.arrivedbog593.borderlesswindow.visual.CloudState;
 import com.github.arrivedbog593.borderlesswindow.visual.FogState;
 import com.github.arrivedbog593.borderlesswindow.visual.ScreenEffectState;
 import com.github.arrivedbog593.borderlesswindow.visual.SkyState;
-import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.CycleButton;
@@ -683,16 +682,18 @@ public class BorderlessConfigScreen extends Screen {
         // The sliders apply in memory and persist on mouse release;
         // arrow-key changes never produce a release, so flush here too.
         // Redundant when nothing changed -- saveCurrent() writes the whole
-        // live state either way.
-        CloudState.persist();
-        FogState.persist();
-        DistortionState.persist();
-        FovState.persist();
-        UnfocusedFpsState.persist();
-        UnfocusedVolumeState.persist();
-        IdleFpsState.persist();
-        DistanceState.persist();
-        ZoomState.persist();
+        // live state either way. Batched: one write, not one per holder.
+        BorderlessConfigFile.batch(() -> {
+            CloudState.persist();
+            FogState.persist();
+            DistortionState.persist();
+            FovState.persist();
+            UnfocusedFpsState.persist();
+            UnfocusedVolumeState.persist();
+            IdleFpsState.persist();
+            DistanceState.persist();
+            ZoomState.persist();
+        });
 
         this.minecraft.gui.setScreen(this.parent);
     }

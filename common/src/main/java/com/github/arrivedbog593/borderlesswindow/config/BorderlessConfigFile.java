@@ -26,12 +26,16 @@ import com.github.arrivedbog593.borderlesswindow.visual.ScreenEffectState;
 import com.github.arrivedbog593.borderlesswindow.visual.SkyState;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.mojang.logging.LogUtils;
 import net.minecraft.client.Minecraft;
 import org.jspecify.annotations.Nullable;
+import org.slf4j.Logger;
 
 import java.io.IOException;
+import java.nio.file.AtomicMoveNotSupportedException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
 
 /**
  * Minimal persistence in config/borderlesswindow.json. Stores the F11
@@ -41,18 +45,30 @@ import java.nio.file.Path;
  * settings and the enchantment numeral style so they can be restored at
  * game startup.
  * <p>
- * Deliberately fault-tolerant: if the file is missing, corrupt, or has
- * invalid or absent values, the defaults are used (F11 ->
+ * Deliberately fault-tolerant, but never silent: if the file is missing,
+ * corrupt, or has invalid or absent values, the defaults are used (F11 ->
  * Borderless / FPS overlay off, top-left / no unfocused FPS cap / no idle FPS caps
  * / full volume while unfocused / rendering while minimized / all fog enabled / cloud height
  * default / water and fire overlays on, smart fire off / full camera and
- * hand bobbing / mixed enchantment numerals) without crashing.
+ * hand bobbing / mixed enchantment numerals) without crashing, and the
+ * log says why. A corrupt file is kept beside it as .bak before the
+ * next save replaces it.
  * Configs written by older versions of the mod simply lack the newer
  * fields and fall back to those defaults -- no migration needed.
  */
 public final class BorderlessConfigFile {
 
+    private static final Logger LOGGER = LogUtils.getLogger();
+
     private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
+
+    /**
+     * Above 0 while a batch of changes is applied (see {@link #batch}):
+     * saveCurrent() then only marks the file as stale, and the batch
+     * writes it once at the end.
+     */
+    private static int batchDepth = 0;
+    private static boolean savePending = false;
 
     /**
      * <game dir>/config, built from vanilla's own game directory rather
@@ -157,7 +173,12 @@ public final class BorderlessConfigFile {
                 if (data == null) {
                     data = new Data();
                 }
-            } catch (Exception ignored) {
+            } catch (Exception e) {
+                // Unreadable or not valid JSON: start from the defaults, but
+                // keep the file for the player, since the next save
+                // overwrites it.
+                LOGGER.warn("Could not read {}, using the default settings", PATH, e);
+                backUpUnreadableFile();
                 data = new Data();
             }
         }
@@ -204,6 +225,10 @@ public final class BorderlessConfigFile {
      * happen if each caller passed only the values it knows about.
      */
     public static void saveCurrent() {
+        if (batchDepth > 0) {
+            savePending = true;
+            return;
+        }
         Data data = new Data();
         data.f11_mode = BorderlessHandler.getF11Target().name();
         data.fps_overlay_mode = FpsOverlayState.getMode().name();
@@ -251,11 +276,61 @@ public final class BorderlessConfigFile {
         data.sky_stars = SkyState.isStarsEnabled();
         data.sky_weather = SkyState.isWeatherEnabled();
         data.hud_held_item_name = HudState.isHeldItemNameEnabled();
+        write(GSON.toJson(data));
+    }
+
+    /**
+     * Applies several changes and writes the file once at the end, rather
+     * than once per change: closing the config screen or applying Sodium's
+     * page can change a dozen options at a time. Nested batches write when
+     * the outermost one ends.
+     */
+    public static void batch(Runnable changes) {
+        batchDepth++;
         try {
-            Files.writeString(PATH, GSON.toJson(data));
-        } catch (IOException ignored) {
-            // Not critical: if saving fails, the settings simply won't be
+            changes.run();
+        } finally {
+            batchDepth--;
+            if (batchDepth == 0 && savePending) {
+                savePending = false;
+                saveCurrent();
+            }
+        }
+    }
+
+    /**
+     * Writes to a temporary file and then moves it over the real one, so
+     * the game closing mid-write can never leave a truncated config. The
+     * folder is created first: Fabric only creates config/ when some mod
+     * asks it for that folder, and this file does not go through the
+     * loader.
+     */
+    private static void write(String json) {
+        try {
+            Files.createDirectories(PATH.getParent());
+            Path temp = PATH.resolveSibling(PATH.getFileName() + ".tmp");
+            Files.writeString(temp, json);
+            try {
+                Files.move(temp, PATH, StandardCopyOption.REPLACE_EXISTING,
+                        StandardCopyOption.ATOMIC_MOVE);
+            } catch (AtomicMoveNotSupportedException e) {
+                Files.move(temp, PATH, StandardCopyOption.REPLACE_EXISTING);
+            }
+        } catch (IOException e) {
+            // Not critical: the settings still apply, they just won't be
             // remembered next time. Better that than crashing.
+            LOGGER.warn("Could not save {}", PATH, e);
+        }
+    }
+
+    /** Copies an unreadable config to borderlesswindow.json.bak. */
+    private static void backUpUnreadableFile() {
+        Path backup = PATH.resolveSibling(PATH.getFileName() + ".bak");
+        try {
+            Files.copy(PATH, backup, StandardCopyOption.REPLACE_EXISTING);
+            LOGGER.warn("Kept a copy of the unreadable file as {}", backup);
+        } catch (IOException e) {
+            LOGGER.warn("Could not back up {}", PATH, e);
         }
     }
 

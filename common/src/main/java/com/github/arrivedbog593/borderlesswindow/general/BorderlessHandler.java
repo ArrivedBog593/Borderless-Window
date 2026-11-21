@@ -18,6 +18,7 @@ import com.github.arrivedbog593.borderlesswindow.visual.ScreenEffectState;
 import com.github.arrivedbog593.borderlesswindow.visual.SkyState;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.Options;
+import org.lwjgl.sdl.SDLHints;
 
 /**
  * The 3 screen modes, on top of vanilla's own window handling.
@@ -141,6 +142,19 @@ public final class BorderlessHandler {
         ZoomState.init(config.zoomMode(), config.zoomLevel(),
                 config.zoomScroll(), config.zoomSmooth(),
                 config.zoomHideHand(), config.zoomHideHud());
+
+        // Exclusive Fullscreen minimizes again when it loses focus.
+        // Minecraft 26.3 sets this SDL hint to "0" at startup
+        // (RenderSystem.initBackendSystem), so the window stayed on top in
+        // the lower Fullscreen Resolution, and with Vulkan the desktop kept
+        // it while other apps were in use. Reset to SDL's default ("auto"),
+        // it minimizes only a window in exclusive fullscreen, and SDL gives
+        // the desktop its own mode back: the classic exclusive behavior,
+        // and what GLFW did up to 26.2 (GLFW_AUTO_ICONIFY). Borderless and
+        // Windowed never minimize. SDL reads the hint at each focus loss, so
+        // resetting it here, long after startup, is enough. WindowMixin sets
+        // the chosen mode again when the window comes back.
+        SDLHints.SDL_ResetHint(SDLHints.SDL_HINT_VIDEO_MINIMIZE_ON_FOCUS_LOSS);
 
         initialized = true;
         if (config.legacyScreenMode() != null) {

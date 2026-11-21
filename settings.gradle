@@ -20,12 +20,20 @@ pluginManagement {
 }
 
 plugins {
+    // 1.0.0 or newer: 0.8.0 reads JvmVendorSpec.IBM_SEMERU, which Gradle 9
+    // removed, so downloading a missing JDK failed with NoSuchFieldError.
     id 'org.gradle.toolchains.foojay-resolver-convention' version '1.0.0'
 }
 
-rootProject.name = 'Borderless Window'
+// The folder's name, as the GitHub repository's: IntelliJ names the root
+// module after this, and one that differs from the folder (spaces become
+// underscores) is shown with the name in brackets (IDEA-317606).
+rootProject.name = 'Borderless-Window'
 
-// The multiloader-common and multiloader-loader convention plugins.
+// The multiloader-common and multiloader-loader convention plugins. An
+// included build rather than buildSrc, as in the MultiLoader template:
+// Gradle builds and caches it like any other build, instead of putting it
+// on the classpath of every build script.
 includeBuild('build-logic')
 
 // One module per loader, plus the code they share. common/ holds nearly

@@ -6,6 +6,7 @@ import com.github.arrivedbog593.borderlesswindow.camera.DistortionState;
 import com.github.arrivedbog593.borderlesswindow.camera.FovState;
 import com.github.arrivedbog593.borderlesswindow.camera.ZoomMode;
 import com.github.arrivedbog593.borderlesswindow.camera.ZoomState;
+import com.github.arrivedbog593.borderlesswindow.config.BorderlessConfigFile;
 import com.github.arrivedbog593.borderlesswindow.distance.DistanceState;
 import com.github.arrivedbog593.borderlesswindow.enchantment.EnchantmentLevelState;
 import com.github.arrivedbog593.borderlesswindow.enchantment.EnchantmentLevelStyle;
@@ -39,9 +40,9 @@ import net.minecraft.client.Minecraft;
  * <p>
  * The real persistence lives in BorderlessConfigFile
  * (config/borderlesswindow.json), which the state holders save
- * automatically on every change. Additionally, the WindowMixin
- * override of isFullscreen() keeps the vanilla "fullscreen yes/no" flag
- * in options.txt consistent with the current mode.
+ * automatically on every change. The screen mode is the exception: it is
+ * vanilla's Fullscreen and Exclusive Fullscreen, saved in options.txt
+ * (see BorderlessHandler.setMode).
  * <p>
  * CLOUD HEIGHT ENCODING for the Sodium slider: Sodium integer options are
  * a contiguous [min, max] range, but our real value has a "Default"
@@ -54,7 +55,11 @@ import net.minecraft.client.Minecraft;
  */
 public final class ScreenModeStorage {
 
-    private ScreenMode pendingValue = BorderlessHandler.getCurrentMode();
+    // No starting value: Sodium builds this storage in its early config
+    // registration, before Minecraft has loaded its options, and the mode
+    // is read from them since 26.3 (BorderlessHandler.getCurrentMode).
+    // Only read in applyChanges once setScreenMode has set it.
+    private ScreenMode pendingValue;
     private boolean screenModeDirty = false;
 
     private F11Mode pendingF11Target = BorderlessHandler.getF11Target();
@@ -713,8 +718,15 @@ public final class ScreenModeStorage {
      * in the menu, applying any other option after using F11 reverted the
      * mode back to the stale cached value. The same rule protects every
      * option added since.
+     * <p>
+     * Each setter below saves the config on its own; the batch turns those
+     * saves into a single write at the end.
      */
     public void flush() {
+        BorderlessConfigFile.batch(this::applyChanges);
+    }
+
+    private void applyChanges() {
         if (this.f11TargetDirty) {
             BorderlessHandler.setF11Target(this.pendingF11Target);
             this.f11TargetDirty = false;

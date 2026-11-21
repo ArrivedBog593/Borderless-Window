@@ -5,15 +5,15 @@
 
 *[Español](README_ES.md)*
 
-A lightweight client-side mod for **NeoForge and Fabric 26.2** that adds **borderless fullscreen** to Minecraft, replacing the exclusive fullscreen toggle with a proper 3-mode system — plus a set of video and quality-of-life options Minecraft doesn't expose.
+A lightweight client-side mod for **NeoForge and Fabric 26.3** that turns Minecraft's fullscreen toggles into a proper 3-mode system with **borderless fullscreen** and a configurable F11 — plus a set of video and quality-of-life options Minecraft doesn't expose.
 
 ## Features
 
 ### Window
 
-- **Three screen modes**: Windowed, Borderless, and Fullscreen, which is always exclusive with OpenGL (Minecraft's own "Exclusive Fullscreen" option is no longer needed). With Vulkan, Minecraft 26.2's other graphics API, its fullscreen is never exclusive, so there it does not conflict with HDR.
-- **Configurable F11**: toggle Borderless, toggle exclusive Fullscreen, or **cycle through all three modes**.
-- **HDR-friendly**: avoids the black-screen flash and color profile switch that exclusive fullscreen (and naive borderless implementations) cause with Windows HDR enabled.
+- **Three screen modes** in one selector: Windowed, Borderless, and Fullscreen, which is exclusive, at the Fullscreen Resolution picked in the video settings. Minecraft 26.3 has a borderless fullscreen of its own, split across two toggles ("Fullscreen" and "Exclusive Fullscreen"); the selector sets both for you, and every switch applies at once.
+- **Configurable F11**: Minecraft's F11 only turns Fullscreen on and off, in whichever kind "Exclusive Fullscreen" says. Here it can toggle Borderless, toggle exclusive Fullscreen, or **cycle through all three modes**.
+- **HDR-friendly**: Borderless avoids the black-screen flash and color profile switch that exclusive fullscreen causes with Windows HDR enabled.
 - **Multi-monitor aware**: applies on the monitor the window is currently on, not always the primary one.
 
 ### Video and quality of life
@@ -21,10 +21,10 @@ A lightweight client-side mod for **NeoForge and Fabric 26.2** that adds **borde
 - **FPS overlay**: the current FPS, or a single line with the Min / Avg / Max over the last 15 seconds. Any screen corner. It samples the game's own counter, so it always matches F3 and respects VSync and FPS caps, and it hides itself while F3 is open.
 - **Background options**: Minecraft only slows down while minimized or after a minute with no input (its Inactivity FPS Limit), and never lowers the volume. Four independent options go further:
   - **Unfocused FPS limit**: cap the frame rate while the game is in the background (alt-tabbed, minimized, or behind another window), from 5 to 60 FPS.
-  - **Idle FPS limit**: cap the frame rate after a few minutes with no keyboard or mouse input, even while the window is focused, with an optional second, lower cap after a longer wait. Any input lifts it at once. While it is on, it takes the place of Minecraft's "AFK" mode; Minecraft's 10 FPS while minimized stays.
-  - **Pause rendering when minimized**: stop drawing frames entirely while minimized — Minecraft only caps them at 10 FPS and keeps drawing them. The game itself keeps running — only the picture stops.
+  - **Idle FPS limit**: cap the frame rate after a few minutes with no keyboard or mouse input, even while the window is focused, with an optional second, lower cap after a longer wait. Any input lifts it at once. While it is on, it takes the place of Minecraft's "AFK" mode; Minecraft's 10 FPS while minimized stays. Minecraft's "Reduce FPS When" option is greyed out meanwhile, since it has no effect.
+  - **Pause rendering when minimized**: stop drawing frames entirely while minimized — Minecraft only caps them at 10 FPS and keeps drawing them. Nothing else changes — sounds and multiplayer carry on, and single player pauses just as it does without the mod; only the picture stops.
   - **Unfocused volume**: lower or mute the game while it is in the background, as a share of your Master Volume.
-  - All four work alongside Minecraft's own Inactivity FPS Limit and Dynamic FPS: the lowest frame rate cap wins.
+  - All four stack with Minecraft's own Inactivity FPS Limit and Dynamic FPS: the lowest frame rate cap wins. The one exception is Minecraft's "AFK" mode, which the idle FPS limit replaces while it is on.
 - **Draw distances**: stop drawing dropped items, experience orbs, and armor stands past a distance you choose, and stop particles from spawning past one. Purely visual — items can still be picked up and orbs still reach you. Glowing entities and named armor stands (holograms, floating text) are always drawn.
 - **Fog toggles**: Terrain (the distance haze, including the Nether's thick fog), Water, Lava, and Powder Snow, each independent. Fog from Blindness and Darkness is never affected, so those effects still work as intended. **Fog Start** chooses where the terrain fog begins, as OptiFine's does, for a softer haze or one pushed to the very edge.
 - **Cloud height**: raise or lower the cloud layer between y=64 and y=320. On Default every dimension keeps its own height, and dimensions with no clouds at all — the Nether, the End, cloudless dimensions from other mods — stay that way at any setting.
@@ -42,9 +42,9 @@ A lightweight client-side mod for **NeoForge and Fabric 26.2** that adds **borde
 ### Configuration and compatibility
 
 - **NeoForge and Fabric**: the same mod, every feature, on both loaders. They even share the same config file.
-- **Built into Minecraft's own menus**: without Sodium, the "Fullscreen" toggle in Video Settings becomes a "Screen Mode" selector (Minecraft's "Exclusive Fullscreen" toggle is hidden), and a "Borderless Window..." button there opens the full config screen. No other mod needed on either loader.
-- **Sodium integration** (optional): with [Sodium](https://www.curseforge.com/minecraft/mc-mods/sodium) 0.9.0 or newer installed, the "Fullscreen Mode" selector in its video settings is replaced by a "Screen Mode" selector, and the mod gets its own section with six pages. Built entirely on Sodium's official Config API — no fragile mixins into Sodium internals. Also plays nice with Reese's Sodium Options.
-- **Iris shaders**: with a shaderpack on, Iris draws the hand itself; the zoom's Hide Hand and the separate Hand Bobbing follow it there too.
+- **Built into Minecraft's own menus**: without Sodium, the "Fullscreen" toggle in Video Settings becomes a "Screen Mode" selector (Minecraft's "Exclusive Fullscreen" toggle is hidden, since the selector sets it), and a "Borderless Window..." button there opens the full config screen. No other mod needed on either loader.
+- **Sodium integration** (optional): with [Sodium](https://www.curseforge.com/minecraft/mc-mods/sodium) 0.9.2 or newer installed, the "Fullscreen Mode" selector in its video settings is replaced by a "Screen Mode" selector, and the mod gets its own section with six pages. Built entirely on Sodium's official Config API — no fragile mixins into Sodium internals. Also plays nice with Reese's Sodium Options.
+- **Iris shaders**: with a shaderpack on, Iris draws the hand and moves the view bobbing and the distortion spin to its own matrices; the zoom's Hide Hand, both bobbing settings and the Portal and Nausea Distortion sliders follow it there too.
 - **Nothing else to install**: works with or without Sodium. On Fabric it does not require Fabric API — the two small pieces it uses, to load its translations and to add the zoom key to Controls, ship inside the jar, as Sodium does. Mod Menu is optional.
 - **Persistent**: all settings are remembered between sessions (`config/borderlesswindow.json`).
 - **Translatable**: all strings live in standard lang files (`en_us`, `es_mx`, `es_es` included — contributions welcome).
@@ -65,14 +65,12 @@ Every setting defaults to vanilla behavior, so installing or updating the mod ne
 
 ## Requirements
 
-- Minecraft **26.2**
-- **NeoForge** 26.2.x, or **Fabric Loader** 0.18.4+ (Fabric API not required)
-- (Optional) **Sodium 0.9.0+** for the video settings integration
+- Minecraft **26.3**
+- **NeoForge** 26.3.0.76+, or **Fabric Loader** 0.19.3+ (Fabric API not required)
+- (Optional) **Sodium** for the video settings integration: **0.9.2+** on Fabric, **0.9.3+** on NeoForge (Sodium 0.9.2 for NeoForge does not start on stable NeoForge 26.3)
 - (Optional, Fabric) **Mod Menu**, to also open the config from its mod list
 
 Download the jar for your loader: `borderlesswindow-neoforge-…` or `borderlesswindow-fabric-…`.
-
-**Vulkan on NeoForge:** NeoForge 26.2.0.93's early loading screen always opens an OpenGL window, so with the Graphics API set to Vulkan the game stops at launch with "GLFW error 65540". Until NeoForge fixes it, set `earlyWindowControl = false` in `config/fml.toml`. Fabric is not affected.
 
 ## License
 

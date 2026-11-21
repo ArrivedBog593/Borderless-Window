@@ -16,9 +16,10 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
  * Records mouse activity for the idle FPS cap (see IdleFpsState), and
  * adapts the mouse to the zoom (see ZoomState).
  * <p>
- * onMove, onButton and onScroll are where vanilla's GLFW mouse callbacks
- * land (queued onto the render thread through Minecraft.execute), so
- * every move, click and scroll passes through one of them.
+ * onMove, onButton and onScroll are where vanilla's mouse events land
+ * (SDL's since 26.3, queued onto the render thread by SDLEventHandler
+ * through Minecraft.execute), so every move, click and scroll passes
+ * through one of them.
  */
 @Mixin(MouseHandler.class)
 public abstract class MouseHandlerMixin {

@@ -51,6 +51,17 @@ def expandProps = ['mod_id', 'mod_name', 'mod_version', 'mod_license', 'mod_auth
         .findAll { project.hasProperty(it) }
         .collectEntries { [(it): project.property(it)] }
 
+// The values go into the metadata as they are, unescaped: a double quote or
+// backslash would break fabric.mod.json, and ''' would end the description
+// in neoforge.mods.toml. Failing here beats a jar that will not load.
+expandProps.each { key, value ->
+    def text = value.toString()
+    if (text.contains('"') || text.contains('\\') || text.contains("'''")) {
+        throw new GradleException("${key} in gradle.properties contains \", \\ or ''', " +
+                'which the mod metadata files cannot hold unescaped.')
+    }
+}
+
 def generateModMetadata = tasks.register('generateModMetadata', ProcessResources) {
     inputs.properties(expandProps)
     expand expandProps
