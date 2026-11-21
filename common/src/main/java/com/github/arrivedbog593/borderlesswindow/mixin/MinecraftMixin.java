@@ -50,11 +50,14 @@ public abstract class MinecraftMixin {
     /**
      * Once per frame, after the previous frame's window events were
      * handled: Windows may have undone a Fullscreen resolution change in
-     * between (see BorderlessHandler.checkFullscreenMode).
+     * between (see BorderlessHandler.checkFullscreenMode), or put the
+     * window back on screen after Alt+Tab (see
+     * BorderlessHandler.checkStrandedFullscreen).
      */
     @Inject(method = "runTick", at = @At("HEAD"))
     private void borderlesswindow$checkFullscreenMode(boolean advanceGameTime, CallbackInfo ci) {
         BorderlessHandler.checkFullscreenMode(this.getWindow());
+        BorderlessHandler.checkStrandedFullscreen(this.getWindow());
     }
 
     @Unique
