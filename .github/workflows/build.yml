@@ -234,14 +234,11 @@ jobs:
           git tag "$tag"
           git push origin "$tag"
 
-          # The file goes first and as application/java-archive, as mod-publish-plugin sends it (Sodium's uploads,
-          # whose CurseForge file names keep their "+"). Uploaded as curl's default application/octet-stream after
-          # the metadata, the "+" in ours came out as "-" on CurseForge; the file name sent was the same either way.
           echo "Uploading $jar to CurseForge as a $RELEASE_TYPE for $LOADER_NAME $MC"
           if ! curl -sS --fail-with-body -X POST \
             "https://minecraft.curseforge.com/api/projects/$CURSEFORGE_PROJECT_ID/upload-file" \
             -H "X-Api-Token: $CURSEFORGE_TOKEN" \
-            -F "file=@$jar;type=application/java-archive" --form-string "metadata=$metadata"; then
+            --form-string "metadata=$metadata" -F "file=@$jar"; then
             echo
             echo "::error::The upload to CurseForge failed; removing tag $tag so a new run uploads it."
             git push --delete origin "$tag" \
