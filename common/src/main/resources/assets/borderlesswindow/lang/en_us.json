@@ -67,7 +67,7 @@
   "borderlesswindow.options.idle_fps_second_limit.name": "Second Idle FPS Limit",
   "borderlesswindow.options.idle_fps_second_limit.tooltip": "The frame rate cap applied once the second idle time has passed. If it is higher than the first idle cap, the lower one still wins.",
   "borderlesswindow.options.minimized_skip_render.name": "Pause Rendering When Minimized",
-  "borderlesswindow.options.minimized_skip_render.tooltip": "Stops drawing frames while the game window is minimized, and slows the game loop to 10 FPS. Nothing else changes: sounds and multiplayer connections carry on, and a single-player world pauses just as it does without the mod; only the picture stops until you restore the window. Saves more GPU power than the unfocused FPS limit. Off keeps the vanilla behavior.",
+  "borderlesswindow.options.minimized_skip_render.tooltip": "Stops drawing frames while the game window is minimized; the game loop keeps running, slowed to 10 times per second. Nothing else changes: sounds and multiplayer connections carry on, and a single-player world pauses just as it does without the mod; only the picture stops until you restore the window. Saves more GPU power than the unfocused FPS limit. Off keeps the vanilla behavior.",
   "borderlesswindow.options.unfocused_volume.name": "Unfocused Volume",
   "borderlesswindow.options.unfocused_volume.tooltip": "Lowers the game volume while its window is not focused: after Alt+Tab, when it is minimized, or when you click another window or monitor. It is a share of your Master Volume; Muted silences the game entirely. 100%% keeps the vanilla behavior. Full volume returns as soon as you click back into the game.",
   "borderlesswindow.options.unfocused_volume.muted": "Muted",
