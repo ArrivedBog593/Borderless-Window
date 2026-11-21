@@ -19,6 +19,7 @@ import com.github.arrivedbog593.borderlesswindow.visual.FogState;
 import net.caffeinemc.mods.sodium.api.config.ConfigEntryPoint;
 import net.caffeinemc.mods.sodium.api.config.structure.ConfigBuilder;
 import net.caffeinemc.mods.sodium.api.config.structure.ModOptionsBuilder;
+import net.minecraft.client.InactivityFpsLimit;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
 
@@ -788,6 +789,29 @@ public class ScreenModeConfigEntryPoint implements ConfigEntryPoint {
                                                 Identifier.parse("borderlesswindow:screen_mode"),
                                                 ScreenMode.class) == ScreenMode.FULLSCREEN,
                                         Identifier.parse("borderlesswindow:screen_mode"))
+                )
+                // Sodium's "Reduce FPS When" (Minecraft's own option): it
+                // does nothing while our Idle FPS Limit is on, which
+                // replaces its AFK setting (see IdleFpsState), so it is
+                // greyed out then -- the same rule as in Minecraft's own
+                // menu (VideoSettingsScreenMixin). Sodium's tooltips cannot
+                // depend on other options, so the explanation is added to
+                // Minecraft's own text for each value, which Sodium shows
+                // too. Value and binding are inherited.
+                .registerOptionOverlay(
+                        Identifier.parse("sodium:performance.inactivity_fps_limit"),
+                        builder.createEnumOption(
+                                        Identifier.parse("sodium:performance.inactivity_fps_limit"),
+                                        InactivityFpsLimit.class)
+                                .setTooltip(limit -> Component.translatable(limit == InactivityFpsLimit.MINIMIZED
+                                                ? "options.inactivityFpsLimit.minimized.tooltip"
+                                                : "options.inactivityFpsLimit.afk.tooltip")
+                                        .append("\n\n")
+                                        .append(Component.translatable("borderlesswindow.options.sodium.inactivity_note")))
+                                .setEnabledProvider(
+                                        state -> state.readIntOption(
+                                                Identifier.parse("borderlesswindow:idle_fps_delay")) == IdleFpsState.OFF,
+                                        Identifier.parse("borderlesswindow:idle_fps_delay"))
                 );
     }
 }

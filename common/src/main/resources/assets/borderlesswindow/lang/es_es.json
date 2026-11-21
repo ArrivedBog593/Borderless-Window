@@ -28,6 +28,8 @@
   "borderlesswindow.screen_mode.borderless": "Sin bordes",
   "borderlesswindow.screen_mode.fullscreen": "Pantalla completa",
   "borderlesswindow.options.vanilla.open_config": "Borderless Window...",
+  "borderlesswindow.options.vanilla.inactivity_replaced": "Reemplazada por el Límite por inactividad de Borderless Window mientras está activado: sus límites toman el lugar del modo \"Por inactividad\", y Minecraft sigue limitando a 10 FPS el juego minimizado. Desactiva el Límite por inactividad para volver a usar esta opción.",
+  "borderlesswindow.options.sodium.inactivity_note": "Mientras el Límite por inactividad de Borderless Window está activado, esta opción queda reemplazada por él y desactivada.",
   "borderlesswindow.options.vanilla.open_config.tooltip": "Todas las opciones de Borderless Window: F11, el nombre del objeto en mano, el contador de FPS y los límites en segundo plano, encantamientos, niebla, nubes, cielo y clima, overlays de pantalla, cámara, zoom y distancias. Con Sodium instalado, están en sus ajustes de vídeo.",
 
   "borderlesswindow.options.f11_mode.name": "Modo de F11",
@@ -67,7 +69,7 @@
   "borderlesswindow.options.idle_fps_second_limit.name": "Segundo límite de FPS por inactividad",
   "borderlesswindow.options.idle_fps_second_limit.tooltip": "El límite de FPS que se aplica una vez pasado el segundo tiempo de inactividad. Si es más alto que el primer límite por inactividad, se respeta el más bajo.",
   "borderlesswindow.options.minimized_skip_render.name": "Pausar renderizado al minimizar",
-  "borderlesswindow.options.minimized_skip_render.tooltip": "Deja de dibujar fotogramas mientras la ventana del juego está minimizada y baja el ciclo del juego a 10 FPS. Nada más cambia: los sonidos y las conexiones multijugador siguen, y un mundo de un jugador se pausa igual que sin el mod; solo se detiene la imagen hasta que restauras la ventana. Ahorra más GPU que el límite de FPS sin foco. Desactivado deja lo normal del juego.",
+  "borderlesswindow.options.minimized_skip_render.tooltip": "Deja de dibujar fotogramas mientras la ventana del juego está minimizada; el ciclo del juego sigue funcionando, 10 veces por segundo, como lo hace Minecraft al minimizar. Nada más cambia: los sonidos y las conexiones multijugador siguen, y un mundo de un jugador se pausa igual que sin el mod; solo se detiene la imagen hasta que restauras la ventana. Ahorra más GPU que el límite de FPS sin foco. Desactivado deja lo normal del juego.",
   "borderlesswindow.options.unfocused_volume.name": "Volumen sin foco",
   "borderlesswindow.options.unfocused_volume.tooltip": "Baja el volumen del juego mientras la ventana no está enfocada: al hacer Alt+Tab, al minimizarla o al hacer clic en otra ventana o monitor. Es una proporción de tu Volumen general; Silenciado lo apaga por completo. 100%% deja lo normal del juego. El volumen completo vuelve en cuanto regresas al juego.",
   "borderlesswindow.options.unfocused_volume.muted": "Silenciado",

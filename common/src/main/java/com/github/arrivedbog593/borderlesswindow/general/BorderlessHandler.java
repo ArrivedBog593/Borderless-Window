@@ -49,6 +49,17 @@ public final class BorderlessHandler {
     private static long fullscreenCheckDeadline;
     private static int fullscreenRetriesLeft;
 
+    // Minimize an exclusive window that Windows left on screen after
+    // Alt+Tab, see checkStrandedFullscreen.
+    private static final long STRANDED_MILLIS = 500L;
+    private static final int STRANDED_MAX_ICONIFIES = 3;
+    private static final long NOT_STRANDED = -1L;
+    private static boolean focusKnown;
+    private static boolean wasFocused;
+    private static boolean watchingStranded;
+    private static long strandedSince = NOT_STRANDED;
+    private static int strandedIconifiesLeft;
+
     // False until initializeFromConfig() has loaded the saved config.
     // Vanilla's Minecraft constructor calls toggleFullScreen() during early
     // boot (to reconcile options.txt's fullscreen flag) -- long before our
@@ -312,6 +323,69 @@ public final class BorderlessHandler {
         fullscreenCheckDeadline = Util.getMillis() + FULLSCREEN_CHECK_MILLIS;
         fullscreenRetriesLeft = FULLSCREEN_MAX_RETRIES;
         return true;
+    }
+
+    /**
+     * Called every frame (MinecraftMixin). Alt+Tab out of exclusive
+     * Fullscreen could leave the game on screen: GLFW minimizes an
+     * exclusive window when it loses focus (GLFW_AUTO_ICONIFY) and gives
+     * the desktop its mode back, but Windows showed the window again about
+     * 100 ms later, without giving it the focus, and GLFW then took the
+     * monitor back at the game's resolution. The game stayed in front,
+     * unfocused, until clicked. Seen on Windows 11 with NVIDIA and HDR,
+     * when the monitor has to change modes on the way out (a Fullscreen
+     * Resolution other than the desktop's), and in vanilla as well; logged
+     * with GLFW's own focus and iconify callbacks.
+     * <p>
+     * With auto-iconify on, an exclusive window that has no focus and is
+     * not minimized is never meant to last, so once that has held for
+     * {@link #STRANDED_MILLIS} after the window lost focus, it is minimized
+     * again, as GLFW meant to. Only after a focus loss -- a window that
+     * never had the focus, such as one still starting up behind another,
+     * is left alone -- and at most a few times per focus loss, in case
+     * Windows keeps showing it again. Windowed and Borderless are not
+     * affected: GLFW only minimizes an exclusive window.
+     */
+    public static void checkStrandedFullscreen(Window window) {
+        long handle = window.handle();
+        boolean focused = glfwGetWindowAttrib(handle, GLFW_FOCUSED) == GLFW_TRUE;
+        if (!focusKnown) {
+            // First frame: whatever the focus is now was not lost.
+            focusKnown = true;
+            wasFocused = focused;
+            return;
+        }
+        if (focused != wasFocused) {
+            wasFocused = focused;
+            watchingStranded = !focused;
+            strandedSince = NOT_STRANDED;
+            strandedIconifiesLeft = STRANDED_MAX_ICONIFIES;
+        }
+        if (!watchingStranded) {
+            return;
+        }
+        if (glfwGetWindowMonitor(handle) == 0L
+                || glfwGetWindowAttrib(handle, GLFW_ICONIFIED) == GLFW_TRUE
+                || glfwGetWindowAttrib(handle, GLFW_AUTO_ICONIFY) != GLFW_TRUE) {
+            // Not exclusive, minimized as it should be, or another mod
+            // turned auto-iconify off on purpose.
+            strandedSince = NOT_STRANDED;
+            return;
+        }
+        long now = Util.getMillis();
+        if (strandedSince == NOT_STRANDED) {
+            strandedSince = now;
+            return;
+        }
+        if (now - strandedSince < STRANDED_MILLIS) {
+            return;
+        }
+        strandedSince = NOT_STRANDED;
+        if (strandedIconifiesLeft-- <= 0) {
+            watchingStranded = false;
+            return;
+        }
+        glfwIconifyWindow(handle);
     }
 
     /**
