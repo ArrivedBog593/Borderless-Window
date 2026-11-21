@@ -5,6 +5,7 @@ import com.github.arrivedbog593.borderlesswindow.fps.UnfocusedVolumeState;
 import com.mojang.blaze3d.platform.Window;
 import com.mojang.blaze3d.platform.WindowEventHandler;
 import net.minecraft.util.Util;
+import org.lwjgl.sdl.SDLHints;
 import org.lwjgl.sdl.SDLVideo;
 import org.lwjgl.sdl.SDL_DisplayMode;
 import org.lwjgl.system.MemoryStack;
@@ -42,9 +43,25 @@ public abstract class WindowMixin {
     @Unique
     private int borderlesswindow$retriesLeft;
 
+    // Minimize an exclusive window that Windows left on screen after
+    // Alt+Tab, see checkStrandedFullscreen.
+    @Unique
+    private static final long STRANDED_MILLIS = 500L;
+    @Unique
+    private static final int STRANDED_MAX_MINIMIZES = 3;
+    @Unique
+    private boolean borderlesswindow$watchingStranded;
+    @Unique
+    private long borderlesswindow$strandedSince;
+    @Unique
+    private int borderlesswindow$strandedMinimizesLeft;
+
     @Shadow
     @Final
     private long handle;
+
+    @Shadow
+    private boolean focused;
 
     @Shadow
     private boolean fullscreenRequested;
@@ -151,6 +168,11 @@ public abstract class WindowMixin {
         if (focused) {
             IdleFpsState.markInput();
             borderlesswindow$startFullscreenCheck();
+            this.borderlesswindow$watchingStranded = false;
+        } else {
+            this.borderlesswindow$watchingStranded = true;
+            this.borderlesswindow$strandedSince = 0L;
+            this.borderlesswindow$strandedMinimizesLeft = STRANDED_MAX_MINIMIZES;
         }
     }
 
@@ -160,13 +182,65 @@ public abstract class WindowMixin {
      * back, then sets the window's mode again when it returns -- which
      * Windows can undo just as after a change (see checkFullscreenMode).
      * Watched both here and on focus: focus can come back while the window
-     * still counts as minimized, which stops the watch at once.
+     * still counts as minimized, which stops the watch at once. Only with
+     * the focus: a window Windows put back on screen without it is not
+     * really back (see checkStrandedFullscreen), and the watch starts from
+     * onFocus once the focus does return.
      */
     @Inject(method = "onIconified", at = @At("TAIL"))
     private void borderlesswindow$onIconifiedChanged(boolean iconified, CallbackInfo ci) {
-        if (!iconified) {
+        if (!iconified && this.focused) {
             borderlesswindow$startFullscreenCheck();
         }
+    }
+
+    /**
+     * Alt+Tab out of exclusive Fullscreen could leave the game on screen
+     * (seen up to 26.2 with GLFW, on Windows 11 with NVIDIA and HDR, and in
+     * vanilla as well): the window was minimized on focus loss and the
+     * desktop got its mode back, but Windows showed the window again about
+     * 100 ms later, without the focus, and its Fullscreen mode was set on
+     * the monitor again. The game stayed in front, unfocused, until
+     * clicked. It happened when the monitor had to change modes on the way
+     * out (a Fullscreen Resolution other than the desktop's). Not seen yet
+     * with SDL (nine quick Alt+Tabs on 26.3, OpenGL, all minimized and
+     * stayed so); kept as a safeguard, since it only acts in that state.
+     * <p>
+     * SDL minimizes an exclusive window on focus loss (see
+     * BorderlessHandler.initializeFromConfig), so one that has no focus
+     * and is not minimized is never meant to last. Once that has held for
+     * {@link #STRANDED_MILLIS} after the window lost focus, it is minimized
+     * again, as SDL meant to. Only after a focus loss, at most a few times
+     * per focus loss in case Windows keeps showing it again, and not if
+     * another mod set SDL's hint to keep the window up. Windowed and
+     * Borderless are never minimized. updateFullscreenIfChanged runs once
+     * per frame.
+     */
+    @Inject(method = "updateFullscreenIfChanged", at = @At("TAIL"))
+    private void borderlesswindow$checkStrandedFullscreen(CallbackInfo ci) {
+        if (!this.borderlesswindow$watchingStranded) {
+            return;
+        }
+        if (this.focused || !this.fullscreenRequested || !this.exclusiveFullscreen || this.iconified
+                || (SDLVideo.SDL_GetWindowFlags(this.handle) & SDLVideo.SDL_WINDOW_FULLSCREEN) == 0L
+                || !SDLHints.SDL_GetHintBoolean(SDLHints.SDL_HINT_VIDEO_MINIMIZE_ON_FOCUS_LOSS, true)) {
+            this.borderlesswindow$strandedSince = 0L;
+            return;
+        }
+        long now = Util.getMillis();
+        if (this.borderlesswindow$strandedSince == 0L) {
+            this.borderlesswindow$strandedSince = now;
+            return;
+        }
+        if (now - this.borderlesswindow$strandedSince < STRANDED_MILLIS) {
+            return;
+        }
+        this.borderlesswindow$strandedSince = 0L;
+        if (this.borderlesswindow$strandedMinimizesLeft-- <= 0) {
+            this.borderlesswindow$watchingStranded = false;
+            return;
+        }
+        SDLVideo.SDL_MinimizeWindow(this.handle);
     }
 
     @Unique
