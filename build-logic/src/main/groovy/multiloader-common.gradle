@@ -16,8 +16,23 @@ base {
 
 java.toolchain.languageVersion = JavaLanguageVersion.of(java_version)
 
+// What Loom (fabric/) generates locally: the Minecraft jar
+// (net.minecraft:minecraft-merged-<hash>) and, on 1.21.x, the layered
+// mappings (loom:mappings) and the remapped mods (remapped.*). Gradle asks
+// the remote repositories for them before Loom's local ones; a 404 lets it
+// move on, but a 429 (Maven Central's rate limit, seen in Actions) failed
+// the build. None of them is on Central (its old "loom" group is JBoss
+// Loom, not Fabric's) or on Mojang's libraries server.
+def skipLoomGenerated = { content ->
+    content.excludeGroup('net.minecraft')
+    content.excludeGroup('loom')
+    content.excludeGroupAndSubgroups('remapped')
+}
+
 repositories {
-    mavenCentral()
+    mavenCentral {
+        content(skipLoomGenerated)
+    }
     exclusiveContent {
         forRepository {
             maven {
@@ -46,6 +61,13 @@ repositories {
         }
         filter { includeGroup('com.terraformersmc') }
     }
+}
+
+// Loom adds its own "Mojang" repository (libraries.minecraft.net) after
+// this script runs; on 1.21.x it also looks for jars on Maven Central.
+// Lazy, so it also covers modules and branches without one.
+repositories.matching { it.name == 'Mojang' }.configureEach { repository ->
+    repository.content(skipLoomGenerated)
 }
 
 tasks.withType(JavaCompile).configureEach {
