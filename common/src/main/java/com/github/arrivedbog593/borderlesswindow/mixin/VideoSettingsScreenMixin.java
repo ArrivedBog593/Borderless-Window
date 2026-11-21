@@ -1,6 +1,7 @@
 package com.github.arrivedbog593.borderlesswindow.mixin;
 
 import com.github.arrivedbog593.borderlesswindow.config.BorderlessConfigScreen;
+import com.github.arrivedbog593.borderlesswindow.fps.IdleFpsState;
 import com.github.arrivedbog593.borderlesswindow.general.BorderlessHandler;
 import com.github.arrivedbog593.borderlesswindow.general.ScreenMode;
 import com.mojang.serialization.Codec;
@@ -27,12 +28,15 @@ import java.util.List;
 
 /**
  * Brings the mod into Minecraft's own Video Settings screen, for players
- * without Sodium -- the same two things the Sodium integration does there:
+ * without Sodium -- the same things the Sodium integration does there:
  * <p>
  * 1. The Fullscreen toggle becomes a Screen Mode selector (Windowed /
  *    Borderless / Fullscreen), the setting the mod replaces it with.
  * 2. A "Borderless Window..." button at the end opens the full config
  *    screen.
+ * 3. Options the mod's settings take over are greyed out while they do:
+ *    Fullscreen Resolution outside Fullscreen, Reduce FPS When while the
+ *    Idle FPS Limit is on.
  * <p>
  * WHY HERE. Without this, a Fabric player without Sodium could only reach
  * the config through Mod Menu, which needs Fabric API -- two mods the mod
@@ -91,6 +95,7 @@ public abstract class VideoSettingsScreenMixin extends OptionsSubScreen {
             modeButton.setValue(BorderlessHandler.getCurrentMode());
         }
         borderlesswindow$updateResolution();
+        borderlesswindow$updateInactivityLimit();
     }
 
     /**
@@ -116,6 +121,44 @@ public abstract class VideoSettingsScreenMixin extends OptionsSubScreen {
                 && this.list.findOption(this.borderlesswindow$resolution) instanceof AbstractWidget slider) {
             slider.active = BorderlessHandler.getCurrentMode() == ScreenMode.FULLSCREEN;
         }
+    }
+
+    /**
+     * Vanilla's Reduce FPS When option does nothing while the mod's Idle FPS
+     * Limit is on: the mod's stages replace its AFK setting, and its 10 FPS
+     * while minimized applies with either value (see IdleFpsState). So the
+     * button is greyed out then, with a tooltip saying why, instead of
+     * offering a choice with no effect. Its value and options.txt are left
+     * alone: turning the Idle FPS Limit off brings the button and its own
+     * tooltip back, with the player's choice in effect again. The same rule
+     * as on Sodium's page.
+     * <p>
+     * Only on a change, so the tooltip is set once rather than every tick.
+     * A greyed-out button still shows its tooltip on hover.
+     */
+    @Unique
+    private void borderlesswindow$updateInactivityLimit() {
+        if (this.list == null
+                || !(this.list.findOption(this.options.inactivityFpsLimit()) instanceof CycleButton<?> button)) {
+            return;
+        }
+        boolean replaced = IdleFpsState.replacesVanillaAfkMode();
+        if (button.active != replaced) {
+            return;
+        }
+        button.active = !replaced;
+        if (replaced) {
+            button.setTooltip(Tooltip.create(
+                    Component.translatable("borderlesswindow.options.vanilla.inactivity_replaced")));
+        } else {
+            borderlesswindow$restoreTooltip(button);
+        }
+    }
+
+    /** Setting the button's own value again rebuilds its own tooltip. */
+    @Unique
+    private static <T> void borderlesswindow$restoreTooltip(CycleButton<T> button) {
+        button.setValue(button.getValue());
     }
 
     /**
@@ -150,6 +193,7 @@ public abstract class VideoSettingsScreenMixin extends OptionsSubScreen {
         }
         // Right away, not only from tick(): no frame with a live slider.
         borderlesswindow$updateResolution();
+        borderlesswindow$updateInactivityLimit();
         // 310 px: a single widget in a small row takes the full row width,
         // matching vanilla's "big" options above it.
         Button button = Button.builder(

@@ -164,16 +164,22 @@ jobs:
           : "${CURSEFORGE_TOKEN:?Add the CURSEFORGE_TOKEN secret to the repository}"
           : "${CURSEFORGE_PROJECT_ID:?Add the CURSEFORGE_PROJECT_ID variable to the repository}"
 
-          # Each file states its own optional integrations, so a loader never lists a mod that does not exist for it:
-          # Sodium is on both, Mod Menu is Fabric-only. Slug plus project ID, which the Upload API takes for an exact
-          # match. The ID is a JSON number: as a string the API rejects the whole upload (error 1002, "Expected
-          # Integer but got String"). Keep the project's Default Relations to what fits every loader (Sodium): the
-          # API docs do not say whether defaults get merged into files uploaded with their own relations.
+          # Each file states its own relations, so a loader never lists a mod that does not exist for it: Sodium is on
+          # both, Mod Menu is Fabric-only, and nimueller's Borderless (Forge and NeoForge only) is marked incompatible
+          # on NeoForge -- it uses the same mod ID, borderlesswindow, and with both jars NeoForge silently keeps the
+          # one with the higher version string, which is theirs ("1.21.1-1.7.5_1" beats "1.11.0"): this mod is
+          # dropped without an error. Mod metadata cannot tell the two apart, so this relation, which lets the
+          # CurseForge app warn before they are installed together, is the only guard. Slug plus project ID, which
+          # the Upload API takes for an exact match. The ID is a JSON number: as a string the API rejects the whole upload
+          # (error 1002, "Expected Integer but got String"). Keep the project's Default Relations to what fits every
+          # loader (Sodium): the API docs do not say whether defaults get merged into files uploaded with their own
+          # relations.
           SODIUM='{"slug": "sodium", "projectID": 394468, "type": "optionalDependency"}'
           MODMENU='{"slug": "modmenu", "projectID": 308702, "type": "optionalDependency"}'
+          BORDERLESS='{"slug": "borderless", "projectID": 378979, "type": "incompatible"}'
           case "$LOADER" in
             fabric)   LOADER_NAME=Fabric;   RELATIONS="[$SODIUM, $MODMENU]" ;;
-            neoforge) LOADER_NAME=NeoForge; RELATIONS="[$SODIUM]" ;;
+            neoforge) LOADER_NAME=NeoForge; RELATIONS="[$SODIUM, $BORDERLESS]" ;;
             *) echo "Unknown loader $LOADER"; exit 1 ;;
           esac
 
