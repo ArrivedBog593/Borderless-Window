@@ -27,9 +27,12 @@ import net.minecraft.resources.ResourceLocation;
  * <p>
  * The mod registers its own header ("Borderless Window") in the left-hand
  * list of the video settings menu. Options are gathered into a few pages,
- * each split into unnamed option groups -- the same visual grouping
- * Sodium's own General page uses -- instead of one page per feature,
- * which had grown to nine entries in the sidebar:
+ * each split into option groups, instead of one page per feature, which
+ * had grown to nine entries in the sidebar. Each group is named after its
+ * feature (OptionGroupBuilder.setName), reusing the section headers of
+ * BorderlessConfigScreen where one exists: Sodium draws the name as a
+ * header, and Reese's Sodium Options makes it collapsible on its own.
+ * Pages and their groups:
  * - General: F11 behavior | held item name | menu background blur. Small
  *   features with no better home.
  * - Enchantments: numerals | glint speed and strength.
@@ -40,7 +43,7 @@ import net.minecraft.resources.ResourceLocation;
  * - Camera: bobbing | FOV | distortion | zoom. How the view itself moves
  *   and is shaped.
  * - Distances: dropped items, orbs, armor stands | particles.
- * A new feature should become a group on one of these pages; it only
+ * A new feature should become a named group on one of these pages; it only
  * earns a page of its own if it brings several options with it.
  * <p>
  * The Screen Mode option itself lives on Sodium's General page, since it
@@ -86,6 +89,7 @@ public class ScreenModeConfigEntryPoint implements ConfigEntryPoint {
                 .addPage(builder.createOptionPage()
                         .setName(Component.translatable("borderlesswindow.options.sodium.pages.general"))
                         .addOptionGroup(builder.createOptionGroup()
+                                .setName(Component.translatable("config.borderlesswindow.section.window"))
                                 .addOption(builder.createEnumOption(
                                                 ResourceLocation.parse("borderlesswindow:f11_mode"),
                                                 F11Mode.class)
@@ -99,6 +103,7 @@ public class ScreenModeConfigEntryPoint implements ConfigEntryPoint {
                         )
                         // HUD: the held item's name over the hotbar.
                         .addOptionGroup(builder.createOptionGroup()
+                                .setName(Component.translatable("config.borderlesswindow.section.hud"))
                                 .addOption(builder.createBooleanOption(
                                                 ResourceLocation.parse("borderlesswindow:held_item_name"))
                                         .setName(Component.translatable("borderlesswindow.options.held_item_name.name"))
@@ -112,6 +117,7 @@ public class ScreenModeConfigEntryPoint implements ConfigEntryPoint {
                         // distortion scales, it otherwise lives only in
                         // Minecraft's accessibility menu.
                         .addOptionGroup(builder.createOptionGroup()
+                                .setName(Component.translatable("config.borderlesswindow.section.menus"))
                                 .addOption(builder.createIntegerOption(
                                                 ResourceLocation.parse("borderlesswindow:vanilla_menu_blur"))
                                         .setName(Component.translatable("borderlesswindow.options.vanilla_menu_blur.name"))
@@ -131,6 +137,7 @@ public class ScreenModeConfigEntryPoint implements ConfigEntryPoint {
                 .addPage(builder.createOptionPage()
                         .setName(Component.translatable("borderlesswindow.options.sodium.pages.enchantments"))
                         .addOptionGroup(builder.createOptionGroup()
+                                .setName(Component.translatable("config.borderlesswindow.section.numerals"))
                                 .addOption(builder.createEnumOption(
                                                 ResourceLocation.parse("borderlesswindow:enchantment_level_style"),
                                                 EnchantmentLevelStyle.class)
@@ -148,6 +155,7 @@ public class ScreenModeConfigEntryPoint implements ConfigEntryPoint {
                         // (RenderSystem.setShaderGlintAlpha) runs on set(),
                         // so the change shows without a restart.
                         .addOptionGroup(builder.createOptionGroup()
+                                .setName(Component.translatable("config.borderlesswindow.section.glint"))
                                 .addOption(builder.createIntegerOption(
                                                 ResourceLocation.parse("borderlesswindow:vanilla_glint_speed"))
                                         .setName(Component.translatable("borderlesswindow.options.vanilla_glint_speed.name"))
@@ -179,6 +187,7 @@ public class ScreenModeConfigEntryPoint implements ConfigEntryPoint {
                 .addPage(builder.createOptionPage()
                         .setName(Component.translatable("borderlesswindow.options.sodium.pages.fps"))
                         .addOptionGroup(builder.createOptionGroup()
+                                .setName(Component.translatable("config.borderlesswindow.section.fps"))
                                 .addOption(builder.createEnumOption(
                                                 ResourceLocation.parse("borderlesswindow:fps_overlay_mode"),
                                                 FpsOverlayMode.class)
@@ -210,6 +219,7 @@ public class ScreenModeConfigEntryPoint implements ConfigEntryPoint {
                         // Stays available with Dynamic FPS installed: the
                         // two stack, and the lower cap wins.
                         .addOptionGroup(builder.createOptionGroup()
+                                .setName(Component.translatable("config.borderlesswindow.section.background"))
                                 .addOption(builder.createIntegerOption(
                                                 ResourceLocation.parse("borderlesswindow:unfocused_fps_limit"))
                                         .setName(Component.translatable("borderlesswindow.options.unfocused_fps_limit.name"))
@@ -316,6 +326,7 @@ public class ScreenModeConfigEntryPoint implements ConfigEntryPoint {
                         .setName(Component.translatable("borderlesswindow.options.sodium.pages.visuals"))
                         // Fog: the four per-type toggles.
                         .addOptionGroup(builder.createOptionGroup()
+                                .setName(Component.translatable("config.borderlesswindow.section.fog"))
                                 .addOption(builder.createBooleanOption(
                                                 ResourceLocation.parse("borderlesswindow:fog_terrain"))
                                         .setName(Component.translatable("borderlesswindow.options.fog_terrain.name"))
@@ -371,6 +382,7 @@ public class ScreenModeConfigEntryPoint implements ConfigEntryPoint {
                         // (just below MIN_HEIGHT) shows "Default" and disables the
                         // override. See CloudState for the encoding.
                         .addOptionGroup(builder.createOptionGroup()
+                                .setName(Component.translatable("config.borderlesswindow.section.clouds"))
                                 .addOption(builder.createIntegerOption(
                                                 ResourceLocation.parse("borderlesswindow:cloud_height"))
                                         .setName(Component.translatable("borderlesswindow.options.cloud_height.name"))
@@ -386,6 +398,7 @@ public class ScreenModeConfigEntryPoint implements ConfigEntryPoint {
                         // Sky and weather: drawing only, the day cycle and
                         // the weather go on. See SkyState.
                         .addOptionGroup(builder.createOptionGroup()
+                                .setName(Component.translatable("config.borderlesswindow.section.sky"))
                                 .addOption(builder.createBooleanOption(
                                                 ResourceLocation.parse("borderlesswindow:sky_sun_moon"))
                                         .setName(Component.translatable("borderlesswindow.options.sky_sun_moon.name"))
@@ -415,6 +428,7 @@ public class ScreenModeConfigEntryPoint implements ConfigEntryPoint {
                         // The block/suffocation overlay is deliberately not exposed;
                         // see ScreenEffectHandler.
                         .addOptionGroup(builder.createOptionGroup()
+                                .setName(Component.translatable("config.borderlesswindow.section.overlays"))
                                 .addOption(builder.createBooleanOption(
                                                 ResourceLocation.parse("borderlesswindow:overlay_water"))
                                         .setName(Component.translatable("borderlesswindow.options.overlay_water.name"))
@@ -496,6 +510,7 @@ public class ScreenModeConfigEntryPoint implements ConfigEntryPoint {
                         // cannot add a dependency on a vanilla option, so this is
                         // stated in the tooltips instead of greying them out.
                         .addOptionGroup(builder.createOptionGroup()
+                                .setName(Component.translatable("config.borderlesswindow.section.bobbing"))
                                 .addOption(builder.createEnumOption(
                                                 ResourceLocation.parse("borderlesswindow:camera_bob"),
                                                 CameraBobMode.class)
@@ -523,6 +538,7 @@ public class ScreenModeConfigEntryPoint implements ConfigEntryPoint {
                         // no control over at all. Reuses the distortion
                         // percent/off formatter keys: same 0-100 presentation.
                         .addOptionGroup(builder.createOptionGroup()
+                                .setName(Component.translatable("config.borderlesswindow.section.fov"))
                                 // Vanilla's own slider, first so the
                                 // hierarchy reads top-down: this one
                                 // scales everything below it. Sodium's
@@ -596,6 +612,7 @@ public class ScreenModeConfigEntryPoint implements ConfigEntryPoint {
                         // replacing it; the Sodium API cannot depend on a vanilla
                         // option, so the tooltips say so.
                         .addOptionGroup(builder.createOptionGroup()
+                                .setName(Component.translatable("config.borderlesswindow.section.distortion"))
                                 // Vanilla's own slider, first so the
                                 // hierarchy reads top-down: this one
                                 // scales everything below it. Sodium's
@@ -643,6 +660,7 @@ public class ScreenModeConfigEntryPoint implements ConfigEntryPoint {
                         // every other key; nothing here does anything until
                         // it is pressed. See ZoomState.
                         .addOptionGroup(builder.createOptionGroup()
+                                .setName(Component.translatable("config.borderlesswindow.section.zoom"))
                                 .addOption(builder.createEnumOption(
                                                 ResourceLocation.parse("borderlesswindow:zoom_mode"),
                                                 ZoomMode.class)
@@ -706,6 +724,9 @@ public class ScreenModeConfigEntryPoint implements ConfigEntryPoint {
                 .addPage(builder.createOptionPage()
                         .setName(Component.translatable("borderlesswindow.options.sodium.pages.distances"))
                         // Entities: drawing only, see EntityRenderDispatcherMixin.
+                        // Left unnamed: the page name already says what
+                        // these are, and "Entities" is kept for a future
+                        // group covering every entity and block entity.
                         .addOptionGroup(builder.createOptionGroup()
                                 .addOption(builder.createIntegerOption(
                                                 ResourceLocation.parse("borderlesswindow:distance_items"))
@@ -740,6 +761,7 @@ public class ScreenModeConfigEntryPoint implements ConfigEntryPoint {
                         )
                         // Particles: refused at spawn, see LevelRendererMixin.
                         .addOptionGroup(builder.createOptionGroup()
+                                .setName(Component.translatable("config.borderlesswindow.section.particles"))
                                 .addOption(builder.createIntegerOption(
                                                 ResourceLocation.parse("borderlesswindow:distance_particles"))
                                         .setName(Component.translatable("borderlesswindow.options.distance_particles.name"))

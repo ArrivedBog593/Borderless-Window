@@ -14,6 +14,10 @@
   "config.borderlesswindow.section.zoom": "Zoom",
   "config.borderlesswindow.section.hud": "HUD",
   "config.borderlesswindow.section.sky": "Sky and Weather",
+  "config.borderlesswindow.section.menus": "Menus",
+  "config.borderlesswindow.section.numerals": "Numerals",
+  "config.borderlesswindow.section.glint": "Glint",
+  "config.borderlesswindow.section.particles": "Particles",
 
   "borderlesswindow.options.sodium.pages.general": "General",
   "borderlesswindow.options.sodium.pages.enchantments": "Enchantments",
