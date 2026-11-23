@@ -25,12 +25,6 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Set up JDK 25
-        uses: actions/setup-java@77dd5b2ce225ea11469928ac317850245a74ae78 # v6.2.0
-        with:
-          java-version: "25"
-          distribution: "temurin"
-
       # Both pre-flight checks run BEFORE the build: a wrong version or a
       # missing changelog should fail in twenty seconds, not in four minutes.
 
@@ -54,6 +48,10 @@ jobs:
 
           MOD_VERSION=$(grep '^mod_version=' gradle.properties | cut -d'=' -f2 | tr -d '[:space:]')
           MC_VERSION=$(grep '^minecraft_version=' gradle.properties | cut -d'=' -f2 | tr -d '[:space:]')
+          # The Java the jar is compiled for and the one Gradle runs on (see
+          # build.yml).
+          JAVA_VERSION=$(grep '^java_version=' gradle.properties | cut -d'=' -f2 | tr -d '[:space:]')
+          DAEMON_JAVA_VERSION=$(grep '^toolchainVersion=' gradle/gradle-daemon-jvm.properties | cut -d'=' -f2 | tr -d '[:space:]')
 
           echo "tag: $TAG_MOD / mc $TAG_MC | gradle.properties: $MOD_VERSION / mc $MC_VERSION"
 
@@ -77,6 +75,8 @@ jobs:
             echo "mod_version=$TAG_MOD"
             echo "mc_version=$TAG_MC"
             echo "prerelease=$PRERELEASE"
+            echo "java_version=$JAVA_VERSION"
+            echo "daemon_java_version=${DAEMON_JAVA_VERSION:-$JAVA_VERSION}"
           } >> "$GITHUB_OUTPUT"
           echo "MOD_VERSION=$TAG_MOD" >> "$GITHUB_ENV"
           echo "MC_VERSION=$TAG_MC"   >> "$GITHUB_ENV"
@@ -93,14 +93,26 @@ jobs:
           fi
           echo "NOTES_PATH=$NOTES" >> "$GITHUB_ENV"
 
+      # Both JDKs, as in build.yml: the last one listed becomes JAVA_HOME.
+      - name: Set up JDK
+        uses: actions/setup-java@77dd5b2ce225ea11469928ac317850245a74ae78 # v6.2.0
+        with:
+          java-version: |
+            ${{ steps.verify.outputs.java_version }}
+            ${{ steps.verify.outputs.daemon_java_version }}
+          distribution: "temurin"
+
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@8da46b539cd8fe6ab27ca75128919a18d757604c # v6.4.1
 
       - name: Make gradlew executable
         run: chmod +x gradlew
 
+      # Points Gradle at the JDK the jar is compiled for (see build.yml).
       - name: Build
-        run: ./gradlew build
+        env:
+          JAVA: ${{ steps.verify.outputs.java_version }}
+        run: ./gradlew build "-Porg.gradle.java.installations.fromEnv=JAVA_HOME_${JAVA}_X64"
 
       # One jar per loader module this branch has, named exactly: a glob such
       # as */build/libs/*.jar would also pick up common/'s jar, or a sources
