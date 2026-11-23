@@ -2,6 +2,11 @@
 plugins {
     // Kept current: Loom refuses dependencies built with a newer Loom than
     // itself (Sodium, Mod Menu and Fabric API in the dev run).
-    id 'fabric-loom' version '1.16.3' apply false
-    id 'net.neoforged.moddev' version '2.0.141' apply false
+    // net.fabricmc.fabric-loom-remap is the Loom for the obfuscated versions
+    // (up to 1.21.11), the name the Fabric example mod uses; it used to be
+    // fabric-loom. Since 1.19 Loom runs only on Java 25, so Gradle's daemon
+    // does too (gradle/gradle-daemon-jvm.properties), while the mod is still
+    // compiled for java_version.
+    id 'net.fabricmc.fabric-loom-remap' version '1.19.4' apply false
+    id 'net.neoforged.moddev' version '2.0.148' apply false
 }
