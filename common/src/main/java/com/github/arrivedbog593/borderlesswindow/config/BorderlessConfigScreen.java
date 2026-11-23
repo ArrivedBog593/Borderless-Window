@@ -19,12 +19,11 @@ import com.github.arrivedbog593.borderlesswindow.fps.UnfocusedVolumeState;
 import com.github.arrivedbog593.borderlesswindow.general.BorderlessHandler;
 import com.github.arrivedbog593.borderlesswindow.general.F11Mode;
 import com.github.arrivedbog593.borderlesswindow.general.HudState;
-import com.github.arrivedbog593.borderlesswindow.general.ScreenMode;
+import com.github.arrivedbog593.borderlesswindow.general.ToastState;
 import com.github.arrivedbog593.borderlesswindow.visual.CloudState;
 import com.github.arrivedbog593.borderlesswindow.visual.FogState;
 import com.github.arrivedbog593.borderlesswindow.visual.ScreenEffectState;
 import com.github.arrivedbog593.borderlesswindow.visual.SkyState;
-import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.CycleButton;
@@ -34,6 +33,8 @@ import net.minecraft.network.chat.CommonComponents;
 import net.minecraft.network.chat.Component;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.function.Consumer;
+
 /**
  * Config screen reachable from the Mods menu (NeoForge's "Config" button
  * for this mod). This gives users WITHOUT Sodium a proper UI to change
@@ -42,11 +43,12 @@ import org.jetbrains.annotations.NotNull;
  * <p>
  * Options live inside a scrollable BorderlessOptionsList grouped by
  * feature, in the order of the Sodium integration's pages and groups:
- * General ("Window", "HUD"), Enchantments ("Interface"), FPS &amp; Background ("FPS Overlay",
+ * General ("Window", "HUD", "Notifications"), Enchantments ("Interface"), FPS &amp; Background ("FPS Overlay",
  * "Background"), Visual Effects ("Fog",
  * "Clouds", "Sky and Weather", "Screen Overlays"), Camera ("Bobbing", "Field of View",
- * "Distortion", "Zoom") and Distances. Sodium separates groups with spacing alone; a
- * single scrolling list needs the headers instead. The list scrolls, so
+ * "Distortion", "Zoom") and Distances; the headers share their keys with
+ * the names of the Sodium groups. Two columns per row, like vanilla's
+ * Video Settings (see BorderlessOptionsList). The list scrolls, so
  * adding features never pushes options off-screen the way the previous
  * flat layout did; a new feature only needs addHeader() + addOption()
  * calls here.
@@ -68,12 +70,10 @@ public class BorderlessConfigScreen extends Screen {
     private static final int ROW_HEIGHT = 24;
 
     /**
-     * Option widgets are wider than vanilla's usual 200 px: translated
-     * labels ("Posición del contador", "Modo de F11") plus their value
-     * overflow a 200 px button and get truncated. BorderlessOptionsList
-     * uses 310 px rows, so 280 fits with margin to spare.
+     * Initial width only: BorderlessOptionsList resizes each widget to one
+     * of its two columns, or to the whole row when the text does not fit.
      */
-    private static final int OPTION_WIDTH = 280;
+    private static final int OPTION_WIDTH = 150;
     private static final int OPTION_HEIGHT = 20;
 
     /**
@@ -99,22 +99,11 @@ public class BorderlessConfigScreen extends Screen {
                 HEADER_HEIGHT, ROW_HEIGHT);
 
         // --- Window -------------------------------------------------
+        // The screen mode itself is not offered here: it already replaces
+        // the fullscreen option in Minecraft's Video Settings (and Sodium's
+        // General page), and F11 switches it. This screen mirrors the
+        // mod's Sodium pages, whose Window group holds F11 alone too.
         list.addHeader(Component.translatable("config.borderlesswindow.section.window"));
-
-        // Screen mode selector. Applying it immediately resizes the game
-        // window, which re-inits this screen -- the list is then rebuilt
-        // with the current value, so it always stays consistent.
-        list.addOption(
-                CycleButton.builder((ScreenMode mode) ->
-                                Component.translatable(mode.getTranslationKey()))
-                        .withValues(ScreenMode.values())
-                        .withInitialValue(BorderlessHandler.getCurrentMode())
-                        .withTooltip(mode -> Tooltip.create(
-                                Component.translatable("borderlesswindow.options.screen_mode.tooltip")))
-                        .create(0, 0, OPTION_WIDTH, OPTION_HEIGHT,
-                                Component.translatable("borderlesswindow.options.screen_mode.name"),
-                                (button, mode) -> BorderlessHandler.setMode(
-                                        Minecraft.getInstance().getWindow(), mode)));
 
         // F11 behavior selector. No window change involved, applies silently.
         list.addOption(
@@ -139,6 +128,24 @@ public class BorderlessConfigScreen extends Screen {
                         .create(0, 0, OPTION_WIDTH, OPTION_HEIGHT,
                                 Component.translatable("borderlesswindow.options.held_item_name.name"),
                                 (button, value) -> HudState.setHeldItemNameEnabled(value)));
+
+        // --- Notifications --------------------------------------------
+        // One toggle per kind of toast; see ToastState for which system
+        // notices can be hidden and which always show.
+        list.addHeader(Component.translatable("config.borderlesswindow.section.notifications"));
+
+        list.addOption(toastToggle("toast_advancements",
+                ToastState.isAdvancementsEnabled(), ToastState::setAdvancementsEnabled));
+        list.addOption(toastToggle("toast_recipes",
+                ToastState.isRecipesEnabled(), ToastState::setRecipesEnabled));
+        list.addOption(toastToggle("toast_tutorial",
+                ToastState.isTutorialEnabled(), ToastState::setTutorialEnabled));
+        list.addOption(toastToggle("toast_narrator",
+                ToastState.isNarratorEnabled(), ToastState::setNarratorEnabled));
+        list.addOption(toastToggle("toast_unverified_chat",
+                ToastState.isUnverifiedChatEnabled(), ToastState::setUnverifiedChatEnabled));
+        list.addOption(toastToggle("toast_pack_download",
+                ToastState.isPackDownloadEnabled(), ToastState::setPackDownloadEnabled));
 
         // --- Interface ------------------------------------------------
         // First non-rendering section: this is text shown in tooltips, not
@@ -206,7 +213,9 @@ public class BorderlessConfigScreen extends Screen {
                 UnfocusedFpsState::persist);
         unfocusedFpsSlider.setTooltip(Tooltip.create(
                 Component.translatable("borderlesswindow.options.unfocused_fps_limit.tooltip")));
-        list.addOption(unfocusedFpsSlider);
+        // A row of its own, so each idle stage below pairs its delay with
+        // its cap, and Pause Rendering with the unfocused volume.
+        list.addBigOption(unfocusedFpsSlider);
 
         // Idle caps, two stages: minutes without input before each kicks
         // in ("Off" is vanilla), each followed by its cap. The second
@@ -669,6 +678,21 @@ public class BorderlessConfigScreen extends Screen {
                         .bounds(this.width / 2 - DONE_WIDTH / 2, this.height - 26,
                                 DONE_WIDTH, DONE_HEIGHT)
                         .build());
+    }
+
+    /**
+     * An On/Off button for one notification toggle. Its name and tooltip
+     * come from borderlesswindow.options.&lt;option&gt;.name / .tooltip, the
+     * same keys the Sodium page uses.
+     */
+    private static CycleButton<Boolean> toastToggle(String option, boolean initial,
+                                                    Consumer<Boolean> setter) {
+        return CycleButton.onOffBuilder(initial)
+                .withTooltip(value -> Tooltip.create(
+                        Component.translatable("borderlesswindow.options." + option + ".tooltip")))
+                .create(0, 0, OPTION_WIDTH, OPTION_HEIGHT,
+                        Component.translatable("borderlesswindow.options." + option + ".name"),
+                        (button, value) -> setter.accept(value));
     }
 
     @Override

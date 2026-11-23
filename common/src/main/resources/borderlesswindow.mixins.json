@@ -23,6 +23,8 @@
     "MouseHandlerMixin",
     "RenderTargetMixin",
     "SoundManagerAccessor",
+    "SystemToastAccessor",
+    "ToastComponentMixin",
     "VideoSettingsScreenMixin",
     "WindowMixin"
   ],

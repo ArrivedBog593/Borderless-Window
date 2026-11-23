@@ -158,6 +158,9 @@ public final class BorderlessHandler {
                 config.fogTerrainStart());
         SkyState.init(config.sunMoon(), config.stars(), config.weather());
         HudState.init(config.heldItemName());
+        ToastState.init(config.advancementToasts(), config.recipeToasts(),
+                config.tutorialToasts(), config.unverifiedChatToast(),
+                config.narratorToast(), config.packDownloadToast());
         CloudState.init(config.cloudHeight());
         ScreenEffectState.init(config.waterOverlay(), config.fireOverlay(),
                 config.smartFire(), config.pumpkinOverlay(),

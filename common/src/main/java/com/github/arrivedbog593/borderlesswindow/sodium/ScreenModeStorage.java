@@ -21,6 +21,7 @@ import com.github.arrivedbog593.borderlesswindow.general.BorderlessHandler;
 import com.github.arrivedbog593.borderlesswindow.general.F11Mode;
 import com.github.arrivedbog593.borderlesswindow.general.HudState;
 import com.github.arrivedbog593.borderlesswindow.general.ScreenMode;
+import com.github.arrivedbog593.borderlesswindow.general.ToastState;
 import com.github.arrivedbog593.borderlesswindow.visual.CloudState;
 import com.github.arrivedbog593.borderlesswindow.visual.FogState;
 import com.github.arrivedbog593.borderlesswindow.visual.ScreenEffectState;
@@ -193,6 +194,24 @@ public final class ScreenModeStorage {
 
     private boolean pendingHeldItemName = HudState.isHeldItemNameEnabled();
     private boolean heldItemNameDirty = false;
+
+    private boolean pendingAdvancementToasts = ToastState.isAdvancementsEnabled();
+    private boolean advancementToastsDirty = false;
+
+    private boolean pendingRecipeToasts = ToastState.isRecipesEnabled();
+    private boolean recipeToastsDirty = false;
+
+    private boolean pendingTutorialToasts = ToastState.isTutorialEnabled();
+    private boolean tutorialToastsDirty = false;
+
+    private boolean pendingUnverifiedChatToast = ToastState.isUnverifiedChatEnabled();
+    private boolean unverifiedChatToastDirty = false;
+
+    private boolean pendingNarratorToast = ToastState.isNarratorEnabled();
+    private boolean narratorToastDirty = false;
+
+    private boolean pendingPackDownloadToast = ToastState.isPackDownloadEnabled();
+    private boolean packDownloadToastDirty = false;
 
     // The two vanilla sliders these pages sit under. Mirrored here so a
     // Sodium user can reach them without leaving for the accessibility
@@ -600,6 +619,60 @@ public final class ScreenModeStorage {
         this.heldItemNameDirty = true;
     }
 
+    public boolean getAdvancementToasts() {
+        return ToastState.isAdvancementsEnabled();
+    }
+
+    public void setAdvancementToasts(boolean enabled) {
+        this.pendingAdvancementToasts = enabled;
+        this.advancementToastsDirty = true;
+    }
+
+    public boolean getRecipeToasts() {
+        return ToastState.isRecipesEnabled();
+    }
+
+    public void setRecipeToasts(boolean enabled) {
+        this.pendingRecipeToasts = enabled;
+        this.recipeToastsDirty = true;
+    }
+
+    public boolean getTutorialToasts() {
+        return ToastState.isTutorialEnabled();
+    }
+
+    public void setTutorialToasts(boolean enabled) {
+        this.pendingTutorialToasts = enabled;
+        this.tutorialToastsDirty = true;
+    }
+
+    public boolean getUnverifiedChatToast() {
+        return ToastState.isUnverifiedChatEnabled();
+    }
+
+    public void setUnverifiedChatToast(boolean enabled) {
+        this.pendingUnverifiedChatToast = enabled;
+        this.unverifiedChatToastDirty = true;
+    }
+
+    public boolean getNarratorToast() {
+        return ToastState.isNarratorEnabled();
+    }
+
+    public void setNarratorToast(boolean enabled) {
+        this.pendingNarratorToast = enabled;
+        this.narratorToastDirty = true;
+    }
+
+    public boolean getPackDownloadToast() {
+        return ToastState.isPackDownloadEnabled();
+    }
+
+    public void setPackDownloadToast(boolean enabled) {
+        this.pendingPackDownloadToast = enabled;
+        this.packDownloadToastDirty = true;
+    }
+
     public int getDistanceItems() {
         return DistanceState.getItems();
     }
@@ -948,6 +1021,36 @@ public final class ScreenModeStorage {
         if (this.heldItemNameDirty) {
             HudState.setHeldItemNameEnabled(this.pendingHeldItemName);
             this.heldItemNameDirty = false;
+        }
+
+        if (this.advancementToastsDirty) {
+            ToastState.setAdvancementsEnabled(this.pendingAdvancementToasts);
+            this.advancementToastsDirty = false;
+        }
+
+        if (this.recipeToastsDirty) {
+            ToastState.setRecipesEnabled(this.pendingRecipeToasts);
+            this.recipeToastsDirty = false;
+        }
+
+        if (this.tutorialToastsDirty) {
+            ToastState.setTutorialEnabled(this.pendingTutorialToasts);
+            this.tutorialToastsDirty = false;
+        }
+
+        if (this.unverifiedChatToastDirty) {
+            ToastState.setUnverifiedChatEnabled(this.pendingUnverifiedChatToast);
+            this.unverifiedChatToastDirty = false;
+        }
+
+        if (this.narratorToastDirty) {
+            ToastState.setNarratorEnabled(this.pendingNarratorToast);
+            this.narratorToastDirty = false;
+        }
+
+        if (this.packDownloadToastDirty) {
+            ToastState.setPackDownloadEnabled(this.pendingPackDownloadToast);
+            this.packDownloadToastDirty = false;
         }
 
         // Vanilla options: written straight to options.txt. save() is

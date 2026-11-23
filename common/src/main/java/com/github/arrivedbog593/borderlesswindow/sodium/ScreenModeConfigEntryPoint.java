@@ -33,8 +33,8 @@ import net.minecraft.resources.ResourceLocation;
  * BorderlessConfigScreen where one exists: Sodium draws the name as a
  * header, and Reese's Sodium Options makes it collapsible on its own.
  * Pages and their groups:
- * - General: F11 behavior | held item name | menu background blur. Small
- *   features with no better home.
+ * - General: F11 behavior | held item name | notifications | menu
+ *   background blur. Small features with no better home.
  * - Enchantments: numerals | glint speed and strength.
  * - FPS & Background: FPS overlay | background (unfocused FPS cap, two-stage idle
  *   FPS cap, rendering while minimized, unfocused volume).
@@ -110,6 +110,60 @@ public class ScreenModeConfigEntryPoint implements ConfigEntryPoint {
                                         .setTooltip(Component.translatable("borderlesswindow.options.held_item_name.tooltip"))
                                         .setStorageHandler(this.storage::flush)
                                         .setBinding(this.storage::setHeldItemName, this.storage::getHeldItemName)
+                                        .setDefaultValue(true)
+                                )
+                        )
+                        // Notifications: one toggle per kind of toast. See
+                        // ToastState for which system notices can be hidden
+                        // and which always show.
+                        .addOptionGroup(builder.createOptionGroup()
+                                .setName(Component.translatable("config.borderlesswindow.section.notifications"))
+                                .addOption(builder.createBooleanOption(
+                                                ResourceLocation.parse("borderlesswindow:toast_advancements"))
+                                        .setName(Component.translatable("borderlesswindow.options.toast_advancements.name"))
+                                        .setTooltip(Component.translatable("borderlesswindow.options.toast_advancements.tooltip"))
+                                        .setStorageHandler(this.storage::flush)
+                                        .setBinding(this.storage::setAdvancementToasts, this.storage::getAdvancementToasts)
+                                        .setDefaultValue(true)
+                                )
+                                .addOption(builder.createBooleanOption(
+                                                ResourceLocation.parse("borderlesswindow:toast_recipes"))
+                                        .setName(Component.translatable("borderlesswindow.options.toast_recipes.name"))
+                                        .setTooltip(Component.translatable("borderlesswindow.options.toast_recipes.tooltip"))
+                                        .setStorageHandler(this.storage::flush)
+                                        .setBinding(this.storage::setRecipeToasts, this.storage::getRecipeToasts)
+                                        .setDefaultValue(true)
+                                )
+                                .addOption(builder.createBooleanOption(
+                                                ResourceLocation.parse("borderlesswindow:toast_tutorial"))
+                                        .setName(Component.translatable("borderlesswindow.options.toast_tutorial.name"))
+                                        .setTooltip(Component.translatable("borderlesswindow.options.toast_tutorial.tooltip"))
+                                        .setStorageHandler(this.storage::flush)
+                                        .setBinding(this.storage::setTutorialToasts, this.storage::getTutorialToasts)
+                                        .setDefaultValue(true)
+                                )
+                                .addOption(builder.createBooleanOption(
+                                                ResourceLocation.parse("borderlesswindow:toast_narrator"))
+                                        .setName(Component.translatable("borderlesswindow.options.toast_narrator.name"))
+                                        .setTooltip(Component.translatable("borderlesswindow.options.toast_narrator.tooltip"))
+                                        .setStorageHandler(this.storage::flush)
+                                        .setBinding(this.storage::setNarratorToast, this.storage::getNarratorToast)
+                                        .setDefaultValue(true)
+                                )
+                                .addOption(builder.createBooleanOption(
+                                                ResourceLocation.parse("borderlesswindow:toast_unverified_chat"))
+                                        .setName(Component.translatable("borderlesswindow.options.toast_unverified_chat.name"))
+                                        .setTooltip(Component.translatable("borderlesswindow.options.toast_unverified_chat.tooltip"))
+                                        .setStorageHandler(this.storage::flush)
+                                        .setBinding(this.storage::setUnverifiedChatToast, this.storage::getUnverifiedChatToast)
+                                        .setDefaultValue(true)
+                                )
+                                .addOption(builder.createBooleanOption(
+                                                ResourceLocation.parse("borderlesswindow:toast_pack_download"))
+                                        .setName(Component.translatable("borderlesswindow.options.toast_pack_download.name"))
+                                        .setTooltip(Component.translatable("borderlesswindow.options.toast_pack_download.tooltip"))
+                                        .setStorageHandler(this.storage::flush)
+                                        .setBinding(this.storage::setPackDownloadToast, this.storage::getPackDownloadToast)
                                         .setDefaultValue(true)
                                 )
                         )

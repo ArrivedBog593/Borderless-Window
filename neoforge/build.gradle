@@ -20,6 +20,18 @@ neoForge {
             gameDirectory = rootProject.file("run/${minecraft_version}/neoforge/client")
         }
 
+        // A dedicated server to join from the client run: notices that only
+        // a real server sends (unverified chat, server resource packs), and
+        // the check that the client-only mod does not break a server. The
+        // client run has no account, so server.properties needs
+        // online-mode=false; a server in offline mode never enforces secure
+        // chat (DedicatedServer.enforceSecureProfile).
+        server {
+            server()
+            programArgument '--nogui'
+            gameDirectory = rootProject.file("run/${minecraft_version}/neoforge/server")
+        }
+
         configureEach {
             systemProperty 'forge.logging.markers', 'REGISTRIES'
             logLevel = org.slf4j.event.Level.DEBUG

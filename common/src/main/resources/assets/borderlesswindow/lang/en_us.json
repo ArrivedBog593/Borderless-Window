@@ -18,6 +18,7 @@
   "config.borderlesswindow.section.numerals": "Numerals",
   "config.borderlesswindow.section.glint": "Glint",
   "config.borderlesswindow.section.particles": "Particles",
+  "config.borderlesswindow.section.notifications": "Notifications",
 
   "borderlesswindow.options.sodium.pages.general": "General",
   "borderlesswindow.options.sodium.pages.enchantments": "Enchantments",
@@ -42,6 +43,19 @@
 
   "borderlesswindow.options.held_item_name.name": "Held Item Name",
   "borderlesswindow.options.held_item_name.tooltip": "The name of the item you switch to, shown above the hotbar for a couple of seconds. Turn Off to keep that space clear. The name can still be seen in the inventory or by hovering over the item.",
+
+  "borderlesswindow.options.toast_advancements.name": "Advancements",
+  "borderlesswindow.options.toast_advancements.tooltip": "The pop-up in the top-right corner when you make an advancement. Turn Off to hide it; the advancement still counts and chat announces it as usual. The challenge fanfare plays with the pop-up, so it goes too.",
+  "borderlesswindow.options.toast_recipes.name": "Recipes",
+  "borderlesswindow.options.toast_recipes.tooltip": "The pop-up when you unlock new recipes. Turn Off to hide it; the recipes are still added to the recipe book.",
+  "borderlesswindow.options.toast_tutorial.name": "Tutorial",
+  "borderlesswindow.options.toast_tutorial.tooltip": "The tutorial hints for new players (moving, punching a tree, opening the inventory, crafting planks) and the reminder of the Social Interactions key the first time you join a server. Turn Off to hide them.",
+  "borderlesswindow.options.toast_unverified_chat.name": "Unverified Chat Warning",
+  "borderlesswindow.options.toast_unverified_chat.tooltip": "The \"Chat messages can't be verified\" pop-up when joining a server that does not enforce secure chat. Turn Off to hide it; chat works the same.",
+  "borderlesswindow.options.toast_narrator.name": "Narrator",
+  "borderlesswindow.options.toast_narrator.tooltip": "The pop-up when the narrator is turned on or off, for example with Ctrl+B.",
+  "borderlesswindow.options.toast_pack_download.name": "Server Pack Download",
+  "borderlesswindow.options.toast_pack_download.tooltip": "The progress pop-up while a server's resource pack downloads. Turn Off to hide it; if a download fails, the pop-up still shows. Error pop-ups (resource packs that fail to load, worlds that cannot be opened, low disk space) always show.",
 
   "borderlesswindow.options.vanilla_menu_blur.name": "Menu Background Blur (Minecraft)",
   "borderlesswindow.options.vanilla_menu_blur.tooltip": "Minecraft's own Menu Background Blur slider: how much the world is blurred behind menus and inventories. Sodium's video settings leave it out, so it is brought back here. It is the same setting found under Accessibility and is saved with Minecraft's options, not the mod's.",

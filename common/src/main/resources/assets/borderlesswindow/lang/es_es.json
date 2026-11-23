@@ -18,6 +18,7 @@
   "config.borderlesswindow.section.numerals": "Números",
   "config.borderlesswindow.section.glint": "Destello",
   "config.borderlesswindow.section.particles": "Partículas",
+  "config.borderlesswindow.section.notifications": "Notificaciones",
 
   "borderlesswindow.options.sodium.pages.general": "General",
   "borderlesswindow.options.sodium.pages.enchantments": "Encantamientos",
@@ -42,6 +43,19 @@
 
   "borderlesswindow.options.held_item_name.name": "Nombre del objeto en mano",
   "borderlesswindow.options.held_item_name.tooltip": "El nombre del objeto al que cambias, que aparece sobre la barra de acceso rápido durante un par de segundos. Desactívalo para dejar ese espacio libre. El nombre se sigue viendo en el inventario o al pasar el cursor por encima del objeto.",
+
+  "borderlesswindow.options.toast_advancements.name": "Progresos",
+  "borderlesswindow.options.toast_advancements.tooltip": "El aviso en la esquina superior derecha al conseguir un progreso. Desactívalo para ocultarlo; el progreso cuenta igualmente y el chat lo anuncia como siempre. La fanfarria de los desafíos suena con el aviso, así que también desaparece.",
+  "borderlesswindow.options.toast_recipes.name": "Recetas",
+  "borderlesswindow.options.toast_recipes.tooltip": "El aviso al desbloquear recetas nuevas. Desactívalo para ocultarlo; las recetas se añaden igualmente al libro de recetas.",
+  "borderlesswindow.options.toast_tutorial.name": "Tutorial",
+  "borderlesswindow.options.toast_tutorial.tooltip": "Las pistas del tutorial para jugadores nuevos (moverse, golpear un árbol, abrir el inventario, fabricar tablones de madera) y el recordatorio de la tecla de Interacciones sociales la primera vez que entras en un servidor. Desactívalo para ocultarlas.",
+  "borderlesswindow.options.toast_unverified_chat.name": "Aviso de chat no verificado",
+  "borderlesswindow.options.toast_unverified_chat.tooltip": "El aviso \"Mensajes de chat no verificados\" al entrar en un servidor que no exige el chat seguro. Desactívalo para ocultarlo; el chat funciona igual.",
+  "borderlesswindow.options.toast_narrator.name": "Narrador",
+  "borderlesswindow.options.toast_narrator.tooltip": "El aviso al activar o desactivar el narrador, por ejemplo con Ctrl+B.",
+  "borderlesswindow.options.toast_pack_download.name": "Descarga de paquetes del servidor",
+  "borderlesswindow.options.toast_pack_download.tooltip": "El progreso mientras se descarga el paquete de recursos de un servidor. Desactívalo para ocultarlo; si una descarga falla, el aviso aparece igualmente. Los avisos de error (paquetes de recursos que no cargan, mundos que no se pueden abrir, poco espacio en disco) siempre se muestran.",
 
   "borderlesswindow.options.vanilla_menu_blur.name": "Difuminado en menús (Minecraft)",
   "borderlesswindow.options.vanilla_menu_blur.tooltip": "El control de Difuminado en menús del propio Minecraft: cuánto se difumina el mundo detrás de los menús y el inventario. Los ajustes de vídeo de Sodium no lo incluyen, de modo que aquí se recupera. Es el mismo ajuste que está en Accesibilidad y se guarda con las opciones de Minecraft, no con las del mod.",

@@ -20,6 +20,7 @@ import com.github.arrivedbog593.borderlesswindow.general.BorderlessHandler;
 import com.github.arrivedbog593.borderlesswindow.general.F11Mode;
 import com.github.arrivedbog593.borderlesswindow.general.HudState;
 import com.github.arrivedbog593.borderlesswindow.general.ScreenMode;
+import com.github.arrivedbog593.borderlesswindow.general.ToastState;
 import com.github.arrivedbog593.borderlesswindow.visual.CloudState;
 import com.github.arrivedbog593.borderlesswindow.visual.FogState;
 import com.github.arrivedbog593.borderlesswindow.visual.ScreenEffectState;
@@ -128,6 +129,12 @@ public final class BorderlessConfigFile {
         boolean sky_stars = true;
         boolean sky_weather = true;
         boolean hud_held_item_name = true;
+        boolean toast_advancements = true;
+        boolean toast_recipes = true;
+        boolean toast_tutorial = true;
+        boolean toast_unverified_chat = true;
+        boolean toast_narrator = true;
+        boolean toast_pack_download = true;
     }
 
     public record LoadedConfig(ScreenMode screenMode, F11Mode f11Mode,
@@ -156,7 +163,10 @@ public final class BorderlessConfigFile {
                                boolean zoomHideHand, boolean zoomHideHud,
                                int fogTerrainStart,
                                boolean sunMoon, boolean stars, boolean weather,
-                               boolean heldItemName) {
+                               boolean heldItemName,
+                               boolean advancementToasts, boolean recipeToasts,
+                               boolean tutorialToasts, boolean unverifiedChatToast,
+                               boolean narratorToast, boolean packDownloadToast) {
     }
 
     private BorderlessConfigFile() {
@@ -207,7 +217,9 @@ public final class BorderlessConfigFile {
                 data.zoom_hide_hand, data.zoom_hide_hud,
                 data.fog_terrain_start,
                 data.sky_sun_moon, data.sky_stars, data.sky_weather,
-                data.hud_held_item_name);
+                data.hud_held_item_name,
+                data.toast_advancements, data.toast_recipes, data.toast_tutorial,
+                data.toast_unverified_chat, data.toast_narrator, data.toast_pack_download);
     }
 
     /**
@@ -274,6 +286,12 @@ public final class BorderlessConfigFile {
         data.sky_stars = SkyState.isStarsEnabled();
         data.sky_weather = SkyState.isWeatherEnabled();
         data.hud_held_item_name = HudState.isHeldItemNameEnabled();
+        data.toast_advancements = ToastState.isAdvancementsEnabled();
+        data.toast_recipes = ToastState.isRecipesEnabled();
+        data.toast_tutorial = ToastState.isTutorialEnabled();
+        data.toast_unverified_chat = ToastState.isUnverifiedChatEnabled();
+        data.toast_narrator = ToastState.isNarratorEnabled();
+        data.toast_pack_download = ToastState.isPackDownloadEnabled();
         write(GSON.toJson(data));
     }
 
