@@ -8,7 +8,7 @@ body:
       value: |
         Thanks for the idea! English or Spanish are both fine.
 
-        Good to know before suggesting: the mod is client-side only, and every setting defaults to vanilla behavior. It works on the window and on what Minecraft already calculates (FOV, fog, FPS limits, what gets drawn…). It doesn't touch shaders, chunk rendering, lighting or textures.
+        Good to know before suggesting: the mod is client-side only, and every visual setting defaults to vanilla behavior. It works on the window and on what Minecraft already calculates (FOV, fog, FPS limits, what gets drawn…). It doesn't touch shaders, chunk rendering, lighting or textures.
 
   - type: textarea
     id: idea

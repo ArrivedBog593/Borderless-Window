@@ -37,8 +37,15 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
  * two, so one born out of range does not linger long enough to matter if
  * the player walks toward it.
  * <p>
- * FORCED PARTICLES are left alone, exactly as vanilla does with its own
- * limit: the caller asked for them to be shown regardless of settings.
+ * FORCED PARTICLES. {@code force} arrives already OR-ed with the type's
+ * own override flag (ParticleType.getOverrideLimiter), which vanilla sets
+ * on explosions, gusts, sweeps, damage hearts, campfire smoke, squid ink
+ * and a few more so they skip its 32-block limit and the Particles
+ * option. Those are exactly what the Explosions, Combat, Smoke and Mobs
+ * sliders are for, so a cap still applies to them: the player chose it
+ * for that kind. A particle forced by its caller and not by its type
+ * (/particle ... force, a mod asking for it) is left alone, as vanilla
+ * does. When both hold, the two cannot be told apart and the cap applies.
  * <p>
  * Targets the nine-argument overload (the eight-argument one delegates to
  * it). Sodium does not touch this method.
@@ -71,13 +78,13 @@ public abstract class LevelRendererMixin {
                                                          double x, double y, double z,
                                                          double xSpeed, double ySpeed, double zSpeed,
                                                          CallbackInfoReturnable<Particle> cir) {
-        if (force) {
+        if (force && !options.getType().getOverrideLimiter()) {
             return;
         }
 
         double distanceSqr = this.minecraft.gameRenderer.getMainCamera().getPosition()
                 .distanceToSqr(x, y, z);
-        if (DistanceState.isBeyond(DistanceState.getParticles(), distanceSqr)) {
+        if (DistanceState.isBeyond(DistanceState.particleCap(options), distanceSqr)) {
             cir.setReturnValue(null);
         }
     }

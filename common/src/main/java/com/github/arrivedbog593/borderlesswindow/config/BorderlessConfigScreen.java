@@ -6,6 +6,7 @@ import com.github.arrivedbog593.borderlesswindow.camera.DistortionState;
 import com.github.arrivedbog593.borderlesswindow.camera.FovState;
 import com.github.arrivedbog593.borderlesswindow.camera.ZoomMode;
 import com.github.arrivedbog593.borderlesswindow.camera.ZoomState;
+import com.github.arrivedbog593.borderlesswindow.distance.DistanceCategory;
 import com.github.arrivedbog593.borderlesswindow.distance.DistanceState;
 import com.github.arrivedbog593.borderlesswindow.enchantment.EnchantmentLevelState;
 import com.github.arrivedbog593.borderlesswindow.enchantment.EnchantmentLevelStyle;
@@ -19,11 +20,16 @@ import com.github.arrivedbog593.borderlesswindow.fps.UnfocusedVolumeState;
 import com.github.arrivedbog593.borderlesswindow.general.BorderlessHandler;
 import com.github.arrivedbog593.borderlesswindow.general.F11Mode;
 import com.github.arrivedbog593.borderlesswindow.general.HudState;
+import com.github.arrivedbog593.borderlesswindow.general.LanguageState;
 import com.github.arrivedbog593.borderlesswindow.general.ToastState;
 import com.github.arrivedbog593.borderlesswindow.visual.CloudState;
 import com.github.arrivedbog593.borderlesswindow.visual.FogState;
+import com.github.arrivedbog593.borderlesswindow.visual.NametagMode;
+import com.github.arrivedbog593.borderlesswindow.visual.NametagState;
+import com.github.arrivedbog593.borderlesswindow.visual.NightVisionMode;
 import com.github.arrivedbog593.borderlesswindow.visual.ScreenEffectState;
 import com.github.arrivedbog593.borderlesswindow.visual.SkyState;
+import com.github.arrivedbog593.borderlesswindow.visual.StatusEffectState;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.CycleButton;
@@ -45,9 +51,10 @@ import java.util.function.Consumer;
  * feature, in the order of the Sodium integration's pages and groups:
  * General ("Window", "HUD", "Notifications"), Enchantments ("Interface"), FPS &amp; Background ("FPS Overlay",
  * "Background"), Visual Effects ("Fog",
- * "Clouds", "Sky and Weather", "Screen Overlays"), Camera ("Bobbing", "Field of View",
- * "Distortion", "Zoom") and Distances; the headers share their keys with
- * the names of the Sodium groups. Two columns per row, like vanilla's
+ * "Clouds", "Sky and Weather", "Screen Overlays", "Status Effects", "Nametags"), Camera ("Bobbing", "Field of View",
+ * "Distortion", "Zoom") and Distances ("Entities", "Block Entities",
+ * "Particles"); the headers share their keys with the names of the Sodium
+ * groups, and the unnamed first group of a page takes the page's name. Two columns per row, like vanilla's
  * Video Settings (see BorderlessOptionsList). The list scrolls, so
  * adding features never pushes options off-screen the way the previous
  * flat layout did; a new feature only needs addHeader() + addOption()
@@ -146,6 +153,20 @@ public class BorderlessConfigScreen extends Screen {
                 ToastState.isUnverifiedChatEnabled(), ToastState::setUnverifiedChatEnabled));
         list.addOption(toastToggle("toast_pack_download",
                 ToastState.isPackDownloadEnabled(), ToastState::setPackDownloadEnabled));
+
+        // --- Menus ----------------------------------------------------
+        // The Sodium page's next group, Minecraft (menu blur, damage tilt,
+        // darkness pulsing, lightning flashes), is not repeated here: those
+        // are vanilla options, already in Minecraft's Accessibility menu.
+        list.addHeader(Component.translatable("config.borderlesswindow.section.menus"));
+
+        list.addOption(
+                CycleButton.onOffBuilder(LanguageState.isFastReloadEnabled())
+                        .withTooltip(value -> Tooltip.create(
+                                Component.translatable("borderlesswindow.options.fast_language_reload.tooltip")))
+                        .create(0, 0, OPTION_WIDTH, OPTION_HEIGHT,
+                                Component.translatable("borderlesswindow.options.fast_language_reload.name"),
+                                (button, value) -> LanguageState.setFastReloadEnabled(value)));
 
         // --- Interface ------------------------------------------------
         // First non-rendering section: this is text shown in tooltips, not
@@ -420,6 +441,18 @@ public class BorderlessConfigScreen extends Screen {
         // nothing left for it to hide conditionally.
         smartFireButton.active = ScreenEffectState.isFireOverlayEnabled();
 
+        // Same for the height: nothing to lower. 100% is vanilla.
+        IntOptionSlider fireHeightSlider = new IntOptionSlider(0, 0, OPTION_WIDTH, OPTION_HEIGHT,
+                "borderlesswindow.options.overlay_fire_height.name",
+                ScreenEffectState.MIN_FIRE_HEIGHT, ScreenEffectState.MAX_FIRE_HEIGHT,
+                ScreenEffectState.FIRE_HEIGHT_STEP,
+                value -> Component.translatable("borderlesswindow.options.distortion.percent", value),
+                ScreenEffectState::getFireHeight, ScreenEffectState::applyFireHeight,
+                ScreenEffectState::persist);
+        fireHeightSlider.setTooltip(Tooltip.create(
+                Component.translatable("borderlesswindow.options.overlay_fire_height.tooltip")));
+        fireHeightSlider.active = ScreenEffectState.isFireOverlayEnabled();
+
         list.addOption(
                 CycleButton.onOffBuilder(ScreenEffectState.isWaterOverlayEnabled())
                         .withTooltip(value -> Tooltip.create(
@@ -437,9 +470,11 @@ public class BorderlessConfigScreen extends Screen {
                                 (button, value) -> {
                                     ScreenEffectState.setFireOverlayEnabled(value);
                                     smartFireButton.active = value;
+                                    fireHeightSlider.active = value;
                                 }));
 
         list.addOption(smartFireButton);
+        list.addOption(fireHeightSlider);
 
         // The four below come from Gui rather than ScreenEffectRenderer
         // (see GuiMixin), but they belong in the same section: the player
@@ -475,6 +510,52 @@ public class BorderlessConfigScreen extends Screen {
                         .create(0, 0, OPTION_WIDTH, OPTION_HEIGHT,
                                 Component.translatable("borderlesswindow.options.overlay_spyglass.name"),
                                 (button, value) -> ScreenEffectState.setSpyglassOverlayEnabled(value)));
+
+        // From GameRenderer, same section for the same reason.
+        list.addOption(
+                CycleButton.onOffBuilder(ScreenEffectState.isTotemAnimationEnabled())
+                        .withTooltip(value -> Tooltip.create(
+                                Component.translatable("borderlesswindow.options.overlay_totem.tooltip")))
+                        .create(0, 0, OPTION_WIDTH, OPTION_HEIGHT,
+                                Component.translatable("borderlesswindow.options.overlay_totem.name"),
+                                (button, value) -> ScreenEffectState.setTotemAnimationEnabled(value)));
+
+        // --- Status effects -------------------------------------------
+        // How your own effects look. See StatusEffectState.
+        list.addHeader(Component.translatable("config.borderlesswindow.section.effects"));
+
+        list.addOption(
+                CycleButton.builder((NightVisionMode mode) ->
+                                Component.translatable(mode.getTranslationKey()))
+                        .withValues(NightVisionMode.values())
+                        .withInitialValue(StatusEffectState.getNightVisionMode())
+                        .withTooltip(mode -> Tooltip.create(
+                                Component.translatable("borderlesswindow.options.night_vision.tooltip")))
+                        .create(0, 0, OPTION_WIDTH, OPTION_HEIGHT,
+                                Component.translatable("borderlesswindow.options.night_vision.name"),
+                                (button, mode) -> StatusEffectState.setNightVisionMode(mode)));
+
+        list.addOption(
+                CycleButton.onOffBuilder(StatusEffectState.isOwnParticlesEnabled())
+                        .withTooltip(value -> Tooltip.create(
+                                Component.translatable("borderlesswindow.options.effect_particles_own.tooltip")))
+                        .create(0, 0, OPTION_WIDTH, OPTION_HEIGHT,
+                                Component.translatable("borderlesswindow.options.effect_particles_own.name"),
+                                (button, value) -> StatusEffectState.setOwnParticlesEnabled(value)));
+
+        // --- Nametags -------------------------------------------------
+        list.addHeader(Component.translatable("config.borderlesswindow.section.nametags"));
+
+        list.addOption(
+                CycleButton.builder((NametagMode mode) ->
+                                Component.translatable(mode.getTranslationKey()))
+                        .withValues(NametagMode.values())
+                        .withInitialValue(NametagState.getMode())
+                        .withTooltip(mode -> Tooltip.create(
+                                Component.translatable("borderlesswindow.options.nametags.tooltip")))
+                        .create(0, 0, OPTION_WIDTH, OPTION_HEIGHT,
+                                Component.translatable("borderlesswindow.options.nametags.name"),
+                                (button, mode) -> NametagState.setMode(mode)));
 
         // --- Bobbing --------------------------------------------------
         list.addHeader(Component.translatable("config.borderlesswindow.section.bobbing"));
@@ -630,46 +711,15 @@ public class BorderlessConfigScreen extends Screen {
                                 (button, value) -> ZoomState.setHideHudEnabled(value)));
 
         // --- Distances ------------------------------------------------
-        // "Default" (leftmost) keeps vanilla's own distance; any other
-        // value can only lower it. Entities are only hidden, never
-        // removed, and particles are refused at spawn (see DistanceState).
-        list.addHeader(Component.translatable("config.borderlesswindow.section.distances"));
-
-        IntOptionSlider itemsSlider = new IntOptionSlider(0, 0, OPTION_WIDTH, OPTION_HEIGHT,
-                "borderlesswindow.options.distance_items.name",
-                DistanceState.DEFAULT, DistanceState.ITEM_MAX, DistanceState.ITEM_STEP,
-                DistanceState::format,
-                DistanceState::getItems, DistanceState::applyItems, DistanceState::persist);
-        itemsSlider.setTooltip(Tooltip.create(
-                Component.translatable("borderlesswindow.options.distance_items.tooltip")));
-        list.addOption(itemsSlider);
-
-        IntOptionSlider orbsSlider = new IntOptionSlider(0, 0, OPTION_WIDTH, OPTION_HEIGHT,
-                "borderlesswindow.options.distance_xp_orbs.name",
-                DistanceState.DEFAULT, DistanceState.ORB_MAX, DistanceState.ORB_STEP,
-                DistanceState::format,
-                DistanceState::getOrbs, DistanceState::applyOrbs, DistanceState::persist);
-        orbsSlider.setTooltip(Tooltip.create(
-                Component.translatable("borderlesswindow.options.distance_xp_orbs.tooltip")));
-        list.addOption(orbsSlider);
-
-        IntOptionSlider armorStandsSlider = new IntOptionSlider(0, 0, OPTION_WIDTH, OPTION_HEIGHT,
-                "borderlesswindow.options.distance_armor_stands.name",
-                DistanceState.DEFAULT, DistanceState.ARMOR_STAND_MAX, DistanceState.ARMOR_STAND_STEP,
-                DistanceState::format,
-                DistanceState::getArmorStands, DistanceState::applyArmorStands, DistanceState::persist);
-        armorStandsSlider.setTooltip(Tooltip.create(
-                Component.translatable("borderlesswindow.options.distance_armor_stands.tooltip")));
-        list.addOption(armorStandsSlider);
-
-        IntOptionSlider particlesSlider = new IntOptionSlider(0, 0, OPTION_WIDTH, OPTION_HEIGHT,
-                "borderlesswindow.options.distance_particles.name",
-                DistanceState.DEFAULT, DistanceState.PARTICLE_MAX, DistanceState.PARTICLE_STEP,
-                DistanceState::format,
-                DistanceState::getParticles, DistanceState::applyParticles, DistanceState::persist);
-        particlesSlider.setTooltip(Tooltip.create(
-                Component.translatable("borderlesswindow.options.distance_particles.tooltip")));
-        list.addOption(particlesSlider);
+        // One section per General slider (entities, block entities,
+        // particles), the General one on a row of its own and its
+        // categories paired below it. "Default" (leftmost) on a General
+        // slider keeps vanilla's distance; "General" on a category follows
+        // it. Entities are only hidden, never removed, and particles are
+        // refused at spawn (see DistanceState).
+        this.addDistanceSection(list, DistanceCategory.ENTITIES, "config.borderlesswindow.section.entities");
+        this.addDistanceSection(list, DistanceCategory.BLOCK_ENTITIES, "config.borderlesswindow.section.block_entities");
+        this.addDistanceSection(list, DistanceCategory.PARTICLES, "config.borderlesswindow.section.particles");
 
         this.addRenderableWidget(list);
 
@@ -710,6 +760,7 @@ public class BorderlessConfigScreen extends Screen {
         BorderlessConfigFile.batch(() -> {
             CloudState.persist();
             FogState.persist();
+            ScreenEffectState.persist();
             DistortionState.persist();
             FovState.persist();
             UnfocusedFpsState.persist();
@@ -735,6 +786,30 @@ public class BorderlessConfigScreen extends Screen {
         limit.active = firstStage;
         secondDelay.active = firstStage;
         secondLimit.active = firstStage && IdleFpsState.getSecondDelayMinutes() != IdleFpsState.OFF;
+    }
+
+    /**
+     * A header, the General slider on a row of its own (it governs the
+     * whole section) and its categories two per row, as in the Sodium
+     * page's group of the same name.
+     */
+    private void addDistanceSection(BorderlessOptionsList list, DistanceCategory general, String headerKey) {
+        list.addHeader(Component.translatable(headerKey));
+        for (DistanceCategory category : general.withChildren()) {
+            IntOptionSlider slider = new IntOptionSlider(0, 0, OPTION_WIDTH, OPTION_HEIGHT,
+                    category.nameKey(),
+                    DistanceState.DEFAULT, category.max(), category.step(),
+                    blocks -> DistanceState.format(category, blocks),
+                    () -> DistanceState.get(category),
+                    blocks -> DistanceState.apply(category, blocks),
+                    DistanceState::persist);
+            slider.setTooltip(Tooltip.create(Component.translatable(category.tooltipKey())));
+            if (category.isGeneral()) {
+                list.addBigOption(slider);
+            } else {
+                list.addOption(slider);
+            }
+        }
     }
 
     /**

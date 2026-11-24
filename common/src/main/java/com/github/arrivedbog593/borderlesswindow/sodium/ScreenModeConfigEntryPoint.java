@@ -5,6 +5,7 @@ import com.github.arrivedbog593.borderlesswindow.camera.DistortionState;
 import com.github.arrivedbog593.borderlesswindow.camera.FovState;
 import com.github.arrivedbog593.borderlesswindow.camera.ZoomMode;
 import com.github.arrivedbog593.borderlesswindow.camera.ZoomState;
+import com.github.arrivedbog593.borderlesswindow.distance.DistanceCategory;
 import com.github.arrivedbog593.borderlesswindow.distance.DistanceState;
 import com.github.arrivedbog593.borderlesswindow.enchantment.EnchantmentLevelStyle;
 import com.github.arrivedbog593.borderlesswindow.fps.FpsOverlayMode;
@@ -16,8 +17,13 @@ import com.github.arrivedbog593.borderlesswindow.general.F11Mode;
 import com.github.arrivedbog593.borderlesswindow.general.ScreenMode;
 import com.github.arrivedbog593.borderlesswindow.visual.CloudState;
 import com.github.arrivedbog593.borderlesswindow.visual.FogState;
+import com.github.arrivedbog593.borderlesswindow.visual.NametagMode;
+import com.github.arrivedbog593.borderlesswindow.visual.NightVisionMode;
+import com.github.arrivedbog593.borderlesswindow.visual.ScreenEffectState;
 import net.caffeinemc.mods.sodium.api.config.ConfigEntryPoint;
 import net.caffeinemc.mods.sodium.api.config.structure.ConfigBuilder;
+import net.caffeinemc.mods.sodium.api.config.structure.OptionGroupBuilder;
+import net.caffeinemc.mods.sodium.api.config.structure.OptionPageBuilder;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 
@@ -33,16 +39,20 @@ import net.minecraft.resources.ResourceLocation;
  * BorderlessConfigScreen where one exists: Sodium draws the name as a
  * header, and Reese's Sodium Options makes it collapsible on its own.
  * Pages and their groups:
- * - General: F11 behavior | held item name | notifications | menu
- *   background blur. Small features with no better home.
+ * - General: F11 behavior | held item name | notifications | menus
+ *   (fast language switch) | Minecraft (vanilla accessibility options
+ *   Sodium leaves out: menu blur, damage tilt, darkness pulsing,
+ *   lightning flashes). Small features with no better home.
  * - Enchantments: numerals | glint speed and strength.
  * - FPS & Background: FPS overlay | background (unfocused FPS cap, two-stage idle
  *   FPS cap, rendering while minimized, unfocused volume).
  * - Visual Effects: fog | cloud height | sky and weather | screen
- *   overlays. What is drawn over or around the world.
+ *   overlays | status effects | nametags. What is drawn over or around
+ *   the world.
  * - Camera: bobbing | FOV | distortion | zoom. How the view itself moves
  *   and is shaped.
- * - Distances: dropped items, orbs, armor stands | particles.
+ * - Distances: entities | block entities | particles, each a General
+ *   slider followed by its categories (DistanceCategory).
  * A new feature should become a named group on one of these pages; it only
  * earns a page of its own if it brings several options with it.
  * <p>
@@ -167,11 +177,26 @@ public class ScreenModeConfigEntryPoint implements ConfigEntryPoint {
                                         .setDefaultValue(true)
                                 )
                         )
-                        // Vanilla's menu background blur. Like the FOV and
-                        // distortion scales, it otherwise lives only in
-                        // Minecraft's accessibility menu.
+                        // Menus: language changes without the loading
+                        // screen, see LanguageState.
                         .addOptionGroup(builder.createOptionGroup()
                                 .setName(Component.translatable("config.borderlesswindow.section.menus"))
+                                .addOption(builder.createBooleanOption(
+                                                ResourceLocation.parse("borderlesswindow:fast_language_reload"))
+                                        .setName(Component.translatable("borderlesswindow.options.fast_language_reload.name"))
+                                        .setTooltip(Component.translatable("borderlesswindow.options.fast_language_reload.tooltip"))
+                                        .setStorageHandler(this.storage::flush)
+                                        .setBinding(this.storage::setFastLanguageReload, this.storage::getFastLanguageReload)
+                                        .setDefaultValue(true)
+                                )
+                        )
+                        // Minecraft's own accessibility options that
+                        // Sodium's video settings leave out and that have
+                        // no page of ours to sit on (the FOV, distortion
+                        // and glint ones sit with their features). Saved
+                        // in options.txt, see ScreenModeStorage.
+                        .addOptionGroup(builder.createOptionGroup()
+                                .setName(Component.translatable("config.borderlesswindow.section.minecraft"))
                                 .addOption(builder.createIntegerOption(
                                                 ResourceLocation.parse("borderlesswindow:vanilla_menu_blur"))
                                         .setName(Component.translatable("borderlesswindow.options.vanilla_menu_blur.name"))
@@ -183,6 +208,38 @@ public class ScreenModeConfigEntryPoint implements ConfigEntryPoint {
                                         .setStorageHandler(this.storage::flush)
                                         .setBinding(this.storage::setVanillaMenuBlur, this.storage::getVanillaMenuBlur)
                                         .setDefaultValue(5)
+                                )
+                                .addOption(builder.createIntegerOption(
+                                                ResourceLocation.parse("borderlesswindow:vanilla_damage_tilt"))
+                                        .setName(Component.translatable("borderlesswindow.options.vanilla_damage_tilt.name"))
+                                        .setTooltip(Component.translatable("borderlesswindow.options.vanilla_damage_tilt.tooltip"))
+                                        .setRange(0, 100, 1)
+                                        .setValueFormatter(value -> value <= 0
+                                                ? Component.translatable("borderlesswindow.options.distortion.off")
+                                                : Component.translatable("borderlesswindow.options.distortion.percent", value))
+                                        .setStorageHandler(this.storage::flush)
+                                        .setBinding(this.storage::setVanillaDamageTilt, this.storage::getVanillaDamageTilt)
+                                        .setDefaultValue(100)
+                                )
+                                .addOption(builder.createIntegerOption(
+                                                ResourceLocation.parse("borderlesswindow:vanilla_darkness_pulsing"))
+                                        .setName(Component.translatable("borderlesswindow.options.vanilla_darkness_pulsing.name"))
+                                        .setTooltip(Component.translatable("borderlesswindow.options.vanilla_darkness_pulsing.tooltip"))
+                                        .setRange(0, 100, 1)
+                                        .setValueFormatter(value -> value <= 0
+                                                ? Component.translatable("borderlesswindow.options.distortion.off")
+                                                : Component.translatable("borderlesswindow.options.distortion.percent", value))
+                                        .setStorageHandler(this.storage::flush)
+                                        .setBinding(this.storage::setVanillaDarknessPulsing, this.storage::getVanillaDarknessPulsing)
+                                        .setDefaultValue(100)
+                                )
+                                .addOption(builder.createBooleanOption(
+                                                ResourceLocation.parse("borderlesswindow:vanilla_hide_lightning"))
+                                        .setName(Component.translatable("borderlesswindow.options.vanilla_hide_lightning.name"))
+                                        .setTooltip(Component.translatable("borderlesswindow.options.vanilla_hide_lightning.tooltip"))
+                                        .setStorageHandler(this.storage::flush)
+                                        .setBinding(this.storage::setVanillaHideLightning, this.storage::getVanillaHideLightning)
+                                        .setDefaultValue(false)
                                 )
                         )
                 )
@@ -514,6 +571,25 @@ public class ScreenModeConfigEntryPoint implements ConfigEntryPoint {
                                                         ResourceLocation.parse("borderlesswindow:overlay_fire")),
                                                 ResourceLocation.parse("borderlesswindow:overlay_fire"))
                                 )
+                                // Lowers the flames instead of removing
+                                // them; greyed out with them, like smart
+                                // fire. See ScreenEffectState.
+                                .addOption(builder.createIntegerOption(
+                                                ResourceLocation.parse("borderlesswindow:overlay_fire_height"))
+                                        .setName(Component.translatable("borderlesswindow.options.overlay_fire_height.name"))
+                                        .setTooltip(Component.translatable("borderlesswindow.options.overlay_fire_height.tooltip"))
+                                        .setRange(ScreenEffectState.MIN_FIRE_HEIGHT, ScreenEffectState.MAX_FIRE_HEIGHT,
+                                                ScreenEffectState.FIRE_HEIGHT_STEP)
+                                        .setValueFormatter(value -> Component.translatable(
+                                                "borderlesswindow.options.distortion.percent", value))
+                                        .setStorageHandler(this.storage::flush)
+                                        .setBinding(this.storage::setFireHeight, this.storage::getFireHeight)
+                                        .setDefaultValue(ScreenEffectState.MAX_FIRE_HEIGHT)
+                                        .setEnabledProvider(
+                                                state -> state.readBooleanOption(
+                                                        ResourceLocation.parse("borderlesswindow:overlay_fire")),
+                                                ResourceLocation.parse("borderlesswindow:overlay_fire"))
+                                )
                                 // From Gui rather than ScreenEffectRenderer
                                 // (see GuiMixin), same section regardless:
                                 // the player does not care which vanilla
@@ -549,6 +625,53 @@ public class ScreenModeConfigEntryPoint implements ConfigEntryPoint {
                                         .setStorageHandler(this.storage::flush)
                                         .setBinding(this.storage::setSpyglassOverlay, this.storage::getSpyglassOverlay)
                                         .setDefaultValue(true)
+                                )
+                                // From GameRenderer, same section for the
+                                // same reason as the four above.
+                                .addOption(builder.createBooleanOption(
+                                                ResourceLocation.parse("borderlesswindow:overlay_totem"))
+                                        .setName(Component.translatable("borderlesswindow.options.overlay_totem.name"))
+                                        .setTooltip(Component.translatable("borderlesswindow.options.overlay_totem.tooltip"))
+                                        .setStorageHandler(this.storage::flush)
+                                        .setBinding(this.storage::setTotemAnimation, this.storage::getTotemAnimation)
+                                        .setDefaultValue(true)
+                                )
+                        )
+                        // Status effects: how your own effects look. See
+                        // StatusEffectState.
+                        .addOptionGroup(builder.createOptionGroup()
+                                .setName(Component.translatable("config.borderlesswindow.section.effects"))
+                                .addOption(builder.createEnumOption(
+                                                ResourceLocation.parse("borderlesswindow:night_vision"),
+                                                NightVisionMode.class)
+                                        .setName(Component.translatable("borderlesswindow.options.night_vision.name"))
+                                        .setTooltip(Component.translatable("borderlesswindow.options.night_vision.tooltip"))
+                                        .setElementNameProvider(mode -> Component.translatable(mode.getTranslationKey()))
+                                        .setStorageHandler(this.storage::flush)
+                                        .setBinding(this.storage::setNightVision, this.storage::getNightVision)
+                                        .setDefaultValue(NightVisionMode.FLICKER)
+                                )
+                                .addOption(builder.createBooleanOption(
+                                                ResourceLocation.parse("borderlesswindow:effect_particles_own"))
+                                        .setName(Component.translatable("borderlesswindow.options.effect_particles_own.name"))
+                                        .setTooltip(Component.translatable("borderlesswindow.options.effect_particles_own.tooltip"))
+                                        .setStorageHandler(this.storage::flush)
+                                        .setBinding(this.storage::setOwnEffectParticles, this.storage::getOwnEffectParticles)
+                                        .setDefaultValue(true)
+                                )
+                        )
+                        // Nametags: which ones are drawn. See NametagState.
+                        .addOptionGroup(builder.createOptionGroup()
+                                .setName(Component.translatable("config.borderlesswindow.section.nametags"))
+                                .addOption(builder.createEnumOption(
+                                                ResourceLocation.parse("borderlesswindow:nametags"),
+                                                NametagMode.class)
+                                        .setName(Component.translatable("borderlesswindow.options.nametags.name"))
+                                        .setTooltip(Component.translatable("borderlesswindow.options.nametags.tooltip"))
+                                        .setElementNameProvider(mode -> Component.translatable(mode.getTranslationKey()))
+                                        .setStorageHandler(this.storage::flush)
+                                        .setBinding(this.storage::setNametags, this.storage::getNametags)
+                                        .setDefaultValue(NametagMode.ALL)
                                 )
                         )
                 )
@@ -771,63 +894,9 @@ public class ScreenModeConfigEntryPoint implements ConfigEntryPoint {
                         )
                 )
                 // Page 6 - Distances: how far things are drawn. Its own
-                // page because it brings four options and none of them
-                // fits the others' themes. Every slider starts at
-                // "Default" (no cap) on the left, like the cloud height,
-                // and can only lower vanilla's own distance.
-                .addPage(builder.createOptionPage()
-                        .setName(Component.translatable("borderlesswindow.options.sodium.pages.distances"))
-                        // Entities: drawing only, see EntityRenderDispatcherMixin.
-                        // Left unnamed: the page name already says what
-                        // these are, and "Entities" is kept for a future
-                        // group covering every entity and block entity.
-                        .addOptionGroup(builder.createOptionGroup()
-                                .addOption(builder.createIntegerOption(
-                                                ResourceLocation.parse("borderlesswindow:distance_items"))
-                                        .setName(Component.translatable("borderlesswindow.options.distance_items.name"))
-                                        .setTooltip(Component.translatable("borderlesswindow.options.distance_items.tooltip"))
-                                        .setRange(DistanceState.DEFAULT, DistanceState.ITEM_MAX, DistanceState.ITEM_STEP)
-                                        .setValueFormatter(DistanceState::format)
-                                        .setStorageHandler(this.storage::flush)
-                                        .setBinding(this.storage::setDistanceItems, this.storage::getDistanceItems)
-                                        .setDefaultValue(DistanceState.DEFAULT)
-                                )
-                                .addOption(builder.createIntegerOption(
-                                                ResourceLocation.parse("borderlesswindow:distance_xp_orbs"))
-                                        .setName(Component.translatable("borderlesswindow.options.distance_xp_orbs.name"))
-                                        .setTooltip(Component.translatable("borderlesswindow.options.distance_xp_orbs.tooltip"))
-                                        .setRange(DistanceState.DEFAULT, DistanceState.ORB_MAX, DistanceState.ORB_STEP)
-                                        .setValueFormatter(DistanceState::format)
-                                        .setStorageHandler(this.storage::flush)
-                                        .setBinding(this.storage::setDistanceOrbs, this.storage::getDistanceOrbs)
-                                        .setDefaultValue(DistanceState.DEFAULT)
-                                )
-                                .addOption(builder.createIntegerOption(
-                                                ResourceLocation.parse("borderlesswindow:distance_armor_stands"))
-                                        .setName(Component.translatable("borderlesswindow.options.distance_armor_stands.name"))
-                                        .setTooltip(Component.translatable("borderlesswindow.options.distance_armor_stands.tooltip"))
-                                        .setRange(DistanceState.DEFAULT, DistanceState.ARMOR_STAND_MAX, DistanceState.ARMOR_STAND_STEP)
-                                        .setValueFormatter(DistanceState::format)
-                                        .setStorageHandler(this.storage::flush)
-                                        .setBinding(this.storage::setDistanceArmorStands, this.storage::getDistanceArmorStands)
-                                        .setDefaultValue(DistanceState.DEFAULT)
-                                )
-                        )
-                        // Particles: refused at spawn, see LevelRendererMixin.
-                        .addOptionGroup(builder.createOptionGroup()
-                                .setName(Component.translatable("config.borderlesswindow.section.particles"))
-                                .addOption(builder.createIntegerOption(
-                                                ResourceLocation.parse("borderlesswindow:distance_particles"))
-                                        .setName(Component.translatable("borderlesswindow.options.distance_particles.name"))
-                                        .setTooltip(Component.translatable("borderlesswindow.options.distance_particles.tooltip"))
-                                        .setRange(DistanceState.DEFAULT, DistanceState.PARTICLE_MAX, DistanceState.PARTICLE_STEP)
-                                        .setValueFormatter(DistanceState::format)
-                                        .setStorageHandler(this.storage::flush)
-                                        .setBinding(this.storage::setDistanceParticles, this.storage::getDistanceParticles)
-                                        .setDefaultValue(DistanceState.DEFAULT)
-                                )
-                        )
-                )
+                // page because none of its options fits the others'
+                // themes. Built from DistanceCategory, see distancesPage().
+                .addPage(this.distancesPage(builder))
                 .registerOptionReplacement(
                         ResourceLocation.parse("sodium:general.fullscreen"),
                         builder.createEnumOption(
@@ -858,5 +927,41 @@ public class ScreenModeConfigEntryPoint implements ConfigEntryPoint {
                                                 ScreenMode.class) == ScreenMode.FULLSCREEN,
                                         ResourceLocation.parse("borderlesswindow:screen_mode"))
                 );
+    }
+
+    /**
+     * Three groups, Entities, Block Entities and Particles, each a General
+     * slider followed by its categories (DistanceCategory order). Every
+     * slider starts on the left: "Default" (no cap, like the cloud height)
+     * on a General one, "General" (follow it) on a category. Drawing only,
+     * see EntityRenderDispatcherMixin, BlockEntityRenderDispatcherMixin
+     * and LevelRendererMixin (particles are refused at spawn).
+     */
+    private OptionPageBuilder distancesPage(ConfigBuilder builder) {
+        return builder.createOptionPage()
+                .setName(Component.translatable("borderlesswindow.options.sodium.pages.distances"))
+                .addOptionGroup(this.distanceGroup(builder, DistanceCategory.ENTITIES,
+                        "config.borderlesswindow.section.entities"))
+                .addOptionGroup(this.distanceGroup(builder, DistanceCategory.BLOCK_ENTITIES,
+                        "config.borderlesswindow.section.block_entities"))
+                .addOptionGroup(this.distanceGroup(builder, DistanceCategory.PARTICLES,
+                        "config.borderlesswindow.section.particles"));
+    }
+
+    private OptionGroupBuilder distanceGroup(ConfigBuilder builder, DistanceCategory general, String nameKey) {
+        OptionGroupBuilder group = builder.createOptionGroup()
+                .setName(Component.translatable(nameKey));
+        for (DistanceCategory category : general.withChildren()) {
+            group.addOption(builder.createIntegerOption(ResourceLocation.parse(category.optionId()))
+                    .setName(Component.translatable(category.nameKey()))
+                    .setTooltip(Component.translatable(category.tooltipKey()))
+                    .setRange(DistanceState.DEFAULT, category.max(), category.step())
+                    .setValueFormatter(blocks -> DistanceState.format(category, blocks))
+                    .setStorageHandler(this.storage::flush)
+                    .setBinding(blocks -> this.storage.setDistance(category, blocks),
+                            () -> this.storage.getDistance(category))
+                    .setDefaultValue(DistanceState.DEFAULT));
+        }
+        return group;
     }
 }

@@ -56,6 +56,7 @@ public abstract class MinecraftMixin {
      */
     @Inject(method = "runTick", at = @At("HEAD"))
     private void borderlesswindow$checkFullscreenMode(boolean renderLevel, CallbackInfo ci) {
+        BorderlessHandler.applyDeferredMode(this.getWindow());
         BorderlessHandler.checkFullscreenMode(this.getWindow());
         BorderlessHandler.checkStrandedFullscreen(this.getWindow());
     }

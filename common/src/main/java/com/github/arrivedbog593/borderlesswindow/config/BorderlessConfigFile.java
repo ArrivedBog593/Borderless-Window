@@ -6,6 +6,7 @@ import com.github.arrivedbog593.borderlesswindow.camera.DistortionState;
 import com.github.arrivedbog593.borderlesswindow.camera.FovState;
 import com.github.arrivedbog593.borderlesswindow.camera.ZoomMode;
 import com.github.arrivedbog593.borderlesswindow.camera.ZoomState;
+import com.github.arrivedbog593.borderlesswindow.distance.DistanceCategory;
 import com.github.arrivedbog593.borderlesswindow.distance.DistanceState;
 import com.github.arrivedbog593.borderlesswindow.enchantment.EnchantmentLevelState;
 import com.github.arrivedbog593.borderlesswindow.enchantment.EnchantmentLevelStyle;
@@ -19,14 +20,23 @@ import com.github.arrivedbog593.borderlesswindow.fps.UnfocusedVolumeState;
 import com.github.arrivedbog593.borderlesswindow.general.BorderlessHandler;
 import com.github.arrivedbog593.borderlesswindow.general.F11Mode;
 import com.github.arrivedbog593.borderlesswindow.general.HudState;
+import com.github.arrivedbog593.borderlesswindow.general.LanguageState;
 import com.github.arrivedbog593.borderlesswindow.general.ScreenMode;
 import com.github.arrivedbog593.borderlesswindow.general.ToastState;
 import com.github.arrivedbog593.borderlesswindow.visual.CloudState;
 import com.github.arrivedbog593.borderlesswindow.visual.FogState;
+import com.github.arrivedbog593.borderlesswindow.visual.NametagMode;
+import com.github.arrivedbog593.borderlesswindow.visual.NametagState;
+import com.github.arrivedbog593.borderlesswindow.visual.NightVisionMode;
 import com.github.arrivedbog593.borderlesswindow.visual.ScreenEffectState;
 import com.github.arrivedbog593.borderlesswindow.visual.SkyState;
+import com.github.arrivedbog593.borderlesswindow.visual.StatusEffectState;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParseException;
+import com.google.gson.JsonParser;
 import com.mojang.logging.LogUtils;
 import net.minecraft.client.Minecraft;
 import org.slf4j.Logger;
@@ -114,10 +124,8 @@ public final class BorderlessConfigFile {
         int fov_flying = FovState.DEFAULT_PERCENT;
         int fov_bow = FovState.DEFAULT_PERCENT;
         int fov_fluid = FovState.DEFAULT_PERCENT;
-        int distance_items = DistanceState.DEFAULT;
-        int distance_xp_orbs = DistanceState.DEFAULT;
-        int distance_armor_stands = DistanceState.DEFAULT;
-        int distance_particles = DistanceState.DEFAULT;
+        // The distance_* keys are not fields: one per DistanceCategory,
+        // read and written by readDistances() and saveCurrent().
         String zoom_mode = ZoomMode.HOLD.name();
         int zoom_level = ZoomState.DEFAULT_LEVEL;
         boolean zoom_scroll = true;
@@ -135,6 +143,12 @@ public final class BorderlessConfigFile {
         boolean toast_unverified_chat = true;
         boolean toast_narrator = true;
         boolean toast_pack_download = true;
+        boolean fast_language_reload = true;
+        int overlay_fire_height = ScreenEffectState.MAX_FIRE_HEIGHT;
+        boolean overlay_totem = true;
+        String night_vision = NightVisionMode.FLICKER.name();
+        boolean effect_particles_own = true;
+        String nametags = NametagMode.ALL.name();
     }
 
     public record LoadedConfig(ScreenMode screenMode, F11Mode f11Mode,
@@ -156,8 +170,7 @@ public final class BorderlessConfigFile {
                                int distortionPortal, int distortionNausea,
                                int fovSpeed, int fovFlying,
                                int fovBow, int fovFluid,
-                               int distanceItems, int distanceOrbs,
-                               int distanceArmorStands, int distanceParticles,
+                               int[] distances,
                                ZoomMode zoomMode, int zoomLevel,
                                boolean zoomScroll, boolean zoomSmooth,
                                boolean zoomHideHand, boolean zoomHideHud,
@@ -166,7 +179,11 @@ public final class BorderlessConfigFile {
                                boolean heldItemName,
                                boolean advancementToasts, boolean recipeToasts,
                                boolean tutorialToasts, boolean unverifiedChatToast,
-                               boolean narratorToast, boolean packDownloadToast) {
+                               boolean narratorToast, boolean packDownloadToast,
+                               boolean fastLanguageReload,
+                               int fireHeight, boolean totemAnimation,
+                               NightVisionMode nightVisionMode, boolean ownEffectParticles,
+                               NametagMode nametagMode) {
     }
 
     private BorderlessConfigFile() {
@@ -174,11 +191,15 @@ public final class BorderlessConfigFile {
 
     public static LoadedConfig load() {
         Data data = new Data();
+        JsonObject json = new JsonObject();
         if (Files.exists(PATH)) {
             try {
-                data = GSON.fromJson(Files.readString(PATH), Data.class);
-                if (data == null) {
-                    data = new Data();
+                JsonElement root = JsonParser.parseString(Files.readString(PATH));
+                if (root.isJsonObject()) {
+                    json = root.getAsJsonObject();
+                    data = GSON.fromJson(json, Data.class);
+                } else if (!root.isJsonNull()) {
+                    throw new JsonParseException("Expected a JSON object");
                 }
             } catch (Exception e) {
                 // Unreadable or not valid JSON: start from the defaults, but
@@ -187,6 +208,7 @@ public final class BorderlessConfigFile {
                 LOGGER.warn("Could not read {}, using the default settings", PATH, e);
                 backUpUnreadableFile();
                 data = new Data();
+                json = new JsonObject();
             }
         }
         return new LoadedConfig(
@@ -210,8 +232,7 @@ public final class BorderlessConfigFile {
                         EnchantmentLevelStyle.MIXED),
                 data.distortion_portal, data.distortion_nausea,
                 data.fov_speed, data.fov_flying, data.fov_bow, data.fov_fluid,
-                data.distance_items, data.distance_xp_orbs,
-                data.distance_armor_stands, data.distance_particles,
+                readDistances(json),
                 parseOrDefault(ZoomMode.class, data.zoom_mode, ZoomMode.HOLD),
                 data.zoom_level, data.zoom_scroll, data.zoom_smooth,
                 data.zoom_hide_hand, data.zoom_hide_hud,
@@ -219,7 +240,12 @@ public final class BorderlessConfigFile {
                 data.sky_sun_moon, data.sky_stars, data.sky_weather,
                 data.hud_held_item_name,
                 data.toast_advancements, data.toast_recipes, data.toast_tutorial,
-                data.toast_unverified_chat, data.toast_narrator, data.toast_pack_download);
+                data.toast_unverified_chat, data.toast_narrator, data.toast_pack_download,
+                data.fast_language_reload,
+                data.overlay_fire_height, data.overlay_totem,
+                parseOrDefault(NightVisionMode.class, data.night_vision, NightVisionMode.FLICKER),
+                data.effect_particles_own,
+                parseOrDefault(NametagMode.class, data.nametags, NametagMode.ALL));
     }
 
     /**
@@ -239,7 +265,7 @@ public final class BorderlessConfigFile {
             return;
         }
         Data data = new Data();
-        data.screen_mode = BorderlessHandler.getCurrentMode().name();
+        data.screen_mode = BorderlessHandler.getModeToSave().name();
         data.f11_mode = BorderlessHandler.getF11Target().name();
         data.fps_overlay_mode = FpsOverlayState.getMode().name();
         data.fps_overlay_position = FpsOverlayState.getPosition().name();
@@ -271,10 +297,6 @@ public final class BorderlessConfigFile {
         data.fov_flying = FovState.getFlyingPercent();
         data.fov_bow = FovState.getBowPercent();
         data.fov_fluid = FovState.getFluidPercent();
-        data.distance_items = DistanceState.getItems();
-        data.distance_xp_orbs = DistanceState.getOrbs();
-        data.distance_armor_stands = DistanceState.getArmorStands();
-        data.distance_particles = DistanceState.getParticles();
         data.zoom_mode = ZoomState.getMode().name();
         data.zoom_level = ZoomState.getInitialLevel();
         data.zoom_scroll = ZoomState.isScrollEnabled();
@@ -292,7 +314,40 @@ public final class BorderlessConfigFile {
         data.toast_unverified_chat = ToastState.isUnverifiedChatEnabled();
         data.toast_narrator = ToastState.isNarratorEnabled();
         data.toast_pack_download = ToastState.isPackDownloadEnabled();
-        write(GSON.toJson(data));
+        data.fast_language_reload = LanguageState.isFastReloadEnabled();
+        data.overlay_fire_height = ScreenEffectState.getFireHeight();
+        data.overlay_totem = ScreenEffectState.isTotemAnimationEnabled();
+        data.night_vision = StatusEffectState.getNightVisionMode().name();
+        data.effect_particles_own = StatusEffectState.isOwnParticlesEnabled();
+        data.nametags = NametagState.getMode().name();
+        JsonObject json = GSON.toJsonTree(data).getAsJsonObject();
+        for (DistanceCategory category : DistanceCategory.values()) {
+            json.addProperty(category.configKey(), DistanceState.get(category));
+        }
+        write(GSON.toJson(json));
+    }
+
+    /**
+     * One value per DistanceCategory, indexed by ordinal, for
+     * DistanceState.init. A missing key (an older config, or a category
+     * added since) is DEFAULT; one that is not a number is DEFAULT too,
+     * and the log says so.
+     */
+    private static int[] readDistances(JsonObject json) {
+        DistanceCategory[] categories = DistanceCategory.values();
+        int[] distances = new int[categories.length];
+        for (DistanceCategory category : categories) {
+            JsonElement value = json.get(category.configKey());
+            if (value == null) {
+                distances[category.ordinal()] = DistanceState.DEFAULT;
+            } else if (value.isJsonPrimitive() && value.getAsJsonPrimitive().isNumber()) {
+                distances[category.ordinal()] = value.getAsNumber().intValue();
+            } else {
+                LOGGER.warn("Ignoring {} in {}: not a number", category.configKey(), PATH);
+                distances[category.ordinal()] = DistanceState.DEFAULT;
+            }
+        }
+        return distances;
     }
 
     /**
