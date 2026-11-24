@@ -3,23 +3,22 @@
 # breaks a release.
 #
 # Dependabot reads this file from the default branch only, and without
-# target-branch it only updates the default branch. Every live branch has its
-# own workflows and wrapper, so each needs its own entries here (one per
-# ecosystem). Add them when a branch is created; this file does not need
-# copying to the other branches.
+# target-branch it only updates the default branch. Every branch has its own
+# workflows and wrapper, so each needs its own entries here (one per
+# ecosystem): add them when a branch is created, remove them when one is
+# dropped.
 #
 # The gradle ecosystem is limited to the wrapper. Left open it would also
-# bump the plugins and libraries written in the build scripts (Loom,
-# ModDevGradle, sponge-mixin), which must match each branch's Minecraft
-# version and loaders. The versions in gradle.properties it does not read
-# at all.
+# bump the plugins and libraries in the build scripts (Loom, ModDevGradle,
+# sponge-mixin), which must match each branch's Minecraft version and
+# loaders. The versions in gradle.properties it does not read at all.
 version: 2
 updates:
   - package-ecosystem: "github-actions"
     directory: "/"
     target-branch: "NeoFabric/1.21.1"
     schedule:
-      interval: "monthly"
+      interval: "weekly"
     commit-message:
       prefix: "chore"
     groups:
@@ -30,7 +29,7 @@ updates:
     directory: "/"
     target-branch: "NeoFabric/1.21.11"
     schedule:
-      interval: "monthly"
+      interval: "weekly"
     commit-message:
       prefix: "chore"
     groups:
@@ -41,7 +40,7 @@ updates:
     directory: "/"
     target-branch: "NeoFabric/26.1.2"
     schedule:
-      interval: "monthly"
+      interval: "weekly"
     commit-message:
       prefix: "chore"
     groups:
@@ -52,7 +51,7 @@ updates:
     directory: "/"
     target-branch: "NeoFabric/26.2"
     schedule:
-      interval: "monthly"
+      interval: "weekly"
     commit-message:
       prefix: "chore"
     groups:
@@ -63,7 +62,7 @@ updates:
     directory: "/"
     target-branch: "NeoFabric/26.3"
     schedule:
-      interval: "monthly"
+      interval: "weekly"
     commit-message:
       prefix: "chore"
     groups:
@@ -74,7 +73,7 @@ updates:
     directory: "/"
     target-branch: "NeoFabric/1.21.1"
     schedule:
-      interval: "monthly"
+      interval: "weekly"
     commit-message:
       prefix: "chore"
     allow:
@@ -84,7 +83,7 @@ updates:
     directory: "/"
     target-branch: "NeoFabric/1.21.11"
     schedule:
-      interval: "monthly"
+      interval: "weekly"
     commit-message:
       prefix: "chore"
     allow:
@@ -94,7 +93,7 @@ updates:
     directory: "/"
     target-branch: "NeoFabric/26.1.2"
     schedule:
-      interval: "monthly"
+      interval: "weekly"
     commit-message:
       prefix: "chore"
     allow:
@@ -104,7 +103,7 @@ updates:
     directory: "/"
     target-branch: "NeoFabric/26.2"
     schedule:
-      interval: "monthly"
+      interval: "weekly"
     commit-message:
       prefix: "chore"
     allow:
@@ -114,7 +113,7 @@ updates:
     directory: "/"
     target-branch: "NeoFabric/26.3"
     schedule:
-      interval: "monthly"
+      interval: "weekly"
     commit-message:
       prefix: "chore"
     allow:
