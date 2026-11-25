@@ -6,6 +6,7 @@ versiones anteriores están solo en inglés.
 
 | Versión | Notas                                               |
 |---------|-----------------------------------------------------|
+| 1.12.0  | [changelog-1.12.0.md](changelogs/changelog-1.12.0.md) |
 | 1.11.5  | [changelog-1.11.5.md](changelogs/changelog-1.11.5.md) |
 | 1.11.4  | [changelog-1.11.4.md](changelogs/changelog-1.11.4.md) |
 | 1.11.3  | [changelog-1.11.3.md](changelogs/changelog-1.11.3.md) |

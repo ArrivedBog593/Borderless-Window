@@ -40,5 +40,8 @@
   "suggests": {
     "sodium": ">=0.8.0",
     "modmenu": "*"
+  },
+  "breaks": {
+    "chloride": "*"
   }
 }

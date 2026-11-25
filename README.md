@@ -25,19 +25,23 @@ A lightweight client-side mod for **NeoForge and Fabric 1.21.11** that adds **bo
   - **Pause rendering when minimized**: stop drawing frames entirely while minimized — Minecraft only caps them at 10 FPS and keeps drawing them. Nothing else changes — sounds and multiplayer carry on, and single player pauses just as it does without the mod; only the picture stops.
   - **Unfocused volume**: lower or mute the game while it is in the background, as a share of your Master Volume.
   - All four stack with Minecraft's own Inactivity FPS Limit and Dynamic FPS: the lowest frame rate cap wins. The one exception is Minecraft's "AFK" mode, which the idle FPS limit replaces while it is on.
-- **Draw distances**: stop drawing dropped items, experience orbs, and armor stands past a distance you choose, and stop particles from spawning past one. Purely visual — items can still be picked up and orbs still reach you. Glowing entities and named armor stands (holograms, floating text) are always drawn.
+- **Draw distances**: how far entities, block entities, and particles are drawn, each kind with its own slider. A **General** slider covers each group, and every kind inside it can follow it or take its own distance: hostile mobs, animals, water mobs, villagers, dropped items, experience orbs, armor stands, frames, boats and minecarts, projectiles; chests, signs, banners, heads, beds, books, bells, campfire food, decorated pots, spawners; and eight groups of particles, from smoke and redstone to explosions and portals. Purely visual — mobs keep moving, items can still be picked up and orbs still reach you. Players, glowing entities, and named armor stands (holograms, floating text) are always drawn.
 - **Fog toggles**: Terrain (the distance haze, including the Nether's thick fog), Water, Lava, and Powder Snow, each independent. Fog from Blindness and Darkness is never affected, so those effects still work as intended. **Fog Start** chooses where the terrain fog begins, as OptiFine's does, for a softer haze or one pushed to the very edge.
 - **Cloud height**: raise or lower the cloud layer between y=64 and y=320. On Default every dimension keeps its own height, and dimensions with no clouds at all — the Nether, the End, cloudless dimensions from other mods — stay that way at any setting.
 - **Sky and weather**: hide the sun and moon, the stars, or the falling rain and snow — options Minecraft doesn't have, from OptiFine's Details menu. Only the drawing goes: day still turns into night, and it still rains for mobs, crops, and fishing.
 - **Held item name**: turn off the item name shown above the hotbar when you switch slots.
-- **Screen overlays**: remove the water texture drawn over your view while swimming, and the flames drawn while burning. Fire also has a smart mode that hides the flames only while Fire Resistance is active. The suffocation overlay shown inside solid blocks is never touched.
+- **Notifications**: hide the advancement, recipe, tutorial, and narrator toasts, the unverified chat warning, or the server pack download progress, each on its own. System errors and other mods' notifications always show.
+- **Fast language switch**: changing the language applies almost at once, without reloading every resource behind the loading screen. The creative inventory search follows, and so does the search of JEI and REI (and of EMI, once it has a build for 1.21.11).
+- **Screen overlays**: remove the water texture drawn over your view while swimming, and the flames drawn while burning, or just lower the flames so they cover less of the screen. Fire also has a smart mode that hides the flames only while Fire Resistance is active. The Totem of Undying animation can go too. The suffocation overlay shown inside solid blocks is never touched.
+- **Status effects**: Night Vision can fade out smoothly or stay steady in its last seconds instead of flickering, and the particles of your own effects can stop floating through your view.
+- **Nametags**: show all of them, only players', only mobs', or none.
 - **Camera overlays**: remove the pumpkin blur, the powder snow frost border, the Nether portal warp, and the spyglass scope. The spyglass zoom itself is unchanged — only the frame around it goes. The vignette is left alone on purpose: it doubles as the world border warning.
 - **Split field of view**: Minecraft has one FOV Effects slider for every source at once. Here Speed, Flying, Bow, and Fluid are four separate sliders, so you can calm the constant FOV shift from Speed potions without losing the bow zoom.
 - **Split distortion**: same idea for the Distortion Effects slider — the Nether portal and the Nausea effect get one slider each, correctly told apart even when both happen at once.
 - **Split view bobbing**: Minecraft turns bobbing on or off for everything at once. Here the camera and the held item are separate, and the camera adds a **Vertical Only** mode that keeps the up-and-down bounce while removing the sway and the tilt — the horizon stays level, which is the part that causes motion sickness for most people.
 - **Zoom**: press **C** (rebindable in Controls) to zoom in, 4× by default. Hold or toggle, scroll the mouse wheel to go from 1× to 50×, smooth or instant, and optionally hide the hand and the HUD while zooming. The mouse turns slower in proportion, so aiming feels the same. It only narrows the field of view — nothing is drawn any farther — and steps aside while you use a spyglass.
 - **Enchantment numerals**: Minecraft only ships Roman numerals up to X and shows raw text like `enchantment.level.11` above that — levels are legal all the way to 255. This fixes it and lets you choose the style: Roman up to X and plain numbers past it, always Roman, or always numbers. Resource packs that do translate high levels keep working.
-- **Minecraft's hidden sliders**: Sodium's video settings leave out several of Minecraft's own sliders. The mod brings back Distortion Effects, FOV Effects, Glint Speed, Glint Strength, and Menu Background Blur, each next to the options it relates to.
+- **Minecraft's hidden sliders**: Sodium's video settings leave out several of Minecraft's own accessibility options. The mod brings back Distortion Effects, FOV Effects, Glint Speed, and Glint Strength, each next to the options it relates to, and Menu Background Blur, Damage Tilt, Darkness Pulsing, and Hide Lightning Flashes together on the General page.
 
 ### Configuration and compatibility
 
@@ -55,11 +59,11 @@ Exclusive fullscreen changes your monitor's actual display mode, which causes sl
 
 ## Configuration
 
-- **In game (no Sodium):** Options → Video Settings → the "Screen Mode" selector (in place of "Fullscreen") and the "Borderless Window..." button at the end. The same config screen also opens from NeoForge's Mods menu (Config button) and, on Fabric, from Mod Menu if installed. Every option lives in one scrollable list grouped by feature, in the same order as the Sodium pages. Changes apply instantly.
+- **In game (no Sodium):** Options → Video Settings → the "Screen Mode" selector (in place of "Fullscreen") and the "Borderless Window..." button at the end. The same config screen also opens from NeoForge's Mods menu (Config button) and, on Fabric, from Mod Menu if installed. Every option lives in one scrollable list in two columns, grouped by feature, in the same order as the Sodium pages. Changes apply instantly.
 - **In game (with Sodium):** Video Settings → the "Screen Mode" option (replaces Sodium's fullscreen checkbox) and the "Borderless Window" section with its six pages: General, Enchantments, FPS & Background, Visual Effects, Camera, and Distances. Minecraft's own sliders that Sodium leaves out sit on the pages they relate to; they are saved with Minecraft's options, exactly as if changed from its Accessibility menu.
 - **Config file:** `config/borderlesswindow.json`. If the mod ever gets stuck in a weird state, delete this file and restart — defaults are regenerated safely.
 
-Every setting defaults to vanilla behavior, so installing or updating the mod never changes how the game looks until you ask it to. The one thing it adds on its own is the zoom key, which does nothing until you press it.
+Every visual setting defaults to vanilla behavior, so installing or updating the mod never changes how the game looks until you ask it to. Two things are on from the start: the zoom key, which does nothing until you press it, and the fast language switch, which only changes how quickly a new language applies (turn it off on the General page for Minecraft's full reload).
 
 **Note on refined settings:** several options sharpen a Minecraft setting rather than replacing it, and do nothing while that setting is off. Bobbing sits under "View Bobbing", the four FOV sliders under "FOV Effects", and the two distortion sliders under "Distortion Effects". The last two live in Minecraft's Accessibility Settings.
 
@@ -69,6 +73,7 @@ Every setting defaults to vanilla behavior, so installing or updating the mod ne
 - **NeoForge** 21.11.42+, or **Fabric Loader** 0.17.3+ (Fabric API not required)
 - (Optional) **Sodium 0.8.x** for the video settings integration
 - (Optional, Fabric) **Mod Menu**, to also open the config from its mod list
+- Not compatible with **Chloride**: both replace Sodium's Fullscreen option and take over F11, and the loader refuses to start with both installed
 
 Download the jar for your loader: `borderlesswindow-neoforge-…` or `borderlesswindow-fabric-…`.
 
