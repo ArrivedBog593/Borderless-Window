@@ -7,6 +7,7 @@ import com.github.arrivedbog593.borderlesswindow.camera.FovState;
 import com.github.arrivedbog593.borderlesswindow.camera.ZoomMode;
 import com.github.arrivedbog593.borderlesswindow.camera.ZoomState;
 import com.github.arrivedbog593.borderlesswindow.config.BorderlessConfigFile;
+import com.github.arrivedbog593.borderlesswindow.distance.DistanceCategory;
 import com.github.arrivedbog593.borderlesswindow.distance.DistanceState;
 import com.github.arrivedbog593.borderlesswindow.enchantment.EnchantmentLevelState;
 import com.github.arrivedbog593.borderlesswindow.enchantment.EnchantmentLevelStyle;
@@ -20,11 +21,17 @@ import com.github.arrivedbog593.borderlesswindow.fps.UnfocusedVolumeState;
 import com.github.arrivedbog593.borderlesswindow.general.BorderlessHandler;
 import com.github.arrivedbog593.borderlesswindow.general.F11Mode;
 import com.github.arrivedbog593.borderlesswindow.general.HudState;
+import com.github.arrivedbog593.borderlesswindow.general.LanguageState;
 import com.github.arrivedbog593.borderlesswindow.general.ScreenMode;
+import com.github.arrivedbog593.borderlesswindow.general.ToastState;
 import com.github.arrivedbog593.borderlesswindow.visual.CloudState;
 import com.github.arrivedbog593.borderlesswindow.visual.FogState;
+import com.github.arrivedbog593.borderlesswindow.visual.NametagMode;
+import com.github.arrivedbog593.borderlesswindow.visual.NametagState;
+import com.github.arrivedbog593.borderlesswindow.visual.NightVisionMode;
 import com.github.arrivedbog593.borderlesswindow.visual.ScreenEffectState;
 import com.github.arrivedbog593.borderlesswindow.visual.SkyState;
+import com.github.arrivedbog593.borderlesswindow.visual.StatusEffectState;
 import com.mojang.blaze3d.platform.Window;
 import net.minecraft.client.Options;
 import net.minecraft.client.Minecraft;
@@ -125,6 +132,21 @@ public final class ScreenModeStorage {
     private boolean pendingSpyglassOverlay = ScreenEffectState.isSpyglassOverlayEnabled();
     private boolean spyglassOverlayDirty = false;
 
+    private int pendingFireHeight = ScreenEffectState.getFireHeight();
+    private boolean fireHeightDirty = false;
+
+    private boolean pendingTotemAnimation = ScreenEffectState.isTotemAnimationEnabled();
+    private boolean totemAnimationDirty = false;
+
+    private NightVisionMode pendingNightVision = StatusEffectState.getNightVisionMode();
+    private boolean nightVisionDirty = false;
+
+    private boolean pendingOwnEffectParticles = StatusEffectState.isOwnParticlesEnabled();
+    private boolean ownEffectParticlesDirty = false;
+
+    private NametagMode pendingNametags = NametagState.getMode();
+    private boolean nametagsDirty = false;
+
     private CameraBobMode pendingCameraBob = BobbingState.getCameraBobMode();
     private boolean cameraBobDirty = false;
 
@@ -149,17 +171,9 @@ public final class ScreenModeStorage {
     private int pendingFovFluid = FovState.getFluidPercent();
     private boolean fovFluidDirty = false;
 
-    private int pendingDistanceItems = DistanceState.getItems();
-    private boolean distanceItemsDirty = false;
-
-    private int pendingDistanceOrbs = DistanceState.getOrbs();
-    private boolean distanceOrbsDirty = false;
-
-    private int pendingDistanceArmorStands = DistanceState.getArmorStands();
-    private boolean distanceArmorStandsDirty = false;
-
-    private int pendingDistanceParticles = DistanceState.getParticles();
-    private boolean distanceParticlesDirty = false;
+    /** One slot per DistanceCategory, indexed by ordinal. */
+    private final int[] pendingDistances = new int[DistanceCategory.values().length];
+    private final boolean[] distancesDirty = new boolean[DistanceCategory.values().length];
 
     private ZoomMode pendingZoomMode = ZoomState.getMode();
     private boolean zoomModeDirty = false;
@@ -194,6 +208,27 @@ public final class ScreenModeStorage {
     private boolean pendingHeldItemName = HudState.isHeldItemNameEnabled();
     private boolean heldItemNameDirty = false;
 
+    private boolean pendingFastLanguageReload = LanguageState.isFastReloadEnabled();
+    private boolean fastLanguageReloadDirty = false;
+
+    private boolean pendingAdvancementToasts = ToastState.isAdvancementsEnabled();
+    private boolean advancementToastsDirty = false;
+
+    private boolean pendingRecipeToasts = ToastState.isRecipesEnabled();
+    private boolean recipeToastsDirty = false;
+
+    private boolean pendingTutorialToasts = ToastState.isTutorialEnabled();
+    private boolean tutorialToastsDirty = false;
+
+    private boolean pendingUnverifiedChatToast = ToastState.isUnverifiedChatEnabled();
+    private boolean unverifiedChatToastDirty = false;
+
+    private boolean pendingNarratorToast = ToastState.isNarratorEnabled();
+    private boolean narratorToastDirty = false;
+
+    private boolean pendingPackDownloadToast = ToastState.isPackDownloadEnabled();
+    private boolean packDownloadToastDirty = false;
+
     // The two vanilla sliders these pages sit under. Mirrored here so a
     // Sodium user can reach them without leaving for the accessibility
     // menu -- Sodium's own video settings drop both. Their value lives
@@ -213,6 +248,15 @@ public final class ScreenModeStorage {
 
     private int pendingVanillaMenuBlur = 0;
     private boolean vanillaMenuBlurDirty = false;
+
+    private int pendingVanillaDamageTilt = 0;
+    private boolean vanillaDamageTiltDirty = false;
+
+    private int pendingVanillaDarknessPulsing = 0;
+    private boolean vanillaDarknessPulsingDirty = false;
+
+    private boolean pendingVanillaHideLightning = false;
+    private boolean vanillaHideLightningDirty = false;
 
     private EnchantmentLevelStyle pendingEnchantmentLevelStyle = EnchantmentLevelState.getStyle();
     private boolean enchantmentLevelStyleDirty = false;
@@ -600,40 +644,76 @@ public final class ScreenModeStorage {
         this.heldItemNameDirty = true;
     }
 
-    public int getDistanceItems() {
-        return DistanceState.getItems();
+    public boolean getFastLanguageReload() {
+        return LanguageState.isFastReloadEnabled();
     }
 
-    public void setDistanceItems(int blocks) {
-        this.pendingDistanceItems = blocks;
-        this.distanceItemsDirty = true;
+    public void setFastLanguageReload(boolean enabled) {
+        this.pendingFastLanguageReload = enabled;
+        this.fastLanguageReloadDirty = true;
     }
 
-    public int getDistanceOrbs() {
-        return DistanceState.getOrbs();
+    public boolean getAdvancementToasts() {
+        return ToastState.isAdvancementsEnabled();
     }
 
-    public void setDistanceOrbs(int blocks) {
-        this.pendingDistanceOrbs = blocks;
-        this.distanceOrbsDirty = true;
+    public void setAdvancementToasts(boolean enabled) {
+        this.pendingAdvancementToasts = enabled;
+        this.advancementToastsDirty = true;
     }
 
-    public int getDistanceArmorStands() {
-        return DistanceState.getArmorStands();
+    public boolean getRecipeToasts() {
+        return ToastState.isRecipesEnabled();
     }
 
-    public void setDistanceArmorStands(int blocks) {
-        this.pendingDistanceArmorStands = blocks;
-        this.distanceArmorStandsDirty = true;
+    public void setRecipeToasts(boolean enabled) {
+        this.pendingRecipeToasts = enabled;
+        this.recipeToastsDirty = true;
     }
 
-    public int getDistanceParticles() {
-        return DistanceState.getParticles();
+    public boolean getTutorialToasts() {
+        return ToastState.isTutorialEnabled();
     }
 
-    public void setDistanceParticles(int blocks) {
-        this.pendingDistanceParticles = blocks;
-        this.distanceParticlesDirty = true;
+    public void setTutorialToasts(boolean enabled) {
+        this.pendingTutorialToasts = enabled;
+        this.tutorialToastsDirty = true;
+    }
+
+    public boolean getUnverifiedChatToast() {
+        return ToastState.isUnverifiedChatEnabled();
+    }
+
+    public void setUnverifiedChatToast(boolean enabled) {
+        this.pendingUnverifiedChatToast = enabled;
+        this.unverifiedChatToastDirty = true;
+    }
+
+    public boolean getNarratorToast() {
+        return ToastState.isNarratorEnabled();
+    }
+
+    public void setNarratorToast(boolean enabled) {
+        this.pendingNarratorToast = enabled;
+        this.narratorToastDirty = true;
+    }
+
+    public boolean getPackDownloadToast() {
+        return ToastState.isPackDownloadEnabled();
+    }
+
+    public void setPackDownloadToast(boolean enabled) {
+        this.pendingPackDownloadToast = enabled;
+        this.packDownloadToastDirty = true;
+    }
+
+    public int getDistance(DistanceCategory category) {
+        return DistanceState.get(category);
+    }
+
+    public void setDistance(DistanceCategory category, int blocks) {
+        this.pendingDistances[category.ordinal()] = blocks;
+        this.distancesDirty[category.ordinal()] = true;
     }
 
     /**
@@ -691,6 +771,79 @@ public final class ScreenModeStorage {
     public void setVanillaMenuBlur(int level) {
         this.pendingVanillaMenuBlur = level;
         this.vanillaMenuBlurDirty = true;
+    }
+
+    public int getVanillaDamageTilt() {
+        return percentOf(Minecraft.getInstance().options.damageTiltStrength().get());
+    }
+
+    public void setVanillaDamageTilt(int percent) {
+        this.pendingVanillaDamageTilt = percent;
+        this.vanillaDamageTiltDirty = true;
+    }
+
+    /** Same xmap(square, sqrt) note as fovEffectScale above. */
+    public int getVanillaDarknessPulsing() {
+        return percentOf(Minecraft.getInstance().options.darknessEffectScale().get());
+    }
+
+    public void setVanillaDarknessPulsing(int percent) {
+        this.pendingVanillaDarknessPulsing = percent;
+        this.vanillaDarknessPulsingDirty = true;
+    }
+
+    public boolean getVanillaHideLightning() {
+        return Minecraft.getInstance().options.hideLightningFlash().get();
+    }
+
+    public void setVanillaHideLightning(boolean hide) {
+        this.pendingVanillaHideLightning = hide;
+        this.vanillaHideLightningDirty = true;
+    }
+
+    public int getFireHeight() {
+        return ScreenEffectState.getFireHeight();
+    }
+
+    public void setFireHeight(int percent) {
+        this.pendingFireHeight = percent;
+        this.fireHeightDirty = true;
+    }
+
+    public boolean getTotemAnimation() {
+        return ScreenEffectState.isTotemAnimationEnabled();
+    }
+
+    public void setTotemAnimation(boolean enabled) {
+        this.pendingTotemAnimation = enabled;
+        this.totemAnimationDirty = true;
+    }
+
+    public NightVisionMode getNightVision() {
+        return StatusEffectState.getNightVisionMode();
+    }
+
+    public void setNightVision(NightVisionMode mode) {
+        this.pendingNightVision = mode;
+        this.nightVisionDirty = true;
+    }
+
+    public boolean getOwnEffectParticles() {
+        return StatusEffectState.isOwnParticlesEnabled();
+    }
+
+    public void setOwnEffectParticles(boolean enabled) {
+        this.pendingOwnEffectParticles = enabled;
+        this.ownEffectParticlesDirty = true;
+    }
+
+    public NametagMode getNametags() {
+        return NametagState.getMode();
+    }
+
+    public void setNametags(NametagMode mode) {
+        this.pendingNametags = mode;
+        this.nametagsDirty = true;
     }
 
     private static int percentOf(double value) {
@@ -835,6 +988,31 @@ public final class ScreenModeStorage {
             this.spyglassOverlayDirty = false;
         }
 
+        if (this.fireHeightDirty) {
+            ScreenEffectState.setFireHeight(this.pendingFireHeight);
+            this.fireHeightDirty = false;
+        }
+
+        if (this.totemAnimationDirty) {
+            ScreenEffectState.setTotemAnimationEnabled(this.pendingTotemAnimation);
+            this.totemAnimationDirty = false;
+        }
+
+        if (this.nightVisionDirty) {
+            StatusEffectState.setNightVisionMode(this.pendingNightVision);
+            this.nightVisionDirty = false;
+        }
+
+        if (this.ownEffectParticlesDirty) {
+            StatusEffectState.setOwnParticlesEnabled(this.pendingOwnEffectParticles);
+            this.ownEffectParticlesDirty = false;
+        }
+
+        if (this.nametagsDirty) {
+            NametagState.setMode(this.pendingNametags);
+            this.nametagsDirty = false;
+        }
+
         if (this.cameraBobDirty) {
             BobbingState.setCameraBobMode(this.pendingCameraBob);
             this.cameraBobDirty = false;
@@ -875,24 +1053,12 @@ public final class ScreenModeStorage {
             this.fovFluidDirty = false;
         }
 
-        if (this.distanceItemsDirty) {
-            DistanceState.setItems(this.pendingDistanceItems);
-            this.distanceItemsDirty = false;
-        }
-
-        if (this.distanceOrbsDirty) {
-            DistanceState.setOrbs(this.pendingDistanceOrbs);
-            this.distanceOrbsDirty = false;
-        }
-
-        if (this.distanceArmorStandsDirty) {
-            DistanceState.setArmorStands(this.pendingDistanceArmorStands);
-            this.distanceArmorStandsDirty = false;
-        }
-
-        if (this.distanceParticlesDirty) {
-            DistanceState.setParticles(this.pendingDistanceParticles);
-            this.distanceParticlesDirty = false;
+        for (DistanceCategory category : DistanceCategory.values()) {
+            int index = category.ordinal();
+            if (this.distancesDirty[index]) {
+                DistanceState.set(category, this.pendingDistances[index]);
+                this.distancesDirty[index] = false;
+            }
         }
 
         if (this.zoomModeDirty) {
@@ -950,12 +1116,48 @@ public final class ScreenModeStorage {
             this.heldItemNameDirty = false;
         }
 
+        if (this.fastLanguageReloadDirty) {
+            LanguageState.setFastReloadEnabled(this.pendingFastLanguageReload);
+            this.fastLanguageReloadDirty = false;
+        }
+
+        if (this.advancementToastsDirty) {
+            ToastState.setAdvancementsEnabled(this.pendingAdvancementToasts);
+            this.advancementToastsDirty = false;
+        }
+
+        if (this.recipeToastsDirty) {
+            ToastState.setRecipesEnabled(this.pendingRecipeToasts);
+            this.recipeToastsDirty = false;
+        }
+
+        if (this.tutorialToastsDirty) {
+            ToastState.setTutorialEnabled(this.pendingTutorialToasts);
+            this.tutorialToastsDirty = false;
+        }
+
+        if (this.unverifiedChatToastDirty) {
+            ToastState.setUnverifiedChatEnabled(this.pendingUnverifiedChatToast);
+            this.unverifiedChatToastDirty = false;
+        }
+
+        if (this.narratorToastDirty) {
+            ToastState.setNarratorEnabled(this.pendingNarratorToast);
+            this.narratorToastDirty = false;
+        }
+
+        if (this.packDownloadToastDirty) {
+            ToastState.setPackDownloadEnabled(this.pendingPackDownloadToast);
+            this.packDownloadToastDirty = false;
+        }
+
         // Vanilla options: written straight to options.txt. save() is
         // called once per flush rather than per option, since Sodium
         // applies a whole screenful at a time.
         if (this.vanillaDistortionDirty || this.vanillaFovDirty
                 || this.vanillaGlintSpeedDirty || this.vanillaGlintStrengthDirty
-                || this.vanillaMenuBlurDirty) {
+                || this.vanillaMenuBlurDirty || this.vanillaDamageTiltDirty
+                || this.vanillaDarknessPulsingDirty || this.vanillaHideLightningDirty) {
             Options options = Minecraft.getInstance().options;
             if (this.vanillaDistortionDirty) {
                 options.screenEffectScale().set(this.pendingVanillaDistortion / 100.0D);
@@ -976,6 +1178,18 @@ public final class ScreenModeStorage {
             if (this.vanillaMenuBlurDirty) {
                 options.menuBackgroundBlurriness().set(this.pendingVanillaMenuBlur);
                 this.vanillaMenuBlurDirty = false;
+            }
+            if (this.vanillaDamageTiltDirty) {
+                options.damageTiltStrength().set(this.pendingVanillaDamageTilt / 100.0D);
+                this.vanillaDamageTiltDirty = false;
+            }
+            if (this.vanillaDarknessPulsingDirty) {
+                options.darknessEffectScale().set(this.pendingVanillaDarknessPulsing / 100.0D);
+                this.vanillaDarknessPulsingDirty = false;
+            }
+            if (this.vanillaHideLightningDirty) {
+                options.hideLightningFlash().set(this.pendingVanillaHideLightning);
+                this.vanillaHideLightningDirty = false;
             }
             options.save();
         }

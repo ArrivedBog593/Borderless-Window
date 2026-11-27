@@ -184,15 +184,19 @@ jobs:
           # dropped without an error. Mod metadata cannot tell the two apart, so this relation, which lets the
           # CurseForge app warn before they are installed together, is the only guard. Slug plus project ID, which
           # the Upload API takes for an exact match. The ID is a JSON number: as a string the API rejects the whole upload
-          # (error 1002, "Expected Integer but got String"). Keep the project's Default Relations to what fits every
-          # loader (Sodium): the API docs do not say whether defaults get merged into files uploaded with their own
-          # relations.
+          # (error 1002, "Expected Integer but got String"). Chloride (SrRapero720, Fabric, Forge and NeoForge) is
+          # incompatible on both loaders: it also replaces Sodium's Fullscreen option and takes over F11, and with both
+          # installed Sodium crashes at the title screen. The jar declares it too (neoforge.mods.toml, fabric.mod.json
+          # "breaks"), so the loader refuses to start; this relation warns before the install. Keep the project's
+          # Default Relations to what fits every loader (Sodium, Chloride): the API docs do not say whether defaults
+          # get merged into files uploaded with their own relations.
           SODIUM='{"slug": "sodium", "projectID": 394468, "type": "optionalDependency"}'
           MODMENU='{"slug": "modmenu", "projectID": 308702, "type": "optionalDependency"}'
           BORDERLESS='{"slug": "borderless", "projectID": 378979, "type": "incompatible"}'
+          CHLORIDE='{"slug": "chloride", "projectID": 931925, "type": "incompatible"}'
           case "$LOADER" in
-            fabric)   LOADER_NAME=Fabric;   RELATIONS="[$SODIUM, $MODMENU]" ;;
-            neoforge) LOADER_NAME=NeoForge; RELATIONS="[$SODIUM, $BORDERLESS]" ;;
+            fabric)   LOADER_NAME=Fabric;   RELATIONS="[$SODIUM, $MODMENU, $CHLORIDE]" ;;
+            neoforge) LOADER_NAME=NeoForge; RELATIONS="[$SODIUM, $BORDERLESS, $CHLORIDE]" ;;
             *) echo "Unknown loader $LOADER"; exit 1 ;;
           esac
 
