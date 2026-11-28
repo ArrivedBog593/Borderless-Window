@@ -10,7 +10,12 @@ import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.MobCategory;
 import net.minecraft.world.entity.decoration.ArmorStand;
 import net.minecraft.world.entity.decoration.HangingEntity;
+import net.minecraft.world.entity.decoration.LeashFenceKnotEntity;
+import net.minecraft.world.entity.decoration.Mannequin;
+import net.minecraft.world.entity.item.FallingBlockEntity;
 import net.minecraft.world.entity.item.ItemEntity;
+import net.minecraft.world.entity.item.PrimedTnt;
+import net.minecraft.world.entity.npc.villager.AbstractVillager;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.projectile.Projectile;
 import net.minecraft.world.entity.vehicle.VehicleEntity;
@@ -210,8 +215,8 @@ public final class DistanceState {
      * Mobs go by the category vanilla (and every mod) gives each mob type
      * for spawning, so modded mobs land in the right slider on their own.
      * NeoForge lets mods add categories, hence the default branch.
-     * Anything else without a slider of its own (falling blocks, TNT,
-     * leash knots, block and item displays...) follows the General one.
+     * Anything else without a slider of its own (block and item displays,
+     * End crystals, markers...) follows the General one.
      */
     private static DistanceCategory categoryOf(Entity entity) {
         if (entity instanceof ItemEntity) {
@@ -220,17 +225,28 @@ public final class DistanceState {
         if (entity instanceof ExperienceOrb) {
             return DistanceCategory.XP_ORBS;
         }
-        if (entity instanceof ArmorStand) {
+        // A Mannequin is an Avatar (player-shaped, player skin), not an
+        // ArmorStand, but it is decoration all the same.
+        if (entity instanceof ArmorStand || entity instanceof Mannequin) {
             return DistanceCategory.ARMOR_STANDS;
         }
-        if (entity instanceof HangingEntity) {
+        // The leash knot is a BlockAttachedEntity, not a HangingEntity.
+        if (entity instanceof HangingEntity || entity instanceof LeashFenceKnotEntity) {
             return DistanceCategory.FRAMES;
         }
         if (entity instanceof VehicleEntity) {
             return DistanceCategory.VEHICLES;
         }
+        if (entity instanceof FallingBlockEntity || entity instanceof PrimedTnt) {
+            return DistanceCategory.FALLING_BLOCKS;
+        }
         if (entity instanceof Projectile) {
             return DistanceCategory.PROJECTILES;
+        }
+        // Before the MobCategory check: vanilla gives the wandering trader
+        // CREATURE, which would put it with the animals.
+        if (entity instanceof AbstractVillager) {
+            return DistanceCategory.VILLAGERS_GOLEMS;
         }
         if (entity instanceof Mob) {
             // Not a switch: NeoForge makes MobCategory extensible

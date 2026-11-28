@@ -35,6 +35,8 @@ public enum DistanceCategory {
     ARMOR_STANDS("distance_armor_stands", 160, 1, ENTITIES),
     FRAMES("distance_frames", 160, 1, ENTITIES),
     VEHICLES("distance_vehicles", 160, 8, ENTITIES),
+    /** Primed TNT is no harmless sight up close, so steps of 8 like vehicles. */
+    FALLING_BLOCKS("distance_falling_blocks", 160, 8, ENTITIES),
     /** Projectiles are tracked 4 chunks out: nothing to cap past 64. */
     PROJECTILES("distance_projectiles", 64, 8, ENTITIES),
 
