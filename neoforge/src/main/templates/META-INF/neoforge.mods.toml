@@ -6,8 +6,15 @@ modId="${mod_id}"
 version="${mod_version}"
 displayName="${mod_name}"
 displayURL="https://github.com/ArrivedBog593/Borderless-Window"
+# NeoForge 26.1.2.130 and newer have the new mod list: an icon beside the
+# name in the list and a banner above the details. 26.1.2.129 and older
+# only read logoFile, the banner. Each reads its own keys, so both sets
+# stay. The square icon serves for all of them.
+iconFile="assets/${mod_id}/icon.png"
+bannerFile="assets/${mod_id}/icon.png"
 logoFile="assets/${mod_id}/icon.png"
-# Pixel-art icon: keep it crisp when NeoForge scales it.
+# Keep the icon crisp when NeoForge scales it (the banner is never blurred).
+iconBlur=false
 logoBlur=false
 authors="${mod_authors}"
 description='''${mod_description}'''

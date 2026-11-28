@@ -29,7 +29,7 @@ import java.util.Optional;
  * through Fabric API's resource loader v1 (its sibling jei:lifecycle,
  * for server data, restarts JEI and is left alone); Fabric API 0.155
  * keeps such listeners out of the manager's list and in its own map, see
- * fabricClientListener. That one listener's onResourceManagerReload runs
+ * fabricJeiListener. That one listener's onResourceManagerReload runs
  * by itself, on this thread, as a full reload would run it on the game
  * executor. Before JEI has started (main menu) it does nothing, and JEI
  * starts in the new language anyway.
