@@ -4,6 +4,7 @@ import com.github.arrivedbog593.borderlesswindow.camera.BobbingState;
 import com.github.arrivedbog593.borderlesswindow.camera.CameraBobMode;
 import com.github.arrivedbog593.borderlesswindow.camera.DistortionState;
 import com.github.arrivedbog593.borderlesswindow.camera.ZoomState;
+import com.github.arrivedbog593.borderlesswindow.visual.StatusEffectState;
 import com.llamalad7.mixinextras.injector.v2.WrapWithCondition;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
@@ -14,12 +15,16 @@ import net.minecraft.client.DeltaTracker;
 import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.client.renderer.state.level.CameraRenderState;
 import net.minecraft.client.renderer.state.level.PlayerRenderState;
+import net.minecraft.world.effect.MobEffectInstance;
+import net.minecraft.world.effect.MobEffects;
+import net.minecraft.world.entity.LivingEntity;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.ModifyArg;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 /**
  * Splits vanilla's single "View Bobbing" option into a camera setting
@@ -172,6 +177,28 @@ public abstract class GameRendererMixin {
     @Inject(method = "update", at = @At("HEAD"))
     private void borderlesswindow$updateZoom(DeltaTracker deltaTracker, CallbackInfo ci) {
         ZoomState.onFrame();
+    }
+
+    /**
+     * Night Vision's last 10 seconds (see NightVisionMode). Every reader of
+     * the brightness goes through this static method (getNightVisionScale
+     * up to 26.1, nightVisionScale since 26.2): the lightmap
+     * (LightmapRenderStateExtractor) and the fog and sky color
+     * (FogRenderer). Its callers only ask while the effect is active, so
+     * getEffect is never null here; checked anyway, in case a mod asks
+     * without it.
+     */
+    @Inject(method = "nightVisionScale", at = @At("HEAD"), cancellable = true)
+    private static void borderlesswindow$nightVisionScale(LivingEntity livingEntity, float partialTick,
+                                                          CallbackInfoReturnable<Float> cir) {
+        MobEffectInstance effect = livingEntity.getEffect(MobEffects.NIGHT_VISION);
+        if (effect == null) {
+            return;
+        }
+        float scale = StatusEffectState.nightVisionScale(effect, partialTick);
+        if (scale >= 0.0F) {
+            cir.setReturnValue(scale);
+        }
     }
 
     /**

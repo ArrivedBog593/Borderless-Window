@@ -14,8 +14,10 @@ import com.github.arrivedbog593.borderlesswindow.fps.UnfocusedFpsState;
 import com.github.arrivedbog593.borderlesswindow.fps.UnfocusedVolumeState;
 import com.github.arrivedbog593.borderlesswindow.visual.CloudState;
 import com.github.arrivedbog593.borderlesswindow.visual.FogState;
+import com.github.arrivedbog593.borderlesswindow.visual.NametagState;
 import com.github.arrivedbog593.borderlesswindow.visual.ScreenEffectState;
 import com.github.arrivedbog593.borderlesswindow.visual.SkyState;
+import com.github.arrivedbog593.borderlesswindow.visual.StatusEffectState;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.Options;
 import org.lwjgl.sdl.SDLHints;
@@ -127,18 +129,20 @@ public final class BorderlessHandler {
                 config.fogTerrainStart());
         SkyState.init(config.sunMoon(), config.stars(), config.weather());
         HudState.init(config.heldItemName());
+        LanguageState.init(config.fastLanguageReload());
+        ToastState.init(config.advancementToasts(), config.recipeToasts(),
+                config.tutorialToasts(), config.unverifiedChatToast(),
+                config.narratorToast(), config.packDownloadToast());
         CloudState.init(config.cloudHeight());
-        ScreenEffectState.init(config.waterOverlay(), config.fireOverlay(),
-                config.smartFire(), config.pumpkinOverlay(),
-                config.freezeOverlay(), config.portalOverlay(),
-                config.spyglassOverlay());
+        ScreenEffectState.init(config);
+        StatusEffectState.init(config.nightVisionMode(), config.ownEffectParticles());
+        NametagState.init(config.nametagMode());
         BobbingState.init(config.cameraBobMode(), config.handBob());
         EnchantmentLevelState.init(config.enchantmentLevelStyle());
         DistortionState.init(config.distortionPortal(), config.distortionNausea());
         FovState.init(config.fovSpeed(), config.fovFlying(),
                 config.fovBow(), config.fovFluid());
-        DistanceState.init(config.distanceItems(), config.distanceOrbs(),
-                config.distanceArmorStands(), config.distanceParticles());
+        DistanceState.init(config.distances());
         ZoomState.init(config.zoomMode(), config.zoomLevel(),
                 config.zoomScroll(), config.zoomSmooth(),
                 config.zoomHideHand(), config.zoomHideHud());

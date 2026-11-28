@@ -40,3 +40,20 @@ type="optional"
 versionRange="[0.9.3,)"
 ordering="AFTER"
 side="CLIENT"
+
+# Chloride requires Sodium and, like this mod, replaces Sodium's Fullscreen
+# option through its Config API: Sodium refuses two replacements for the
+# same option and the game crashes at the title screen ("Multiple
+# overrides for option 'sodium:general.fullscreen'", tested 2026-11-23
+# on 1.21.1 with Chloride 1.8.1 and Sodium 0.8.13, and declared on every
+# version both mods exist for; on 26.3 ahead of a Chloride build for it,
+# none was out on 2026-11-27). It also takes over F11 and the
+# window mode switch (Window.setMode). Declaring it here turns the crash
+# into a clear message before loading.
+[[dependencies.${mod_id}]]
+modId="chloride"
+type="incompatible"
+reason="Chloride and Borderless Window both replace Sodium's Fullscreen option with their own screen mode and both take over F11; together the game crashes on startup. Keep only one of the two."
+versionRange="[0,)"
+ordering="NONE"
+side="CLIENT"
