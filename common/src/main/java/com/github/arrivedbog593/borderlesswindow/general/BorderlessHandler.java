@@ -14,8 +14,10 @@ import com.github.arrivedbog593.borderlesswindow.fps.UnfocusedFpsState;
 import com.github.arrivedbog593.borderlesswindow.fps.UnfocusedVolumeState;
 import com.github.arrivedbog593.borderlesswindow.visual.CloudState;
 import com.github.arrivedbog593.borderlesswindow.visual.FogState;
+import com.github.arrivedbog593.borderlesswindow.visual.NametagState;
 import com.github.arrivedbog593.borderlesswindow.visual.ScreenEffectState;
 import com.github.arrivedbog593.borderlesswindow.visual.SkyState;
+import com.github.arrivedbog593.borderlesswindow.visual.StatusEffectState;
 import com.mojang.blaze3d.platform.Monitor;
 import com.mojang.blaze3d.platform.VideoMode;
 import com.mojang.blaze3d.platform.Window;
@@ -42,6 +44,10 @@ import static org.lwjgl.glfw.GLFW.*;
 public final class BorderlessHandler {
 
     private static ScreenMode currentMode = ScreenMode.WINDOWED;
+
+    // A mode asked for while the window was minimized, applied when it is
+    // restored (see setMode). Null when nothing is waiting.
+    private static ScreenMode deferredMode;
 
     // Watch over the Fullscreen resolution right after it is applied, see
     // checkFullscreenMode. The fallback was seen within half a second.
@@ -83,6 +89,27 @@ public final class BorderlessHandler {
 
     public static ScreenMode getCurrentMode() {
         return currentMode;
+    }
+
+    /**
+     * The mode to write to the config: the one waiting for the window to
+     * be restored, if any (see setMode), so closing the game while it is
+     * still minimized does not lose it.
+     */
+    public static ScreenMode getModeToSave() {
+        return deferredMode != null ? deferredMode : currentMode;
+    }
+
+    /**
+     * Called every frame (MinecraftMixin). Applies the mode setMode had to
+     * hold back while the window was minimized, as soon as it is restored.
+     */
+    public static void applyDeferredMode(Window window) {
+        if (deferredMode == null
+                || glfwGetWindowAttrib(window.handle(), GLFW_ICONIFIED) == GLFW_TRUE) {
+            return;
+        }
+        setMode(window, deferredMode);
     }
 
     public static F11Mode getF11Target() {
@@ -147,18 +174,20 @@ public final class BorderlessHandler {
                 config.fogTerrainStart());
         SkyState.init(config.sunMoon(), config.stars(), config.weather());
         HudState.init(config.heldItemName());
+        LanguageState.init(config.fastLanguageReload());
+        ToastState.init(config.advancementToasts(), config.recipeToasts(),
+                config.tutorialToasts(), config.unverifiedChatToast(),
+                config.narratorToast(), config.packDownloadToast());
         CloudState.init(config.cloudHeight());
-        ScreenEffectState.init(config.waterOverlay(), config.fireOverlay(),
-                config.smartFire(), config.pumpkinOverlay(),
-                config.freezeOverlay(), config.portalOverlay(),
-                config.spyglassOverlay());
+        ScreenEffectState.init(config);
+        StatusEffectState.init(config.nightVisionMode(), config.ownEffectParticles());
+        NametagState.init(config.nametagMode());
         BobbingState.init(config.cameraBobMode(), config.handBob());
         EnchantmentLevelState.init(config.enchantmentLevelStyle());
         DistortionState.init(config.distortionPortal(), config.distortionNausea());
         FovState.init(config.fovSpeed(), config.fovFlying(),
                 config.fovBow(), config.fovFluid());
-        DistanceState.init(config.distanceItems(), config.distanceOrbs(),
-                config.distanceArmorStands(), config.distanceParticles());
+        DistanceState.init(config.distances());
         ZoomState.init(config.zoomMode(), config.zoomLevel(),
                 config.zoomScroll(), config.zoomSmooth(),
                 config.zoomHideHand(), config.zoomHideHud());
@@ -174,10 +203,25 @@ public final class BorderlessHandler {
 
     public static void setMode(Window window, ScreenMode mode) {
         if (mode == currentMode) {
+            deferredMode = null;
             return;
         }
 
         long handle = window.handle();
+
+        // A minimized window cannot take a new mode: Windows keeps the
+        // position and size it is given for the minimized window, and
+        // restores the old windowed ones. Borderless then came back at the
+        // windowed size, undecorated; and the size saved below for the
+        // way back to Windowed was the minimized window's. Seen when the
+        // game was minimized during startup, before the saved mode was
+        // applied. So the mode waits for the window to be restored, see
+        // applyDeferredMode.
+        if (glfwGetWindowAttrib(handle, GLFW_ICONIFIED) == GLFW_TRUE) {
+            deferredMode = mode;
+            return;
+        }
+        deferredMode = null;
 
         // If we are leaving WINDOWED, remember its size/position so we can
         // restore it later, regardless of which mode we switch to now.
