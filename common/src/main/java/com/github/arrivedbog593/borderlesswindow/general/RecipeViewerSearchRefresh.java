@@ -29,7 +29,7 @@ import java.util.Optional;
  * through Fabric API's resource loader v1 (its sibling jei:lifecycle,
  * for server data, restarts JEI and is left alone); Fabric API 0.141
  * keeps such listeners out of the manager's list and in its own map, see
- * fabricClientListener. That one listener's onResourceManagerReload runs
+ * fabricJeiListener. That one listener's onResourceManagerReload runs
  * by itself, on this thread, as a full reload would run it on the game
  * executor. Before JEI has started (main menu) it does nothing, and JEI
  * starts in the new language anyway.
@@ -98,7 +98,7 @@ public final class RecipeViewerSearchRefresh {
             }
         }
         try {
-            if (fabricClientListener(JEI_FABRIC_SEARCH_ID) instanceof ResourceManagerReloadListener simple) {
+            if (fabricJeiListener() instanceof ResourceManagerReloadListener simple) {
                 found.add(simple);
             }
         } catch (Throwable t) {
@@ -114,9 +114,10 @@ public final class RecipeViewerSearchRefresh {
     }
 
     /**
-     * The client reload listener Fabric API's resource loader v1 holds
-     * under this id, or null outside Fabric. Fabric API 0.141 (checked in
-     * 0.141.6) does not put these listeners in the resource manager's own
+     * JEI's client reload listener, which Fabric API's resource loader v1
+     * holds under JEI_FABRIC_SEARCH_ID, or null outside Fabric. Fabric API
+     * 0.141 (checked in 0.141.6) does not put these listeners in the
+     * resource manager's own
      * list: every reload adds them to a copy of it (SimpleReloadInstanceMixin,
      * ResourceLoaderImpl.sort). ResourceLoaderImpl keeps them in its
      * addedReloaders map from the moment they are registered, so JEI's is
@@ -124,7 +125,7 @@ public final class RecipeViewerSearchRefresh {
      * resource reload. The map is Fabric API's internals, read by
      * reflection like the rest of this class.
      */
-    private static Object fabricClientListener(String id) throws ReflectiveOperationException {
+    private static Object fabricJeiListener() throws ReflectiveOperationException {
         Class<?> loader;
         try {
             loader = Class.forName(FABRIC_RESOURCE_LOADER);
@@ -136,7 +137,7 @@ public final class RecipeViewerSearchRefresh {
         field.setAccessible(true);
         if (field.get(instance) instanceof Map<?, ?> reloaders) {
             for (Map.Entry<?, ?> entry : List.copyOf(reloaders.entrySet())) {
-                if (id.equals(String.valueOf(entry.getKey()))) {
+                if (JEI_FABRIC_SEARCH_ID.equals(String.valueOf(entry.getKey()))) {
                     return entry.getValue();
                 }
             }
